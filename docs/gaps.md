@@ -74,7 +74,10 @@ first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace
   `i18n-coverage` · banned-name grep · `stats` + committed-scorecard diff · `cargo deny` ·
   `cargo machete`. The PR's **ubuntu + windows jobs are green** — PR #2, run
   [40419756246](https://github.com/halmousama/MiData/actions/runs/40419756246) (ubuntu 22 s,
-  windows 56 s) — the first real two-OS proof; P0-12 could not provide it.
+  windows 56 s) — the first real two-OS proof; P0-12 could not provide it. Re-verified on the round-1
+  fix commit `b7035e7`: run
+  [40421245292](https://github.com/halmousama/MiData/actions/runs/40421245292) green on both OSes
+  (ubuntu 20 s, windows 43 s).
 - **Registered DAG:** 14 crates/edges declared in `xtask/src/layers.rs` (13 planned + `xtask`), with
   birth phase and manifest home per crate; intra-layer edges (`ops → analytics/exchange`,
   `engine → ops`, `ai → queryguard`) included. Unregistered crates and unregistered external

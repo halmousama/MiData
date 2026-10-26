@@ -308,5 +308,8 @@ no pinned-toolchain job exists. Row 6 of gaps "Known shortfalls".
 **Observation 03 (reported to the owner, untouched).** `docs/review-templates.md` is **untracked** on
 this branch (author unknown; it is the reviewer-agent contract). Left uncommitted rather than adopted.
 
+**Two-OS proof after the fix.** Commit `b7035e7` re-ran CI: `ci (ubuntu-latest)` and
+`ci (windows-latest)` both **green** (run 40421245292, 20 s / 43 s).
+
 **Still open (rank order).** 1. Independent REVIEWER session on PR #2. 2. P0-10 `AGENTS.md` diet.
 3. P0-2 `midata-domain` + `midata-i18n`.
