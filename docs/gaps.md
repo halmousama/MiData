@@ -1,6 +1,6 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-27 (P0-12 owner rulings) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-27 (P0-1 closed) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -15,7 +15,7 @@
 
 | Rank | id | Task | Kind | Impact | Est. (h) | Depends on | Status |
 |---|---|---|---|---|---|---|---|
-| 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | open |
+| 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
 | 2 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 33.5 KB against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
 | 3 | P0-2 | `midata-domain` + `midata-i18n` | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open |
 | 4 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 | open |
@@ -26,15 +26,20 @@
 | 9 | P0-8 | Inventory v0 reconciliation (re-scoped) | docs | Turns the hand-written checklist into a machine-checkable contract | 2 | — | open |
 | 10 | P0-9 | Snapshots + gates polish | quality | Locks the Phase-0 exit criteria and the ratchets in place | 6 | P0-5, P0-6 | open |
 
-**Sum:** 72 agent-hours (Phase-0 estimate band is 40–80 h — `REBUILD_PLAN.md` §14). Phase 0 closes when
-every row above is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction,
-3 h) closed on 2026-10-26 and P0-12 (owner rulings, 1.5 h) on 2026-10-27 — see §Closed.
+**Sum:** 62 agent-hours open (72 at queue start; P0-1 closed 10 h). Phase 0 closes when every open row
+is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on
+2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27 and P0-1 on 2026-10-27 — see §Closed.
 
 ---
 
-## P0-1 — Workspace, `xtask`, CI  ·  10 h  ·  rank 1
+## P0-1 — Workspace, `xtask`, CI  ·  10 h  ·  rank 1  ·  **done 2026-10-27**
 
 **Kind:** infra · **Source:** `REBUILD_PLAN.md` §4.1/§4.2/§13.1, Appendix C bullets 1, 3, 5.
+
+**Scope decision (taken under autonomy, recorded here).** The recommended split in §Scope was chosen:
+P0-1 creates the workspace + `xtask` **only**; product crates are birth-gated per task (D26). Only
+`anyhow` and `serde_json` are workspace dependencies because only `xtask` uses them — no pre-populated
+dependency table, which would be a dead manifest by another name.
 
 **Why now.** Nothing can be built or gated until the workspace, the layer checker and CI exist. The
 first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace lints that make
@@ -63,14 +68,33 @@ first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace
   file-budget, i18n-coverage, cargo-deny, cargo-machete, scorecard regeneration diff, snapshots on Linux.
 - `rumetrics` grep gate (zero occurrences) as a `xtask ci` step.
 
-**Evidence to record.** `cargo xtask ci` green locally; the PR's **both workflow jobs** (ubuntu +
-windows) green on the owner's remote (live since 2026-10-27, D27 — branch protection means this is a
-merge gate, not a nice-to-have); `docs/scorecard.md` committed and CI-diffed; layer check demonstrably
-fails on a deliberately illegal edge (temporary, reverted — captured in the devlog, not committed).
+**Delivered (evidence).**
+- `cargo xtask ci` green locally: `cargo fmt --all --check` · `clippy --workspace --all-targets -D
+  warnings` · `nextest run --workspace` (**35 tests**) · `check-layers` · `file-budget` ·
+  `i18n-coverage` · banned-name grep · `stats` + committed-scorecard diff · `cargo deny` ·
+  `cargo machete`. The PR's **ubuntu + windows jobs are the acceptance evidence** (run links in the
+  PR) — the first real two-OS proof; P0-12 could not provide it.
+- **Registered DAG:** 14 crates/edges declared in `xtask/src/layers.rs` (13 planned + `xtask`), with
+  birth phase and manifest home per crate; intra-layer edges (`ops → analytics/exchange`,
+  `engine → ops`, `ai → queryguard`) included. Unregistered crates and unregistered external
+  dependencies fail.
+- **Every gate shown to bite** (intentional violation, caught, reverted — output quoted in the PR body):
+  layer check (unregistered `clap` edge), file budget (501-line file + stale-baseline unit test),
+  i18n coverage (stale `no-catalogues` baseline; FR-missing ratchet regression), stats (hand-edited
+  scorecard fails `--check`), banned-name grep (term in a shipped file), `ci` (format violation stops
+  the run before any later step).
+- **Baselines committed with zero violations:** `docs/file-budget.baseline` (empty),
+  `docs/i18n-coverage.baseline` (`state: no-catalogues`, loud skip until P0-2),
+  `docs/scorecard.md` (GENERATED, 0/222 inventory, 35 tests, 1 crate, 0 budget violations, 0
+  clippy/unsafe). No timestamps in generated output, so ubuntu and windows diff identically.
+- **Design seams planned for P0-2+:** `docs/architecture.md` §9 records clock / store-handle /
+  provider / actor injection through `Session`, no globals and no module-level connection.
+- **Owner TODO (also in the devlog):** after this PR merges, enable **Require status checks** in branch
+  protection for `ci (ubuntu-latest)` and `ci (windows-latest)`.
 
-**Risks.** Dependency approval: every crate here is already named in Appendix A, so no new escalation —
-but the versions chosen must still pass `cargo deny`. Windows runner availability is the first thing to
-verify, since D12 makes it binding.
+**Risks.** Dependency approval: only `anyhow` + `serde_json` were added (both in Appendix A), so no new
+escalation — `cargo deny` runs in CI. Windows parity is verified by the matrix on every PR; the P0-1 PR
+is the first run of that matrix (snapshots stay Linux-only when P0-5 lands).
 
 ---
 
@@ -361,6 +385,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | B0 | Bootstrap: git, `.gitignore`, `rust-toolchain.toml`, dual licence, doc system v0, gaps v0, inventory v0 | 2026-10-26 | this file; `docs/inventory.md` (195 rows); `log/devlog.md` |
 | P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
 | P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
+| P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (35 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
 
 ---
 
@@ -369,11 +394,10 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 Items that are real but too small — or too dependent — to queue on their own. Promote to a `P<phase>-n`
 entry when they grow.
 
-1. **`docs/scorecard.md` is a stub.** Every number in `ROADMAP.md` is hand-written until `xtask stats`
-   exists (P0-1/P0-9). Risk: the "drifting hand-written numbers" anti-pattern. Mitigation: the stub is
-   marked GENERATED and CI must diff it before Phase 0 closes.
-2. **No `deny.toml` / `Cargo.lock` yet** — they arrive with the first crate (P0-1); licence compliance is
-   therefore unverified until then.
+1. ~~**`docs/scorecard.md` is a stub.**~~ **Resolved 2026-10-27 (P0-1):** `cargo xtask stats` generates
+   the scorecard deterministically and CI diffs it. `ROADMAP.md` quotes it.
+2. ~~**No `deny.toml` / `Cargo.lock` yet**~~ **Resolved 2026-10-27 (P0-1):** both committed; `cargo
+   deny check` is a CI gate.
 3. **`docs/mobile-access-strategy.md` is absent by design** (Phase 7, C8/D2). Any early attempt to add
    axum or a server is a scope violation, not a gap.
 4. ~~**Oracle mapping is empty** (`docs/testing.md` skeleton).~~ **Resolved 2026-10-26 (P0-11):** 470

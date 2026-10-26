@@ -1,7 +1,8 @@
 # Development
 
-> **Status:** pre-P0-1 — there is no workspace yet, so no command below runs *today*. This is the
-> contract they must satisfy once P0-1 lands.
+> **Status:** P0-1 landed — the workspace, `xtask` gates and the ubuntu+windows CI matrix exist.
+> Only `xtask` is a crate; product crates arrive with their birth tasks (D26). The everyday commands
+> below become runnable as each crate lands.
 > **Source:** `REBUILD_PLAN.md` §11.4 (gate), §12 (testing), §13 (CI/release), §4.5 (storage),
 > §7.5 (snapshots); AGENTS.md §5.
 

@@ -216,3 +216,62 @@ a corrupt file (IX-11).
 2. **P0-10** `AGENTS.md` → lean bootloader ≤ ~12 KB (owner reviews the final shape).
 3. **P0-2** `midata-domain` + `midata-i18n` — `value.distinct-missing-states` and `value.one-resolver` are
    its acceptance criteria.
+
+---
+
+## 2026-10-27 — P0-1 · Workspace, `xtask` gates, ubuntu+windows CI
+
+**Landed**
+- Root workspace (`resolver = "2"`, `unsafe_code = "forbid"`, clippy deny-list, `panic = "unwind"`,
+  `MIT OR Apache-2.0`), `Cargo.lock`, `.cargo/config.toml` (`cargo xtask` alias), `clippy.toml`,
+  `deny.toml`, `.gitattributes` (LF everywhere, binary exceptions).
+- **`xtask` only** — product crates stay birth-gated per task (D26). Dependencies: `anyhow` +
+  `serde_json` only; no pre-populated workspace dependency table.
+- Gates: `check-layers` (14-crate registered DAG with birth phase + manifest home, internal/external
+  edges, dev-only testkit, app-as-dependency ban, egui/tokio/sqlparser/file-format homes),
+  `file-budget` (500 soft / 800 alarm, shrink-only baseline), `i18n-coverage` (explicit
+  `no-catalogues` state, FR-missing ratchet, orphan report), `stats` (deterministic scorecard, no
+  timestamps), `banned-names`, `ci` (aggregator; missing local tools are loud skips, never passes),
+  and `new-command`/`new-screen`/`seed`/`bench` skeletons that return an unsupported error.
+- `.github/workflows/ci.yml`: `ci (ubuntu-latest)` + `ci (windows-latest)`, both run `cargo xtask ci`
+  (fmt · clippy `-D warnings` · nextest · all gates · scorecard diff · cargo-deny · cargo-machete).
+- Docs: `docs/architecture.md` §9 records the clock/store-handle/provider/actor injection seams for
+  P0-2+ (no globals, no module-level connection); development/roadmap/ROADMAP/gaps updated.
+
+**Numbers**
+- Tests: 0 → **35** (all xtask gate unit tests; nextest green).
+- Crates in workspace: **1** (`xtask`); 13 registered but not yet born.
+- File-budget violations: **0** across 12 Rust files. `unsafe` tokens: 0. Clippy warnings: 0.
+- Inventory coverage unchanged at 0 / 222; i18n coverage `n/a` (loud tracked skip until P0-2).
+- Scorecard is **generated, committed and CI-diffed** — `ROADMAP.md` now quotes it instead of hand counts.
+
+**Negative proofs recorded in the PR body (each violation temporary + reverted)**
+| Gate | Intentional violation | Result |
+|---|---|---|
+| check-layers | `xtask` → unregistered `clap` | `unregistered external dependency` |
+| file-budget | 501-line file | `new violation at 501 lines` |
+| i18n-coverage | catalogues appear over a `no-catalogues` baseline | stale-baseline failure |
+| i18n-coverage | EN key without FR over baseline `fr_missing: 0` | `FR coverage regressed` |
+| stats | hand-edited scorecard | `--check` reports stale |
+| banned-names | banned term in a shipped `.md` | occurrence reported |
+| ci | unformatted target file | stops at the format step |
+
+**Decisions taken under autonomy (AGENTS.md §7)**
+- Adopted the recommended P0-1 split (workspace + `xtask` only). Creating ten empty crates to match
+  Appendix C's older bullet would violate the birth-gating reading of D26.
+- `stats` counts tests by a deterministic source scan of test attributes (doc tests excluded) rather
+  than invoking nextest: the scorecard must be identical on ubuntu and windows and stable without
+  compiling test binaries. Documented in the scorecard itself.
+- Banned-name scope: shipped surfaces must be clean; the constitution/plan/decisions/gaps and the
+  legacy spec are allowlisted because their job is to state or quote the ban.
+
+**Owner TODO**
+- After this PR merges: enable **Require status checks** in branch protection for
+  `ci (ubuntu-latest)` and `ci (windows-latest)`. Until then the two jobs are informative, not merge
+  gates.
+
+**Still open (in rank order)**
+1. **P0-10** `AGENTS.md` → lean bootloader ≤ ~12 KB (owner reviews the final shape).
+2. **P0-2** `midata-domain` + `midata-i18n` — the first crates; run `cargo xtask i18n-coverage
+   --write-baseline` when the catalogues are born so the skip becomes a real measurement.
+3. **P0-3** `midata-store` + birth-gated migrations (D26).
