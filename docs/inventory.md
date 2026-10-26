@@ -1,6 +1,8 @@
 # Feature inventory — parity checklist vs the legacy behaviour spec
 
-> **Version:** v0 · **Generated:** 2026-10-26 (BOOTSTRAP-1, task B0) · **Status of every row:** `planned`
+> **Version:** v1 · **Generated:** 2026-10-26 (BOOTSTRAP-1, task B0) · **Updated:** 2026-10-26 (P0-11, oracle
+> extraction) · **Status of every row:** `planned` · **Rows:** 222 (195 v0 + 27 added when the legacy test
+> extraction proved behaviours the v0 checklist had no row for — see `docs/testing.md` §8)
 > **Source of truth for behaviour:** `docs/legacy-spec/PROJECT_REPORT.md` (reference **only** — never an
 > implementation source) transcribed against `REBUILD_PLAN.md` §5–§9. Legacy endpoint paths, module
 > names and code shapes are deliberately absent: rows describe **behaviour**, because this is a
@@ -33,7 +35,8 @@
 ## HM — Herd management
 
 *Source: PROJECT_REPORT §3.1 (herd management), §11.3 (birth), §17.2 (`test_soft_delete`), plus the
-owner decisions that promote identity to columns (D7) and define sire/dam rules (§5.5).*
+owner decisions that promote identity to columns (D7) and define sire/dam rules (§5.5). Oracle scenarios:
+`docs/oracles/retention-and-soft-delete.md`, `docs/oracles/pedigree-and-reproduction.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -62,7 +65,8 @@ owner decisions that promote identity to columns (D7) and define sire/dam rules 
 
 ## DE — Data entry
 
-*Source: PROJECT_REPORT §3.2 (data entry), §5.3/§5.4 (value encoding, flattening), §11.6 (import).*
+*Source: PROJECT_REPORT §3.2 (data entry), §5.3/§5.4 (value encoding, flattening), §11.6 (import).
+Oracle scenarios: `docs/oracles/exchange-and-onboarding.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -81,11 +85,16 @@ owner decisions that promote identity to columns (D7) and define sire/dam rules 
 | DE-13 | Import reports per-row errors without discarding valid rows' outcome | planned | P3 | — |
 | DE-14 | Import shows progress and can be cancelled | planned | P3 | — |
 | DE-15 | Birth action records parturition, offspring and pedigree in one atomic transaction | planned | P4 | — |
+| DE-16 | An import batch commits as one transaction: a concurrent reader sees none of it or all of it | planned | P3 | — |
+| DE-17 | An empty import batch is a successful no-op with zero counts and no errors | planned | P3 | — |
+| DE-18 | An empty spreadsheet cell means "no value" — never a zero and never an empty-string observation | planned | P3 | — |
+| DE-19 | Duplicate identifiers within one import file are refused with an actionable error naming the rows (never silently merged) | planned | P3 | — |
 
 ## OR — Organization & configuration
 
 *Source: PROJECT_REPORT §3.3 (fields, modes, computed, rules, packs, templates), §6.5 (field roles →
-`purpose` tags, D7), §11.4–§11.5 (formulas, rules), §17.2 (`test_formula_service`, `test_settings`).*
+`purpose` tags, D7), §11.4–§11.5 (formulas, rules), §17.2 (`test_formula_service`, `test_settings`).
+Oracle scenarios: `docs/oracles/storage-and-config.md`, `docs/oracles/retention-and-soft-delete.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -119,11 +128,17 @@ owner decisions that promote identity to columns (D7) and define sire/dam rules 
 | OR-28 | Alerts centre: nav badge plus alerts list | planned | P2 | — |
 | OR-29 | Export a setup template: configuration only (fields, modes, links, widgets) | planned | P6 | — |
 | OR-30 | Import a setup template without touching animals or observations | planned | P6 | — |
+| OR-31 | Protected configuration fields refuse deactivation with an actionable i18n'd error and change nothing | planned | P1 | — |
+| OR-32 | Identity-carrying attributes cannot be deactivated — identity is structural, not a deactivatable field | planned | P1 | — |
+| OR-33 | Mode listing supports an active-only filter; the unfiltered listing exposes inactive configuration to management surfaces | planned | P2 | — |
+| OR-34 | Toggle a mode active/inactive, with reactivation restoring it to listings and navigation | planned | P2 | — |
+| OR-35 | One toggle command drives both directions for fields, modes and widgets — no separate activate/deactivate verbs | planned | P2 | — |
 
 ## AN — Analytics
 
 *Source: PROJECT_REPORT §3.4 (statistics, studio, deep dive, correlation, profitability), §9.3–§9.4
-(engine behaviours, deterministic insights), §17.2 (`test_analytics`, `test_tool_analyze`).*
+(engine behaviours, deterministic insights), §17.2 (`test_analytics`, `test_tool_analyze`).
+Oracle scenarios: `docs/oracles/analytics-and-dashboard.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -153,11 +168,15 @@ owner decisions that promote identity to columns (D7) and define sire/dam rules 
 | AN-24 | Profitability: prices and feed cost in integer minor units, currency from settings (TND default) | planned | P3 | — |
 | AN-25 | Profitability: best and worst performers | planned | P3 | — |
 | AN-26 | Every insight is a deterministic template; the LLM is never in the analytics path | planned | P3 | — |
+| AN-27 | Growth trend: observations grouped by day/week/month with per-period average, min, max and count, plus direction and percentage change | planned | P3 | — |
+| AN-28 | Herd composition: counts and percentages by species × sex × age group, with a herd total | planned | P3 | — |
+| AN-29 | Mortality: deaths and death rate per year plus an overall rate, with the denominator stated in the result | planned | P3 | — |
 
 ## DB — Dashboard
 
 *Source: PROJECT_REPORT §3.4 (server-driven widgets whose configuration lives in the database),
-§9.3 (`compute_dashboard_stats`, `compute_dynamic_dashboard`), §13.3 (visualisation).*
+§9.3 (`compute_dashboard_stats`, `compute_dynamic_dashboard`), §13.3 (visualisation).
+Oracle scenarios: `docs/oracles/analytics-and-dashboard.md`, `docs/oracles/assistant.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -178,7 +197,8 @@ owner decisions that promote identity to columns (D7) and define sire/dam rules 
 ## PD — Pedigree & reproduction
 
 *Source: PROJECT_REPORT §3.4 (pedigree graph), §9.5 (BFS/bounds/phantoms/cap/warnings), §11.3
-(birth trigger), §17.2 (`test_pedigree`, `test_health_reproduction`).*
+(birth trigger), §17.2 (`test_pedigree`, `test_health_reproduction`).
+Oracle scenarios: `docs/oracles/pedigree-and-reproduction.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -202,11 +222,12 @@ owner decisions that promote identity to columns (D7) and define sire/dam rules 
 | PD-18 | Pregnant-animals view | planned | P4 | — |
 | PD-19 | Upcoming-expected-births view | planned | P4 | — |
 | PD-20 | Reproduction alerts appear in the alerts centre | planned | P4 | — |
+| PD-21 | A pedigree node renders an animal whose sex or species is unrecorded as "unknown" rather than omitting the node | planned | P4 | — |
 
 ## IX — Import / export / backup
 
 *Source: PROJECT_REPORT §3.2 (Excel/CSV import), §3.4 (Excel export), §11.6 (import, export, backup),
-§17.2 (`test_import`).*
+§17.2 (`test_import`). Oracle scenarios: `docs/oracles/exchange-and-onboarding.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -227,7 +248,8 @@ owner decisions that promote identity to columns (D7) and define sire/dam rules 
 ## SY — System, settings, i18n, theme
 
 *Source: PROJECT_REPORT §3.6 (sharing/desktop — mostly dropped, see SY-10), §15 (configuration),
-REBUILD_PLAN §4.5 (storage), §7.4 (i18n), RG golden rules 12/14 (i18n, audit).*
+REBUILD_PLAN §4.5 (storage), §7.4 (i18n), RG golden rules 12/14 (i18n, audit).
+Oracle scenarios: `docs/oracles/storage-and-config.md`, `docs/oracles/launcher-waivers.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -243,11 +265,16 @@ REBUILD_PLAN §4.5 (storage), §7.4 (i18n), RG golden rules 12/14 (i18n, audit).
 | SY-10 | Legacy sharing surfaces absent by design: no LAN server, no tunnel, no QR code, no tray, no SPA bundle | planned | P0 | — |
 | SY-11 | Portable mode: data directory next to the executable via env flag | planned | P1 | — |
 | SY-12 | Database lives in the platform data directory (Linux + Windows paths) | planned | P0 | — |
+| SY-13 | Opening an empty data file creates the complete schema at the current version, with no manual step | planned | P0 | — |
+| SY-14 | One embedded file-based database is the only storage backend — no second engine, no server | planned | P0 | — |
+| SY-15 | The data file runs in WAL journal mode; memory-only databases are never used for real data | planned | P0 | — |
+| SY-16 | An absent, corrupt or schema-short settings store degrades to defaults instead of crashing; a second write replaces the first | planned | P0 | — |
 
 ## AI — AI assistant
 
 *Source: PROJECT_REPORT §3.5 (assistant capabilities), §10.3–§10.5 (validation, caps, tokens, audit),
-§17.2 (`test_tool_query`, `test_ai_chat_service`, `test_ai_settings`, `test_ai_conversations`).*
+§17.2 (`test_tool_query`, `test_ai_chat_service`, `test_ai_settings`, `test_ai_conversations`).
+Oracle scenarios: `docs/oracles/assistant.md`, `docs/oracles/query-validation.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -271,11 +298,15 @@ REBUILD_PLAN §4.5 (storage), §7.4 (i18n), RG golden rules 12/14 (i18n, audit).
 | AI-18 | AI widget proposal: natural language → validated query + chart config → preview → saved as AI-sourced | planned | P5 | — |
 | AI-19 | Injection attempts rejected by the validation lab | planned | P5 | — |
 | AI-20 | Assistant failures surface as i18n messages, never raw exception text | planned | P5 | — |
+| AI-21 | Query result envelope: columns, rows, row count and a truncated flag form the tool contract | planned | P5 | — |
+| AI-22 | An empty result set is a successful response, never an error | planned | P5 | — |
+| AI-23 | Assistant drives view navigation through a closed action set dispatched by command id, carrying no domain logic | planned | P5 | — |
 
 ## EX — Extensions / packs
 
 *Source: PROJECT_REPORT §3.3 (extensions/marketplace), §11.2 (install atomicity, type conflicts,
-reactivation, gestation seeding, soft uninstall), §17.2 (`test_extensions`).*
+reactivation, gestation seeding, soft uninstall), §17.2 (`test_extensions`).
+Oracle scenarios: `docs/oracles/exchange-and-onboarding.md`, `docs/oracles/retention-and-soft-delete.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -291,11 +322,16 @@ reactivation, gestation seeding, soft uninstall), §17.2 (`test_extensions`).*
 | EX-10 | Packs screen lists packs with their install state | planned | P6 | — |
 | EX-11 | Bundled packs ship with the application | planned | P6 | — |
 | EX-12 | Install state survives a restart | planned | P6 | — |
+| EX-13 | Re-installing an installed pack refreshes or skips existing fields, modes and widgets in place — never duplicates them | planned | P6 | — |
+| EX-14 | Pack-owned widgets cannot be deactivated individually; their state follows the pack's install state | planned | P6 | — |
+| EX-15 | Uninstalling a pack that was never installed returns an actionable error and changes nothing | planned | P6 | — |
+| EX-16 | Pack install state is reported as active / deactivated / never-installed by a single read command | planned | P6 | — |
 
 ## OB — Onboarding
 
 *Source: PROJECT_REPORT §3.3/§11.1 (onboarding pipeline, merge-only idempotency, bundles, demo seed),
-§5.7 (seed determinism), D9 (seed species policy), D21 (one-step flow), §17.2 (`test_onboarding`).*
+§5.7 (seed determinism), D9 (seed species policy), D21 (one-step flow), §17.2 (`test_onboarding`).
+Oracle scenarios: `docs/oracles/exchange-and-onboarding.md`.*
 
 | id | behaviour | status | phase | evidence |
 |---|---|---|---|---|
@@ -311,6 +347,9 @@ reactivation, gestation seeding, soft uninstall), §17.2 (`test_extensions`).*
 | OB-10 | Seed contains only registry preset species (policy test) | planned | P0 | — |
 | OB-11 | Onboarding status reports whether setup is complete | planned | P0 | — |
 | OB-12 | Language and currency are chosen at onboarding and persisted | planned | P0 | — |
+| OB-13 | Onboarding with nothing selected is a clean no-op or an actionable refusal, never a half-configured app | planned | P0 | — |
+| OB-14 | An unknown bundle or pack identifier is refused with an actionable error, never silently ignored | planned | P0 | — |
+| OB-15 | Optional financial field groups (pricing, treatment cost, feed cost) are created only on explicit opt-in | planned | P0 | — |
 
 ---
 
@@ -322,17 +361,17 @@ Every row above is `planned`, so every number below is zero. Once `cargo xtask s
 | Block | Rows | Done | Coverage |
 |---|---|---|---|
 | HM | 22 | 0 | 0% |
-| DE | 15 | 0 | 0% |
-| OR | 30 | 0 | 0% |
-| AN | 26 | 0 | 0% |
+| DE | 19 | 0 | 0% |
+| OR | 35 | 0 | 0% |
+| AN | 29 | 0 | 0% |
 | DB | 13 | 0 | 0% |
-| PD | 20 | 0 | 0% |
+| PD | 21 | 0 | 0% |
 | IX | 13 | 0 | 0% |
-| SY | 12 | 0 | 0% |
-| AI | 20 | 0 | 0% |
-| EX | 12 | 0 | 0% |
-| OB | 12 | 0 | 0% |
-| **Total** | **195** | **0** | **0%** |
+| SY | 16 | 0 | 0% |
+| AI | 23 | 0 | 0% |
+| EX | 16 | 0 | 0% |
+| OB | 15 | 0 | 0% |
+| **Total** | **222** | **0** | **0%** |
 
 ## Waivers
 
@@ -342,7 +381,15 @@ Every row above is `planned`, so every number below is zero. Once `cargo xtask s
 | System tray, PyInstaller packaging, committed SPA bundle | Not applicable to a native Rust binary; no build artifacts are ever committed | `REBUILD_PLAN.md` §6.2 DROP, §13.4 |
 | CORS / API-key machinery, DuckDB second engine | No server exists; single analytics engine (D16) | `REBUILD_PLAN.md` §6.2 DROP |
 | Five-step onboarding wizard, Arabic UI, forced-Arabic AI responses | Replaced by 1-step onboarding (D21), EN+FR only (D3), mirror-language AI (D10) | `docs/decisions.md` D3/D10/D21 |
+| Legacy structured query-plan (DSL) surface | One validated SQL path; a second query language doubles validation for no gain | `docs/oracles/query-validation.md` |
 
-Oracle extraction for every legacy test module is **pending** the owner-authorized session — see
-`docs/testing.md`. A row without an oracle scenario is written fresh from the plan prose (D15) and
-stays that way unless the extraction adds one.
+**Correction (2026-10-26, P0-11).** The legacy test module whose name suggested local sharing
+(`test_local_sharing`, 37 tests) was previously assumed to be covered by the D2 waiver. It is not: it
+contains no sharing, tunnel, QR-code or browser-UI assertion at all — it tests read-only query validation
+(16), setup-template export (7), import (11) and round-trip (3), **all of which this inventory keeps**. The
+waiver applies to the 12 launcher tests, not to 49. See `docs/oracles/launcher-waivers.md` and
+`docs/testing.md` §7.
+
+Oracle extraction for every legacy test module is **complete** (2026-10-26, P0-11) — scenarios live in
+`docs/oracles/`, indexed by `docs/testing.md` §2. A row without an oracle scenario is written fresh from the
+plan prose (D15); the `## Fresh` section of each oracle file lists exactly which behaviours those are.

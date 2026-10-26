@@ -48,3 +48,68 @@ and the owner's remote does not exist yet.
 **Firewall note:** the legacy tree was not read, opened or grepped in this session; the only legacy
 material consulted was `docs/legacy-spec/PROJECT_REPORT.md` (already inside this repository, reference
 only).
+
+---
+
+## 2026-10-26 — P0-11 · Legacy oracle extraction session (firewall exception)
+
+**Firewall exception used and expired with this session.** Owner authorized, for this session only, the
+single exception to AGENTS.md rule 5: read **only** the legacy test files (`../MiData-back/backend/tests/`),
+nothing else in that repo. The legacy tree is closed again for good — no later session may re-open it.
+Behaviour questions now resolve through `docs/inventory.md` → `docs/testing.md` + `docs/oracles/` →
+`docs/legacy-spec/PROJECT_REPORT.md` → owner.
+
+**Landed**
+- `docs/oracles/` — **8 new files**, one per area, so no file breaks the 500-line budget and an agent loads
+  only the oracles its task needs: `storage-and-config.md` (42), `analytics-and-dashboard.md` (51),
+  `pedigree-and-reproduction.md` (60), `exchange-and-onboarding.md` (81),
+  `retention-and-soft-delete.md` (36), `query-validation.md` (71), `assistant.md` (75),
+  `launcher-waivers.md` (54). Every scenario is `input → expected behaviour`, implementation-agnostic, with
+  a stable id (`STO-nn` … `WAV-nn`) to cite in a test's doc comment and in an inventory `evidence` cell.
+- Each oracle file ends with **`## Fresh`** (behaviours the legacy tests never covered — write them from
+  `REBUILD_PLAN`) and **`## Anti-patterns — never reproduce`** (binding input to the §3 register).
+- `docs/testing.md` v1 — extraction marked complete; §2 is now an index of modules → files → counts →
+  inventory blocks; §7 waivers corrected; §8 mapping discipline rewritten around scenario ids.
+- `docs/inventory.md` v1 — **222 rows** (195 + **27 added**, because the extraction proved behaviours the v0
+  checklist had no row for): DE-16…19, OR-31…35, AN-27…29, PD-21, SY-13…16, AI-21…23, EX-13…16, OB-13…15.
+  Per-block oracle pointers added to every block's source line.
+- `docs/gaps.md` — P0-11 closed and moved to §Closed; queue now 10 open tasks / **73 agent-hours**.
+
+**Numbers**
+- Transcribed: **18 modules, 470 test functions → 485 collected cases** (matches the calibration figure in
+  `PROJECT_REPORT` §17.2, which counts cases, not functions). Kept **433** scenarios, waived **37**.
+- Largest modules: `test_tool_query` 71 · `test_local_sharing` 37 · `test_soft_delete` 36 ·
+  `test_health_reproduction` 34 · `test_extensions` 32 (33 cases) · `test_analytics` 30.
+- Inventory: 0 / 222 rows done (0%) — unchanged, because extraction produces *criteria*, not evidence.
+
+**Two corrections to the existing docs (both material)**
+1. **`test_local_sharing` was never a sharing surface.** The previous waiver (testing.md §7, inventory
+   Waivers) assumed 37 tests covering LAN/tunnel/QR/tray. It contains none: it is read-only query validation
+   (16), setup-template export (7), import (11) and round-trip (3) — **42 of its tests are kept**. Waiving it
+   would have silently discarded the strongest existing precedents for `midata-queryguard` and the
+   pack/template contract. The waiver now applies to **12 launcher tests, not 49**.
+2. **`test_extensions` is 32 functions / 33 cases**, not 33 functions — the extra grep hit was a fixture.
+
+**Decisions taken under autonomy (AGENTS.md §7)**
+- Oracles were split into `docs/oracles/` rather than one 470-row `testing.md`: rule 13's 500-line soft cap
+  would have been breached by ~60 lines, and a single file defeats the ≤3-doc context budget.
+- The 27 missing inventory rows were **added** (AGENTS.md §8: "add it rather than letting the test float")
+  rather than left as proposals. They are `planned` with `—` evidence, so no coverage number is inflated,
+  and they are open to owner re-wording — never to deletion (ratchet).
+- Anti-pattern lists were transcribed into each oracle file instead of straight into `REBUILD_PLAN.md` §3,
+  which the owner alone amends. Consolidating them into §3 is an owner action.
+
+**Still open (in rank order)**
+1. **P0-1** workspace + `xtask` + CI — everything else still waits on it.
+2. **P0-10** `AGENTS.md` diet to ≤ 8 KB (owner sign-off on the split before commit).
+3. **P0-3** needs a one-line owner ruling: Phase 0 migrates the **full** v1 schema or only what P0–P2 code
+   reads/writes. Migrations are escalation item #1.
+4. **Owner action:** fold the eight oracle files' anti-pattern sections into `REBUILD_PLAN.md` §3, and
+   sanity-check the 27 added inventory rows' wording.
+5. `docs/scorecard.md` is still a stub — every `ROADMAP.md` number is hand-counted until `xtask stats`.
+
+**Highest-value fresh work surfaced by the extraction** (no legacy coverage at all, so it is design work,
+not transcription): AI staged-write persistence/restart-survival/single-use token/expiry (AI-10…AI-14) ·
+`SELECT *` bypassing the column whitelist and values spliced instead of bound (AI-7, AI-19) · birth-action
+rollback proof (PD-17) · import-batch atomicity (DE-16) · onboarding rollback · a backup verify that fails on
+a corrupt file (IX-11).

@@ -25,10 +25,10 @@
 | 8 | P0-7 | `midata-cli` skeleton | feature | `commands` / `run` / `seed` — agent drivability from a terminal | 3 | P0-4, P0-6 | open |
 | 9 | P0-8 | Inventory v0 reconciliation | docs | Turns the hand-written checklist into a machine-checkable contract | 3 | P0-9 (needs `stats`) | open |
 | 10 | P0-9 | Snapshots + gates polish | quality | Locks the Phase-0 exit criteria and the ratchets in place | 6 | P0-5, P0-6 | open |
-| 11 | P0-11 | Legacy oracle extraction session | docs | Fills `docs/testing.md`; closes the firewall exception permanently | 3 | **owner authorization** (blocked) | blocked |
 
-**Sum:** 76 agent-hours (Phase-0 estimate band is 40–80 h — `REBUILD_PLAN.md` §14). Phase 0 closes when
-every row above is `done` and the exit criteria in `docs/roadmap.md` are met.
+**Sum:** 73 agent-hours (Phase-0 estimate band is 40–80 h — `REBUILD_PLAN.md` §14). Phase 0 closes when
+every row above is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction,
+3 h) closed on 2026-10-26 — see §Closed.
 
 ---
 
@@ -269,7 +269,7 @@ both OSes; baseline numbers in `docs/scorecard.md`.
 
 ---
 
-## P0-11 — Legacy oracle extraction session  ·  3 h  ·  **blocked: owner authorization**
+## P0-11 — Legacy oracle extraction session  ·  3 h  ·  ✅ **CLOSED 2026-10-26**
 
 **Kind:** docs · **Source:** `REBUILD_PLAN.md` Appendix D, `plan/kickoffs.md` §3, AGENTS.md rule 5
 single exception.
@@ -279,12 +279,16 @@ asserted behaviours (input → expected behaviour, never code shapes) into `docs
 inventory row ids; marks uncovered behaviours `fresh`; records per-module counts. The firewall
 exception **expires with that session** and is noted in the devlog.
 
-**Blocked because.** It needs the owner's explicit authorization and read access — it is the only
-sanctioned contact with the legacy tree, and it must not be bundled with any other task. Not started;
-do not start it as part of another task.
+**Outcome (2026-10-26).** 18 modules / **470 test functions → 485 collected cases** transcribed into
+`docs/oracles/` (8 files, indexed by `docs/testing.md` §2): 433 scenarios kept, 37 waived with reasons.
+**27 inventory rows added** (222 total) for behaviours the v0 checklist had no row for. Each oracle file
+carries a `## Fresh` section (behaviours legacy never covered) and an `## Anti-patterns` section feeding
+`REBUILD_PLAN.md` §3. Two corrections to the existing docs: the legacy `test_local_sharing` module was
+**not** a LAN/tunnel surface (it is query validation + setup-template exchange, all kept), and
+`test_extensions` is 32 functions / 33 cases, not 33 functions.
 
-**Evidence.** `docs/testing.md` with a complete mapping table + counts; devlog line: "firewall
-exception used and expired with this session".
+**Evidence.** `docs/oracles/*` (8 files); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); devlog
+line: "firewall exception used and expired with this session".
 
 ---
 
@@ -293,6 +297,7 @@ exception used and expired with this session".
 | id | Task | Closed | Evidence |
 |---|---|---|---|
 | B0 | Bootstrap: git, `.gitignore`, `rust-toolchain.toml`, dual licence, doc system v0, gaps v0, inventory v0 | 2026-10-26 | this file; `docs/inventory.md` (195 rows); `log/devlog.md` |
+| P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
 
 ---
 
@@ -308,8 +313,10 @@ entry when they grow.
    therefore unverified until then.
 3. **`docs/mobile-access-strategy.md` is absent by design** (Phase 7, C8/D2). Any early attempt to add
    axum or a server is a scope violation, not a gap.
-4. **Oracle mapping is empty** (`docs/testing.md` skeleton). Until P0-11 runs, every acceptance criterion
-   is written fresh from plan prose — acceptable per D15, but it means legacy parity is unmeasured.
+4. ~~**Oracle mapping is empty** (`docs/testing.md` skeleton).~~ **Resolved 2026-10-26 (P0-11):** 470
+   scenarios extracted into `docs/oracles/`, 433 kept + 37 waived, mapped to 222 inventory rows. What
+   remains is the *other* half of the parity measurement: no test yet cites a scenario id in an
+   inventory `evidence` column, so coverage still reads 0% until Phase 0/1 code lands.
 5. **`docs/legacy-spec/PROJECT_REPORT.md` is committed as the behaviour spec.** It is reference-only and
    must never become an implementation source; if any agent starts quoting its Python/React/Git layout
    content as a build guide, that is a rule-5 violation to stop immediately.
