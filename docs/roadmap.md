@@ -1,14 +1,16 @@
 # Roadmap — phases 0–7
 
-> **Mirror of `REBUILD_PLAN.md` §14** (which is authoritative). This file exists because the orientation
-> table points here for "scope, exit criteria, current focus"; it adds no scope of its own. A phase-scope
-> change is an amendment to the plan, then a re-sync here — never the reverse.
-> **Updated:** 2026-10-26 (BOOTSTRAP-1) · **Current focus:** **Phase 0 — Foundations**
+> **MIRROR of `REBUILD_PLAN.md` §14 (authoritative); this file carries live status only; never edit
+> scope/exit-criteria here.** It exists because the orientation table points here for "scope, exit
+> criteria, current focus"; it adds no scope of its own. A phase-scope change is an amendment to the
+> plan, then a re-sync here — never the reverse (D27/A2).
+> **Updated:** 2026-10-27 (P0-12 owner rulings) · **Current focus:** **Phase 0 — Foundations**
 
 ## Current focus
 
-**Phase 0 — Foundations.** Stage is *pre-Phase-0*: repository bootsrapping only (B0 closed); no
-workspace, no crates, no CI yet. Next task is **P0-1** (`docs/gaps.md` rank 1). Phase 0 closes only when
+**Phase 0 — Foundations.** Stage is *pre-Phase-0*: repository bootstrap (B0), oracle extraction (P0-11)
+and owner rulings (P0-12) are closed; no workspace, no crates, no CI yet. Next task is **P0-1**
+(`docs/gaps.md` rank 1). Phase 0 closes only when
 its exit criteria below are met **and** the owner signs off; Phase 1 tasks are then populated in
 `docs/gaps.md`.
 
@@ -16,7 +18,7 @@ its exit criteria below are met **and** the owner signs off; Phase 1 tasks are t
 
 | Phase | Name | Estimate | Exit criteria (summary) |
 |---|---|---|---|
-| 0 | Foundations | 40–80 h | `xtask ci` green on ubuntu+windows · app boots to a dashboard with demo data · onboarding idempotent · migration idempotency tests · `AGENTS.md` ≤ 8 KB · 0 file-budget violations · snapshots for shell + onboarding · devlog active |
+| 0 | Foundations | 40–80 h | `xtask ci` green on ubuntu+windows · app boots to a dashboard with demo data · onboarding idempotent · migration idempotency tests · `AGENTS.md` lean bootloader ≤ ~12 KB · 0 file-budget violations · snapshots for shell + onboarding · devlog active |
 | 1 | Core herd | 80–150 h | HM/DE-core inventory rows done with evidence · flatten perf budget passing · all screens snapshotted · fuzz green · entity/measurement oracle scenarios (transcribed) passing |
 | 2 | Organization & rules | 40–80 h | demo-data alerts fire correctly · mode switching visibly re-scopes every data surface · every rule type tested including malformed expressions |
 | 3 | Analytics, dashboard, data I/O | 100–180 h | analytics oracle scenarios passing · 1,000-row xlsx round-trip with both conflict strategies · backup restore verified on a copy · scorecard committed and CI-diffed · donut decision resolved |
