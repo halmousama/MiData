@@ -101,6 +101,14 @@
 
 ## Anti-patterns — never reproduce
 
+> **Feeds `REBUILD_PLAN.md` §3 (one authoritative home — this list is provenance only):**
+> 1 → `test-integrity.no-vacuous-assertions` · 2 → `state.command-only-mutations` ·
+> 3 → `state.command-only-mutations` · 4 → `errors.typed-reasons` ·
+> 5 → `test-integrity.named-for-boundary` · 6 → `identity.machine-keys` ·
+> 7 → `import.row-diagnostics` · 8 → `schema.no-sentinels` · 9 → `analytics.single-engine` ·
+> 10 → `test-integrity.no-vacuous-assertions` · 11 → `test-integrity.no-vacuous-assertions` ·
+> 12 → `test-integrity.command-surface` · 13 → `audit.every-mutation`
+
 1. **Tautological guard tests:** the pack-widget guard test never calls product code — it asserts the precondition and raises the expected error itself, so it would pass with the guard deleted. Dispatch the real command and assert the real refusal.
 2. **Reactivation by direct row mutation:** several tests flip the active marker on the object directly instead of going through a command — no audit row, no validation, and the test cannot tell a real command path from a missing one.
 3. **Soft delete as scattered attribute flips:** logic duplicated across a helper, a service method and raw test mutations, each with its own error behaviour. Exactly one command per resource class; everything dispatches by command id.

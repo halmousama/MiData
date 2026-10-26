@@ -118,6 +118,15 @@
 
 ## Anti-patterns — never reproduce
 
+> **Feeds `REBUILD_PLAN.md` §3 (one authoritative home — this list is provenance only):**
+> 1 → `analytics.structured-insights` · 2 → `analytics.numeric-bounds` ·
+> 3 → `analytics.typed-results` · 4 → `analytics.one-empty-contract` ·
+> 5 → `analytics.one-empty-contract` · 6 → `identity.columns-not-eav` ·
+> 7 → `analytics.single-engine` · 8 → `schema.no-sentinels` ·
+> 9 → `test-integrity.no-vacuous-assertions` · 10 → `test-integrity.assert-values` ·
+> 11 → `test-integrity.assert-values` · 12 → `analytics.numeric-bounds` ·
+> 13 → `analytics.single-engine` + (D16) · 14 → D9 (pig policy — not a register row)
+
 1. **Insights as free-form prose asserted by English substring** ("not found", "one data point", "requires"). Insights must be structured (template key + params + severity) resolved through i18n; tests assert the key and params.
 2. **Presentation formatting inside the analytics engine:** histogram bins arrive as pre-built range *strings*; counts are the truth and bins must expose numeric bounds an agent can consume.
 3. **Polymorphic null-filled result envelope:** every analysis returns the same key set with `trend_line: null` and `outliers: {high: [], low: []}` for categorical results. Use typed per-analysis result variants — absence is a variant, not a null.
