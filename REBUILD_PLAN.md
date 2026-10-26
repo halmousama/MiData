@@ -1,7 +1,7 @@
 # MiData Native — Master Rebuild Plan
 
-> **Version:** 0.3-draft (awaiting owner approval)
-> **Last reviewed:** 2026-10-27 · **Last updated:** 2026-10-27 · **Change:** Git workflow & traceability added (§13.4, D25)
+> **Version:** 0.4-draft (owner rulings on bootstrap ambiguities applied)
+> **Last reviewed:** 2026-10-27 · **Last updated:** 2026-10-27 · **Change:** Owner rulings on bootstrap ambiguities (D26–D27): schema birth-gating, i18n location, AGENTS.md slimming policy.
 > **Owner:** project owner (decision authority) · **Executor:** AI coding agent(s) under this plan + `AGENTS.md`
 > **Inputs:** `uploads/PROJECT_REPORT.md` (legacy behaviour specification) · `ARTCRAFT_INVESTIGATION.md` (methodology source, storytold/photocraft)
 > **Language policy:** this document and every repo artifact are written in **English** (execution language of agents). Product UI strings: **English (source) + French**. No Arabic UI in v1.
@@ -51,7 +51,7 @@ Architectural consequences (all mandatory, from Phase 0):
 4. **CLI is a first-class citizen** (`apps/midata-cli`), shipped from Phase 1, growing with the registry.
 5. **Control-channel + MCP seams exist from day one** (the registry is the seam); the loopback JSON-lines server and MCP wrapper are implemented in Phase 6.
 6. **The audit log doubles as agent observability:** every command execution records actor (user/ai/cli), params digest, and results.
-7. **`AGENTS.md` is part of the product,** kept under ~7–8 KB (bootloader + orientation table), with detail pushed to `docs/*` read on demand.
+7. **`AGENTS.md` is part of the product,** kept as a **lean bootloader**: rules not procedures, **one authoritative home per topic**, target ≤ ~12 KB (iron rules + orientation table), with procedures and detail pushed to `docs/*` read on demand. `AGENTS.md` may summarize and point — it never duplicates a doc (D27).
 
 ### 1.4 Honest positioning
 
@@ -230,7 +230,7 @@ Graduations are owner-approved decisions (recorded in `docs/decisions.md`); a sp
 ### 5.2 Table catalogue (spec-level)
 
 ```sql
--- v1 (Phase 0) --------------------------------------------------------------
+-- v1 — birth-gated per phase, see the D26 note below -----------------------
 CREATE TABLE species (
   id INTEGER PRIMARY KEY,
   key TEXT NOT NULL UNIQUE,             -- machine key: 'cow','sheep','goat', user-added 'camel'…
@@ -326,6 +326,7 @@ CREATE TABLE validation_rules (
   is_active INTEGER NOT NULL DEFAULT 1
 );
 
+-- Phase 3 addition (D26): default-widget seeding ships with the dashboard -------
 CREATE TABLE widgets (
   id INTEGER PRIMARY KEY,
   widget_type TEXT NOT NULL,            -- 'kpi','line','bar','table','alert_board','progress_list','donut','profitability'
@@ -363,6 +364,12 @@ CREATE TABLE pending_changes (id INTEGER PRIMARY KEY, token TEXT NOT NULL UNIQUE
                               consumed INTEGER NOT NULL DEFAULT 0,
                               created_at TEXT NOT NULL, expires_at TEXT NOT NULL);  -- PERSISTED (legacy bug fixed)
 ```
+
+> **Birth-gated schema (D26):** migrations create each table in the phase that first uses it — P0:
+> species…audit_log **except** `widgets`; P3: `widgets` (+ default-widget seeding); P5: `conversations`,
+> `messages`, `pending_changes`; P6: pack-provenance columns (`origin`/`pack_id` on
+> `field_definitions`/`modes`/`widgets`) via an owner-approved migration. "No dead schema" (§5.1.5)
+> outranks "full v1 schema at once".
 
 ### 5.3 Value encoding rules
 
@@ -416,7 +423,7 @@ Deterministic generator (`xtask` or CLI verb `midata seed --demo [--force]`): ~5
 
 ### 6.1 Tracking model
 
-`docs/inventory.md` (created in Phase 0, task P0-D3) transcribes PROJECT_REPORT §3 into **one row per testable behaviour**, grouped in blocks with stable ids:
+`docs/inventory.md` (delivered by bootstrap B0; reconciled in P0-8) transcribes PROJECT_REPORT §3 into **one row per testable behaviour**, grouped in blocks with stable ids:
 
 | Block | Ids | Legacy source |
 |---|---|---|
@@ -471,7 +478,7 @@ Screens (one file each under `midata-app/src/screens/`, thin: dispatch commands,
 
 ### 7.4 i18n (EN source + FR)
 
-- TSV catalogues `midata-app/src/i18n/en.tsv`, `fr.tsv` (ArtCraft pattern); lookup via `t!("key")`; **every** user-facing string — including `CommandError` messages and insights templates — goes through i18n from day one (avoiding ArtCraft's "engine messages still English" partial state).
+- TSV catalogues live in the `midata-i18n` crate (`crates/midata-i18n/catalogues/en.tsv` / `fr.tsv`, embedded at build) — L0, shared by app and cli (D24 authoritative); lookup via `t!("key")`; **every** user-facing string — including `CommandError` messages and insights templates — goes through i18n from day one (avoiding ArtCraft's "engine messages still English" partial state).
 - `cargo xtask i18n-coverage` measures key coverage; 100% FR is a Phase-6 exit gate; coverage is a ratchet.
 - Language setting: `settings.language ∈ {en, fr}`, live-switchable.
 
@@ -527,7 +534,7 @@ Screens (one file each under `midata-app/src/screens/`, thin: dispatch commands,
 
 ### 11.1 Artifact set
 
-Created in Phase 0 and kept alive thereafter: `AGENTS.md` (≤8 KB, English, header credit: *"Structure adapted from storytold/photocraft AGENTS.md (MIT OR Apache-2.0)"*) · `ROADMAP.md` (headline numbers: inventory coverage %, screens done, tests count, budget status; stamped Last reviewed/updated/Change; includes an honest "Why not 1.0 yet" section) · `docs/*` (§4.1) · `log/devlog.md` · local gitignored `plan/`.
+Created in Phase 0 and kept alive thereafter: `AGENTS.md` (lean bootloader ≤ ~12 KB: rules not procedures, one authoritative home per topic; English, header credit: *"Structure adapted from storytold/photocraft AGENTS.md (MIT OR Apache-2.0)"*) · `ROADMAP.md` (headline numbers: inventory coverage %, screens done, tests count, budget status; stamped Last reviewed/updated/Change; includes an honest "Why not 1.0 yet" section) · `docs/*` (§4.1) · `log/devlog.md` · local gitignored `plan/`.
 
 ### 11.2 Golden rules (authoritative text lives in AGENTS.md; summary here)
 
@@ -685,8 +692,8 @@ Every artifact links back to its origin; every task is reconstructable from git 
 | **Total** | | **~510–990 agent-hours** |
 
 ### Phase 0 — Foundations
-**Scope:** repo + workspace + CI (§13.1) · `AGENTS.md` + full `docs/` skeleton + `ROADMAP.md` v0 + devlog · `xtask` (check-layers, file-budget, ci, stats, new-command/new-screen templates, seed, bench skeleton, i18n-coverage) · `midata-domain` v0 (types, enums, Value rules, CommandError) · `midata-i18n` (TSV catalogues en/fr, `t!()` lookup, coverage data) · `midata-store` v0 (engine, PRAGMAs, migrations → full v1 schema §5.2, repos, latest-value queries) · `midata-ops` v0 (onboarding-merge + seed workflows) · `midata-engine` v0 (Command trait, Session, registry, audit hook, undo seam) · `midata-testkit` (temp-DB harness, demo-seed builders, snapshot + command-test helpers) · `midata-app` shell (eframe window, Screen router, nav, theme tokens light/dark, settings load/save — i18n via `midata-i18n`) · **1-step onboarding** (species preset choice + optional demo seed → creates species/fields/modes/system-mode/widgets) · `midata-cli` skeleton (`commands`) · `docs/inventory.md` v0 generated from PROJECT_REPORT §3 · `docs/gaps.md` v0 populated with Phase-1 tasks · seed generator (§5.7).
-**Exit criteria:** `xtask ci` green on ubuntu+windows · app boots to dashboard with demo data · onboarding idempotent · migration idempotency tests · AGENTS.md ≤ 8 KB · 0 file-budget violations · snapshots: shell + onboarding · devlog active.
+**Scope:** repo + workspace + CI (§13.1) · `AGENTS.md` + full `docs/` skeleton + `ROADMAP.md` v0 + devlog · `xtask` (check-layers, file-budget, ci, stats, new-command/new-screen templates, seed, bench skeleton, i18n-coverage) · `midata-domain` v0 (types, enums, Value rules, CommandError) · `midata-i18n` (TSV catalogues en/fr, `t!()` lookup, coverage data) · `midata-store` v0 (engine, PRAGMAs, migrations v1 → birth-gated schema per §5.2 (D26), repos, latest-value queries) · `midata-ops` v0 (onboarding-merge + seed workflows) · `midata-engine` v0 (Command trait, Session, registry, audit hook, undo seam) · `midata-testkit` (temp-DB harness, demo-seed builders, snapshot + command-test helpers) · `midata-app` shell (eframe window, Screen router, nav, theme tokens light/dark, settings load/save — i18n via `midata-i18n`) · **1-step onboarding** (species preset choice + optional demo seed → creates species/fields/modes/system-mode presets; default widgets seeded in P3 with the dashboard) · `midata-cli` skeleton (`commands`) · `docs/inventory.md` v1 reconciled in P0-8 · `docs/gaps.md` v0 populated with Phase-1 tasks · seed generator (§5.7).
+**Exit criteria:** `xtask ci` green on ubuntu+windows · app boots to dashboard with demo data · onboarding idempotent · migration idempotency tests · `AGENTS.md` lean bootloader ≤ ~12 KB · 0 file-budget violations · snapshots: shell + onboarding · devlog active.
 
 ### Phase 1 — Core herd
 **Scope:** reusable **DataTable** kit + DynamicFieldRenderer + modal/toast/confirm kit (§7.3) · Settings→Fields manager (CRUD, toggle, categories, options editor, cardinality, units, inline min/max, EN/FR labels) · Settings→Species manager (add/edit custom species, gestation defaults) · Animals list screen (columns = identity + active-mode fields, sort/filter/paginate/select, context menu) · Animal detail (identity card, latest values, full history timeline + per-field charts, edit, delete-with-confirm, PDF card placeholder) · create/edit animal (dynamic form + identity + parent pickers with sex validation + phantom-tag support) · observations: single / **batch** (one animal, many fields) / **mass** (many animals, same fields) entry screens · all as commands (`animal.*`, `observation.*`, `field.*`, `species.*`) + graceful-failure tests + `command_hunt` v1 · audit log writing · CLI: `run`, `seed` · Developer-mode flag plumbing (persisted, gating nothing yet).
@@ -747,8 +754,10 @@ Every artifact links back to its origin; every task is reconstructable from git 
 | D23 | 2026-10-27 | Crate layout L0–L5 incl. dedicated `midata-engine` (command registry) + `apps/{midata, midata-cli}` + `xtask` | architect (D13 consequence) |
 | D24 | 2026-10-27 | Crate architecture refined: added `midata-i18n` (L0, shared by app+cli), `midata-ops` (L2 workflows — keeps engine commands thin dispatch), `midata-queryguard` (L2 SQL-validation lab — placed **below** the engine so AI (P5) and dynamic widgets (P6) share one validator; fixes the upward-dependency trap), `midata-exchange` (L2 file formats — isolates heavy deps), `midata-testkit` (dev fixtures). Layers = registered DAG, not a strict chain. `midata-app` restricted to domain+engine+i18n. Crates born in the phase that first uses them. Split triggers documented (§4.8) | owner consultation (crate-structure review) |
 | D25 | 2026-10-27 | Git workflow adopted: private GitHub remote; protected `main` (no direct pushes — owner squash-merges PRs); one branch per task `t/<task-id>-<slug>`; conventional commit subjects carrying `[task-id]`; mandatory `Co-Authored-By` attribution on agent commits; green-commits-only with mid-task commits as session checkpoints; goldens/generated-docs/Cargo.lock committed with their motivating change; annotated release tags `vX.Y.Z` + milestone tags `m/phase-N`; full traceability chain (§13.4) | owner consultation (git organization) |
+| D26 | 2026-10-27 | **Schema is birth-gated:** each table is created by the migration of the phase that first uses it. Phase 0: species…audit_log **except** `widgets`; P3: `widgets` (+ default-widget seeding); P5: `conversations`, `messages`, `pending_changes`; P6: pack-provenance columns (`origin`/`pack_id` on `field_definitions`/`modes`/`widgets`) via an owner-approved migration. The "no dead schema" rule (§5.1.5) outranks "full v1 schema at once" | owner rulings on bootstrap ambiguities |
+| D27 | 2026-10-27 | **Bootstrap rulings batch:** `docs/roadmap.md` mirror stamp (A2 ratified) · A4 root commit on `main` ratified, task branches from P0-1 · `P0-n` task-id scheme canonical · P0-8 inventory reconciliation rescoped · i18n location = D24 (`midata-i18n`) · `AGENTS.md` slimmed as a lean bootloader (rules not procedures, one authoritative home per topic, target ≤ ~12 KB) · licence holder "MiData contributors" stays provisional, O1 open · new Git rule: no session ends with uncommitted work | owner rulings on bootstrap ambiguities |
 
-*Plan-document decisions (this file):* v0.1 initial draft — 2026-10-27 · v0.2 crate-architecture revision (D24) — 2026-10-27 · v0.3 git workflow (D25) — 2026-10-27.
+*Plan-document decisions (this file):* v0.1 initial draft — 2026-10-27 · v0.2 crate-architecture revision (D24) — 2026-10-27 · v0.3 git workflow (D25) — 2026-10-27 · v0.4 owner rulings on bootstrap ambiguities (D26–D27) — 2026-10-27.
 
 ## 16. Open items (non-blocking; defaults apply until owner rules)
 
@@ -842,13 +851,13 @@ Policy: `[workspace.dependencies]` centralizes versions; `deny.toml` licence all
 ## Appendix C — Phase 0 artifact checklist
 
 - [ ] Repo initialized, workspace builds, `Cargo.lock` committed
-- [ ] `AGENTS.md` (≤8 KB, English, attribution header) + orientation table
+- [ ] `AGENTS.md` (lean bootloader ≤ ~12 KB: rules not procedures, one authoritative home per topic; English, attribution header) + orientation table
 - [ ] `docs/`: architecture · development · contributing (task loop, gates, add-a-command, add-a-screen) · gaps v0 · inventory v0 (from PROJECT_REPORT §3) · decisions (seeded with §15 of this plan) · ui-design · i18n · testing (oracle-mapping skeleton) · scorecard (generated stub)
 - [ ] `ROADMAP.md` v0 (stamped; headline numbers defined) + `log/devlog.md` started
 - [ ] `xtask`: check-layers · file-budget · ci · stats · i18n-coverage · new-command · new-screen · seed · bench (skeleton)
 - [ ] CI workflows (ubuntu+windows) green incl. cargo-deny + machete + scorecard diff
 - [ ] Crates born per §4.1 birth phases (P0 set: domain, i18n, store, ops, engine, app, testkit + apps/* + xtask) + crate READMEs (public-API stubs); `xtask check-layers` operational with the P0 crates and their allowed edges registered in `xtask/src/layers.rs`
-- [ ] Schema v1 migrations + idempotency tests + repos + latest-value query tests (incl. 10k-row perf fixture)
+- [ ] Schema v1 migrations (**birth-gated per D26**) + idempotency tests + repos + latest-value query tests (incl. 10k-row perf fixture)
 - [ ] Command trait + registry + audit hook + first commands (`settings.*`, `onboarding.*`, `seed.demo`)
 - [ ] App shell: window, router, nav, tokens (light/dark), i18n loader, settings persistence
 - [ ] Onboarding 1-step + demo seed generator (deterministic; pig-policy verified by test: seed contains only preset species)
