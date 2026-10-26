@@ -107,6 +107,16 @@ date-as-ISO → `value_text`; exactly one non-NULL, matching the field's `data_t
 constructed through domain constructors. `cardinality='single'` keeps at most one row per
 (entity, field) via upsert; `series` enforces `UNIQUE(entity_id, field_id, recorded_on)`.
 
+**Business vocabulary is configuration data; structural identity is typed code**
+(`config.business-vocabularies`, D7). Values a farm may reasonably reword or extend — purpose tags on a
+field (a field may serve several), pregnancy-like statuses, health-issue and suggestion lists — are
+**multi-valued configuration data read from field/species config** (options JSON, purpose join table),
+never Rust enums. Values that define what a record *is* — sex, entity lifecycle status (Alive/Sold/Dead),
+`data_type`, `cardinality` — are **typed code constraints** enforced by enums, CHECK constraints and
+exhaustive matches. Adding a purpose or a suggestion list entry is data; adding a sex is a §15 decision.
+A business value must never require a code change, and a structural value must never be editable from
+settings.
+
 **Latest-value semantics** — the legacy P0 fix — is one statement, never a loop:
 
 ```sql

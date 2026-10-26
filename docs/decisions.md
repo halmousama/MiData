@@ -173,6 +173,44 @@ motivating change; annotated release tags `vX.Y.Z` plus milestone tags `m/phase-
 traceability chain of `REBUILD_PLAN.md` §13.4. **Consequence:** `docs/contributing.md` §Git is the
 operational form; tagging, force-push and history rewriting are escalation items.
 
+### D26 — Schema is birth-gated
+**2026-10-27 (owner).** Each table is created by the migration of the phase that first uses it. Phase 0
+creates species…`audit_log` **except** `widgets`; P3 creates `widgets` (+ default-widget seeding with
+the dashboard); P5 creates `conversations`, `messages`, `pending_changes`; P6 adds the pack-provenance
+columns (`origin`/`pack_id` on `field_definitions`/`modes`/`widgets`) through an owner-approved
+migration. **Consequence:** "no dead schema" (§5.1.5) outranks "full v1 schema at once"; P0-3 migrates
+only the Phase-0/1/2 tables, and every later table arrives wired to code in the same task.
+
+### D27 — Bootstrap rulings batch
+**2026-10-27 (owner).** The nine bootstrap ambiguities are ruled: (1) `docs/roadmap.md` carries the
+mirror stamp — `REBUILD_PLAN.md` §14 is authoritative, the file holds live status only (A2 ratified);
+(2) A4 ratified — the root commit on `main` was legal, task branches from P0-1 onward; (3) the `P0-n`
+task-id scheme is canonical; (4) P0-8's inventory reconciliation is rescoped; (5) i18n lives in
+`midata-i18n` (D24 authoritative); (6) `AGENTS.md` becomes a **lean bootloader** — rules not
+procedures, one authoritative home per topic, target ≤ ~12 KB (P0-10 amended); (7) the licence holder
+"MiData contributors" stays provisional and O1 remains open; (8) remote + branch protection are live,
+so P0-1 must prove CI on both OSes; (9) new Git rule — **no session ends with uncommitted work**.
+**Consequence:** P0-12 records the amendments; P0-10 is re-scoped (not dropped); migrations and later
+documentation follow D26.
+
+### D28 — Anti-pattern register extended by the oracle extraction (M7 review)
+**2026-10-27 (owner review of M7).** `REBUILD_PLAN.md` §3 is extended by **37 owner-approved rows** drawn
+from the eight oracle files' `## Anti-patterns` sections. They are grouped thematically — analytics
+results · query safety · AI contract · data I/O & onboarding · pedigree · storage & settings · test
+integrity — and keyed by a **stable slug** (`analytics.typed-results`, `query.bound-params`,
+`test-integrity.no-vacuous-assertions`) instead of the proposal's review numbers P1–P37. Rows 1–15 keep
+their numbers as stable citation handles; findings an existing row already covered were folded in as
+one provenance clause, never duplicated. Four rows were reworded by the owner and merged verbatim (`P14`
+→ `contract.stable-keys`, `P20` → `state.command-only-mutations`, `P26` →
+`config.business-vocabularies`, `P30` → `settings.typed-facade`). Sub-decisions: **(a)** a single query
+language — the legacy DSL is dropped, SQL through `midata-queryguard` only; **(b)** the public and
+agent-facing contract carries stable machine keys only — no storage row ids, no table names; **(c)**
+settings are a typed serde facade with `#[serde(default)]` over the K/V table.
+**Consequence:** `docs/proposals/anti-pattern-register-extension.md` is deleted — §3 is the single
+authoritative home, and provenance survives here and in each oracle file's slug pointers. Test integrity
+(§3.8) is operationalised as a checklist in `docs/contributing.md` §3. Slugs are contract: never renamed,
+never reused.
+
 ## 2. Open items with defaults (REBUILD_PLAN §16)
 
 These are not decisions yet — they are defaults that hold until the owner rules. Listed here so the
@@ -180,7 +218,7 @@ These are not decisions yet — they are defaults that hold until the owner rule
 
 | # | Item | Default in force | Decide by |
 |---|---|---|---|
-| O1 | Licence | **MIT OR Apache-2.0** dual (files created in BOOTSTRAP-1; owner confirmation pending) | Phase 0 |
+| O1 | Licence | **MIT OR Apache-2.0** dual (files created in BOOTSTRAP-1; copyright holder "MiData contributors" **provisional** — owner may change holder or licence) | Phase 0 — still open (D27) |
 | O2 | Undo scope | Session-scoped undo for invertible data-entry commands; persistent audit remains the record | Phase 2 |
 | O3 | Pie/donut charts | Custom-painter donut in P3; fallback = horizontal bars + gaps entry | Phase 3 |
 | O4 | PDF crate | `printpdf` vs `genpdf` — spike decides | Phase 3 |
@@ -202,7 +240,7 @@ files. **No `Cargo.toml` licence field exists yet** — it is set once, in P0-1,
 scope, exit criteria, current focus), but Appendix C's artifact list omits it. It was created as a
 faithful mirror of `REBUILD_PLAN.md` §14 with a *Current focus* line, and carries no new scope.
 **Consequence:** no dangling doc reference; phase scope changes still require a `REBUILD_PLAN.md`
-amendment.
+amendment. **Ratified 2026-10-27 (D27)** with an explicit header stamp (mirror + "live status only").
 
 ### A3 — Dependency versions are not pinned anywhere yet
 **2026-10-26.** BOOTSTRAP-1 writes no Rust, so `rust-toolchain.toml` pins only the *channel*
@@ -215,3 +253,14 @@ dependency-escalation rule (AGENTS.md rule 15) applies for the first time.
 repository has no commit to branch from and the owner's remote does not exist yet.
 **Consequence:** BOOTSTRAP-1 is a single root commit on `main` (`[B0]`); from P0-1 onward every task
 starts from a `t/<task-id>-<slug>` branch, and `main` is protected once the owner creates the remote.
+**Ratified 2026-10-27 (D27):** remote and branch protection are live, so the PR flow is active from
+P0-1 and CI on both OSes is the merge gate.
+
+### A5 — Anti-pattern consolidation stays a proposal file
+**2026-10-27.** The eight oracle files' `## Anti-patterns — never reproduce` sections were folded into a
+deduplicated draft at `docs/proposals/anti-pattern-register-extension.md` instead of editing
+`REBUILD_PLAN.md` §3, which only the owner amends.
+**Consequence:** the owner reviews one diff and merges it into §3 (or rejects rows); until then §3
+remains binding and the proposal has no authority. **Closed 2026-10-27 (D28):** the owner approved all
+37 rows, §3 became their home, and the proposal file was deleted. The `docs/proposals/` convention for
+owner-review-only documents survives.

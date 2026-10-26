@@ -113,3 +113,106 @@ not transcription): AI staged-write persistence/restart-survival/single-use toke
 `SELECT *` bypassing the column whitelist and values spliced instead of bound (AI-7, AI-19) · birth-action
 rollback proof (PD-17) · import-batch atomicity (DE-16) · onboarding rollback · a backup verify that fails on
 a corrupt file (IX-11).
+
+---
+
+## 2026-10-27 — P0-12 · Owner rulings on the nine bootstrap ambiguities
+
+**Landed (amendments M1–M8, branch `t/p0-12-owner-amendments`)**
+- `REBUILD_PLAN.md` → **0.4-draft**. §5.2 carries the **birth-gated schema** note (D26) and the
+  `widgets` table is labelled a P3 addition; §14 Phase 0 now says "migrations v1 → birth-gated schema
+  per §5.2 (D26)" and "species/fields/modes/system-mode presets; default widgets seeded in P3".
+  §6.1 inventory provenance corrected (B0 + P0-8, not a phantom P0-D3). §7.4 i18n location fixed to
+  `midata-i18n` (D24 authoritative). §1.3/§11.1/Appendix C/§14 exit now state the **lean-bootloader**
+  policy (rules not procedures · one authoritative home per topic · ≤ ~12 KB). §15 gains **D26**
+  (schema birth-gating) and **D27** (bootstrap rulings batch); header stamps bumped.
+- `AGENTS.md` §5 Git discipline: **no session ends with uncommitted work** (commit the checkpoint;
+  verify with `git status` before asserting repo state). The diet itself stays P0-10.
+- `docs/decisions.md`: D26/D27 mirrored; A2 ratified with the mirror stamp; A4 ratified (remote +
+  branch protection live); O1 holder "MiData contributors" recorded as **provisional**; A5 added.
+- `docs/roadmap.md`: explicit header stamp — **MIRROR of `REBUILD_PLAN.md` §14; live status only**.
+- `docs/gaps.md` v1: P0-10 re-scoped to the lean-bootloader policy (33.5 KB → ≤ ~12 KB, dependency
+  cleared); P0-3 schema ambiguity **resolved** by D26; P0-6 de-widgetized + onboarding-rollback
+  criterion; P0-1 CI evidence now requires the PR's ubuntu+windows jobs (protection live); P0-8
+  re-scoped 3 h → 2 h (row verification only; generation stays with `xtask stats`/P0-9); M8 criteria
+  forward-wired in a dedicated table; P0-12 closed.
+- `docs/proposals/anti-pattern-register-extension.md`: **M7 draft only** — 37 deduplicated rows
+  (P1–P33 behaviour, P34–P37 test integrity) plus a fold-in map against the 15 existing §3 rows.
+  **Not merged into §3** (owner-only amendment, A5).
+
+**Numbers**
+- Phase-0 queue: 10 open tasks · **72 agent-hours** (was 73; P0-8 −1 h). P0-12 (1.5 h) closed same day.
+- `AGENTS.md`: 33.5 KB — now measured against the amended **≤ ~12 KB** lean-bootloader target.
+- Inventory: 0 / 222 rows done (unchanged — this task changes the contract, not coverage).
+- Anti-pattern proposal: 37 rows from 8 oracle files, 12 findings folded into existing §3 rows.
+
+**Decisions taken under autonomy (AGENTS.md §7)**
+- P0-8's re-scope is written as *verification-first* (rows, phase assignment, oracle-link column) with
+  generation left to `xtask stats` — recorded so the owner can reverse it in one edit if the intended
+  re-scope was different.
+- `docs/proposals/` is created for owner-review-only documents that must not become binding by
+  accident; A5 records the rule.
+- The `widgets` table gained a `-- Phase 3 addition (D26)` comment inside the §5.2 catalogue instead of
+  being physically moved: §5.2 is a spec catalogue, and moving tables would obscure the v1 shape.
+
+**Still open (in rank order)**
+1. **P0-1** workspace + `xtask` + CI — now with branch protection live, the PR must be green on
+   ubuntu **and** windows before merge.
+2. **P0-10** `AGENTS.md` → lean bootloader ≤ ~12 KB (policy approved; owner reviews the final shape).
+3. **P0-2** `midata-domain` + `midata-i18n` — i18n lives in the crate, catalogues embedded at build.
+4. ~~Owner action (M7): review the anti-pattern proposal and merge/reject rows.~~ **Done 2026-10-27** —
+   all 37 rows merged into `REBUILD_PLAN.md` §3 as slug-keyed rows (D28); proposal file deleted.
+5. `docs/scorecard.md` is still a stub — every `ROADMAP.md` number is hand-counted until `xtask stats`.
+
+---
+
+## 2026-10-27 — P0-12 (cont.) · M7 owner review merged: §3 gains 37 slug-keyed rows
+
+**Landed (owner review of M7, branch `t/p0-12-owner-amendments`)**
+- `REBUILD_PLAN.md` → **0.5-draft**. §3 now has two parts: **§3.1 rows 1–15** (original register, numbers
+  kept as stable citation handles) and **§3.2–§3.8** — 37 owner-approved oracle-extraction rows grouped
+  thematically (analytics results · query safety · AI contract · data I/O & onboarding · pedigree ·
+  storage & settings · test integrity), each with a **stable slug** (`analytics.typed-results`,
+  `query.bound-params`, `test-integrity.no-vacuous-assertions`, …). Owner rewords applied **verbatim** for
+  P14 → `contract.stable-keys`, P20 → `state.command-only-mutations`, P26 →
+  `config.business-vocabularies`, P30 → `settings.typed-facade`; P12's "query timeout" is defined as the
+  SQLite progress-handler interrupt guard. Twelve fold-in findings added **one provenance clause** to the
+  existing rows they belong to (row 8 now reads "…including credential files on disk") — no duplicate rows.
+  §15 gains **D28** (with sub-decisions a/b/c) and header/footer stamps bumped.
+- `docs/decisions.md`: D28 mirrored in ADR form; A5 marked **closed** (proposal merged, file deleted).
+- `docs/contributing.md`: new **§3 Test-integrity checklist** operationalising §3.8 in six bullets (failure
+  injected *and* zero partial rows · boundary named + negative case · values/invariants never key presence
+  or magic totals · command surface not storage internals · file name states the behaviour · no vacuous
+  clause); §1 Definition of Done now references it; later sections renumbered 4–8.
+- `docs/architecture.md` §4: the business-vocabulary vs structural-identity distinction (P26) written where
+  the row promises it — purpose tags/pregnancy-like values/suggestion lists = config data; sex, lifecycle
+  status, `data_type`, `cardinality` = typed code; adding a business value is data, adding a sex is a §15
+  decision.
+- `docs/oracles/*.md` (8 files): every `## Anti-patterns` section opens with a **register-mapping pointer
+  line** (finding number → §3 slug, or `§3 row N` for folded findings, or the governing decision for
+  non-register items).
+- `docs/proposals/anti-pattern-register-extension.md`: **deleted** — one authoritative home; provenance
+  survives in D28 and in the oracle pointer lines. `docs/gaps.md` and `docs/testing.md` references updated.
+
+**Numbers**
+- §3 register: 15 rows → **52** (15 original + 37 slug-keyed). Slugs: **37**, none renamed later.
+- Oracle files: **8 / 8** carry a register mapping covering **111** numbered findings.
+- `REBUILD_PLAN.md` version 0.4-draft → **0.5-draft**; decisions D27 → **D28**.
+- Inventory 0 / 222 rows done, queue 72 agent-hours — unchanged: this task changes the contract, not
+  coverage.
+
+**Decisions taken under autonomy (AGENTS.md §7)**
+- Rows 1–15 keep their numbers instead of being absorbed into the thematic groups: the fold-in instruction
+  itself cites rows by number ("row 8"), and other docs/proposal history do too. Slugs are the citation
+  handle for the extension only — both are contract.
+- The oracle pointer line maps **every** numbered finding, not just the ones that became rows: folded items
+  point at `§3 row N`, non-register items at the governing decision (D9 pig policy, D21/D5 waived surfaces,
+  AGENTS rule 12 i18n). Provenance is complete, §3 stays the only home.
+- Test-integrity checklist placed as a new §3 (before the how-to checklists) and later sections renumbered;
+  nothing referenced those section numbers by number.
+
+**Still open (in rank order)**
+1. **P0-1** workspace + `xtask` + CI — the register is now the reference the first crates must satisfy.
+2. **P0-10** `AGENTS.md` → lean bootloader ≤ ~12 KB (owner reviews the final shape).
+3. **P0-2** `midata-domain` + `midata-i18n` — `value.distinct-missing-states` and `value.one-resolver` are
+   its acceptance criteria.

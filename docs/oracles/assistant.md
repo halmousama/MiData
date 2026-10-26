@@ -168,6 +168,16 @@ The highest-value fresh work in the whole extraction — this is where the rebui
 
 ## Anti-patterns — never reproduce
 
+> **Feeds `REBUILD_PLAN.md` §3 (one authoritative home — this list is provenance only):**
+> 1 → §3 row 8 · 2 → §3 row 8 · 3 → `schema.no-sentinels` ·
+> 4 → `test-integrity.no-vacuous-assertions` · 5 → `test-integrity.no-vacuous-assertions` ·
+> 6 → `test-integrity.named-for-boundary` · 7 → `test-integrity.assert-values` ·
+> 8 → `test-integrity.command-surface` · 9 → `test-integrity.injected-dependencies` ·
+> 10 → `query.single-language` · 11 → `contract.stable-keys` ·
+> 12 → `ai.deterministic-provider` · 13 → AGENTS rule 12 (i18n — not a register row) ·
+> 14 → `errors.typed-reasons` · 15 → §3 row 9 · 16 → `settings.typed-facade` ·
+> 17 → `value.typed-at-write`
+
 1. **Secret-encryption key derived from a hard-coded application constant.** The keyring is the only secret store.
 2. **API key stored as an encrypted column in the application database**, alongside farm data and backups.
 3. **The masked-sentinel round-trip protocol:** a magic mask string travelling UI → settings → "keep the old value", leaking "a value exists" into a string comparison.

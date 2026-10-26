@@ -20,8 +20,9 @@
    entry, run `cargo xtask stats` when numbers moved, append a terse `log/devlog.md` entry, commit.
 
 **Definition of done:** behaviour exists as a registered, documented command (when user-visible) ·
-tests including graceful-failure · wired into the UI (and CLI where relevant) · snapshots viewed for UI
-work · full gate green on ubuntu **and** windows · inventory/gaps/scorecard/devlog updated.
+tests including graceful-failure and the **test-integrity checklist (§3)** · wired into the UI (and CLI
+where relevant) · snapshots viewed for UI work · full gate green on ubuntu **and** windows ·
+inventory/gaps/scorecard/devlog updated.
 
 ## 2. The gate
 
@@ -41,7 +42,38 @@ cargo xtask stats                                # regenerate scorecard and comm
 `cargo xtask ci` runs the block. **Never commit red.** Every commit keeps the workspace building and the
 touched crates' gates green. Mid-task commits are session checkpoints, not releases.
 
-## 3. Adding a command
+## 3. Test-integrity checklist (`REBUILD_PLAN.md` §3.8)
+
+A test that cannot fail is worse than no test: it inflates the ratchet and hides the defect it was written
+to catch. The six checks below are the operational form of the `test-integrity.*` rows; a reviewer may
+reject a change for one missing check, and *"the test passes"* is never the same claim as *"the behaviour is
+proven"*.
+
+- **Atomicity tests inject a failure *and* assert zero partial rows.** "All-or-nothing" is proven by
+  forcing the failure (constraint violation, injected error, full disk), then asserting the before-state
+  is intact: zero offspring, zero observations, unchanged status. A test that injects nothing and asserts
+  success proves nothing — it would pass with the transaction removed
+  (`test-integrity.no-vacuous-assertions`).
+- **Every test names the boundary it exercises and asserts the negative case.** The name states the rule
+  and the edge it probes — empty input, out-of-range, wrong type, forbidden identifier, duplicate — and
+  the test asserts the refusal, not only the happy path (`test-integrity.named-for-boundary`).
+- **Acceptance asserts values and invariants, never key presence or magic totals.** Money is asserted in
+  minor units with the formula documented; a pack install asserts "every declared field is installed,
+  every mode non-empty", never "14 fields / 2 modes / 5 widgets"; "type supported" is proven by the
+  capability, never by whichever pack happens to use it (`test-integrity.assert-values`).
+- **Tests dispatch the command surface, not storage internals.** A user-visible exclusion is asserted on
+  the surface the user or an agent actually sees (command output, snapshot), not against a raw table read;
+  fixtures come from `midata-testkit`, never from another module's private fixture
+  (`test-integrity.command-surface`, `test-integrity.injected-dependencies`).
+- **A test file's name states the behaviour under test.** A module named for a surface it does not test is
+  a defect, not a convention; the two most misleading artefacts in the legacy suite were exactly this
+  (`test-integrity.named-for-boundary`).
+- **No vacuous clause anywhere.** No empty test bodies, no `assert!(a || b)` that is true by
+  construction, no assertion on a constant, no duplicate scenario under a new name. If the test still
+  passes when the feature is deleted, delete the test and write the real one
+  (`test-integrity.no-vacuous-assertions`).
+
+## 4. Adding a command
 
 1. **Id:** lowercase `area.action` (`animal.create`, `observation.batch`, `data.importCommit`). Check the
    registry first — ids are **stable forever**, never renamed, never reused. A dropped behaviour leaves
@@ -62,7 +94,7 @@ touched crates' gates green. Mid-task commits are session checkpoints, not relea
    `docs/testing.md`.
 8. **Record:** inventory/gaps rows, `cargo xtask stats`, `command_hunt` green, devlog entry.
 
-## 4. Adding a screen
+## 5. Adding a screen
 
 1. One file `crates/midata-app/src/screens/<screen>.rs` + a `Screen` enum variant + nav wiring
    (core nav = Dashboard, Animals, Entry, Analytics, Assistant; advanced surfaces behind Developer Mode
@@ -77,7 +109,7 @@ touched crates' gates green. Mid-task commits are session checkpoints, not relea
 6. Snapshots: light + dark where layout matters, EN + FR spot check — **look at the PNG**.
 7. Update the inventory row and the devlog.
 
-## 5. Git workflow (D25, `REBUILD_PLAN.md` §13.4)
+## 6. Git workflow (D25, `REBUILD_PLAN.md` §13.4)
 
 **Branches.** One short-lived branch per task: `t/<task-id>-<slug>` (`t/p0-1-workspace-ci`,
 `t/p1-3-animal-create`). Parallel agents use one worktree each and one task branch each. **Never push to
@@ -132,7 +164,7 @@ exit-criteria summary. The legacy repo shipped 80 commits and zero tags; not onc
 inventory-row evidence (test names / snapshot paths) → scorecard numbers.`
 Every artifact links back to its origin; every task is reconstructable from git alone.
 
-## 6. Escalation — stop and ask the owner
+## 7. Escalation — stop and ask the owner
 
 1. Any DB schema change (new table/column/index/migration) — migrations are owner-approved, never
    smuggled into a feature task.
@@ -148,7 +180,7 @@ Every artifact links back to its origin; every task is reconstructable from git 
 Human-reserved: overall planning and roadmap ownership, release cutting, signing, branding/icon, UAT
 sign-off. Everything else is yours to decide — decide it and record it in the devlog.
 
-## 7. Parallel agents
+## 8. Parallel agents
 
 One git worktree per agent; own `CARGO_TARGET_DIR=target/agent-<name>`; one owner per crate/area at a
 time; edit only files you own. Shared files (the `commands.rs` list, app-state struct, `en.tsv`/`fr.tsv`,
