@@ -130,6 +130,13 @@ Untested attack classes and caps. These are the reason this file cannot be treat
 
 ## Anti-patterns — never reproduce
 
+> **Feeds `REBUILD_PLAN.md` §3 (one authoritative home — this list is provenance only):**
+> 1 → `query.ast-validation` · 2 → `query.ast-validation` · 3 → `query.ast-validation` ·
+> 4 → `query.ast-validation` · 5 → `query.bound-params` · 6 → `query.ast-validation` ·
+> 7 → `query.exercised-caps` · 8 → `query.ast-validation` · 9 → `errors.typed-reasons` ·
+> 10 → `test-integrity.named-for-boundary` · 11 → §3 row 5 · 12 → `query.single-language` ·
+> 13 → `contract.stable-keys` · 14 → `test-integrity.command-surface`
+
 1. **UNION accepted by accident:** the test named "rejects union" asserts only that nothing crashed; a union of two reads is silently accepted with no second whitelist pass.
 2. **Wildcard bypasses the column whitelist:** `SELECT *` and count-over-wildcard extract zero references, so the whitelist is vacuous on both paths.
 3. **Statement-type validation by keyword or substring matching rather than structure:** rejections are matched against fragments of an English error message. Decide on the AST.

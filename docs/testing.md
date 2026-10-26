@@ -54,7 +54,8 @@ a written reason in its oracle file (§7 summarises them by class).
 
 Every oracle file ends with two sections that are **binding inputs to the build**, not commentary:
 **`## Fresh`** (behaviours legacy never covered — write them from `REBUILD_PLAN`) and
-**`## Anti-patterns — never reproduce`** (these feed the `REBUILD_PLAN.md` §3 register).
+**`## Anti-patterns — never reproduce`** (binding countermeasures in the `REBUILD_PLAN.md` §3 register;
+each file's list opens with a pointer line mapping every finding to the §3 slug it feeds — D28).
 
 ### Scenario ids are the handle
 

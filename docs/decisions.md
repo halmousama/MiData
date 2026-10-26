@@ -193,6 +193,24 @@ so P0-1 must prove CI on both OSes; (9) new Git rule — **no session ends with 
 **Consequence:** P0-12 records the amendments; P0-10 is re-scoped (not dropped); migrations and later
 documentation follow D26.
 
+### D28 — Anti-pattern register extended by the oracle extraction (M7 review)
+**2026-10-27 (owner review of M7).** `REBUILD_PLAN.md` §3 is extended by **37 owner-approved rows** drawn
+from the eight oracle files' `## Anti-patterns` sections. They are grouped thematically — analytics
+results · query safety · AI contract · data I/O & onboarding · pedigree · storage & settings · test
+integrity — and keyed by a **stable slug** (`analytics.typed-results`, `query.bound-params`,
+`test-integrity.no-vacuous-assertions`) instead of the proposal's review numbers P1–P37. Rows 1–15 keep
+their numbers as stable citation handles; findings an existing row already covered were folded in as
+one provenance clause, never duplicated. Four rows were reworded by the owner and merged verbatim (`P14`
+→ `contract.stable-keys`, `P20` → `state.command-only-mutations`, `P26` →
+`config.business-vocabularies`, `P30` → `settings.typed-facade`). Sub-decisions: **(a)** a single query
+language — the legacy DSL is dropped, SQL through `midata-queryguard` only; **(b)** the public and
+agent-facing contract carries stable machine keys only — no storage row ids, no table names; **(c)**
+settings are a typed serde facade with `#[serde(default)]` over the K/V table.
+**Consequence:** `docs/proposals/anti-pattern-register-extension.md` is deleted — §3 is the single
+authoritative home, and provenance survives here and in each oracle file's slug pointers. Test integrity
+(§3.8) is operationalised as a checklist in `docs/contributing.md` §3. Slugs are contract: never renamed,
+never reused.
+
 ## 2. Open items with defaults (REBUILD_PLAN §16)
 
 These are not decisions yet — they are defaults that hold until the owner rules. Listed here so the
@@ -243,4 +261,6 @@ P0-1 and CI on both OSes is the merge gate.
 deduplicated draft at `docs/proposals/anti-pattern-register-extension.md` instead of editing
 `REBUILD_PLAN.md` §3, which only the owner amends.
 **Consequence:** the owner reviews one diff and merges it into §3 (or rejects rows); until then §3
-remains binding and the proposal has no authority.
+remains binding and the proposal has no authority. **Closed 2026-10-27 (D28):** the owner approved all
+37 rows, §3 became their home, and the proposal file was deleted. The `docs/proposals/` convention for
+owner-review-only documents survives.

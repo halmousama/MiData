@@ -328,7 +328,9 @@ follow-ups (2026-10-27), `REBUILD_PLAN.md` §15 **D26/D27**.
 - `docs/roadmap.md` → explicit MIRROR stamp (owner ruling 7 / M6).
 - `docs/gaps.md` → P0-10 re-scoped to the lean-bootloader policy, P0-3 ambiguity resolved (D26), P0-6
   de-widgetized + rollback criterion, P0-1 CI evidence tightened, P0-8 re-scoped, M8 criteria wired.
-- `docs/proposals/anti-pattern-register-extension.md` → M7 draft for owner review (not merged into §3).
+- `docs/proposals/anti-pattern-register-extension.md` → M7 draft delivered for owner review, then
+  **merged the same day as 37 slug-keyed rows in §3.2–§3.8 (D28)**; the proposal file is deleted —
+  `REBUILD_PLAN.md` §3 is the single authoritative home and each oracle file points at the slugs it feeds.
 
 **Evidence.** D26/D27 in `REBUILD_PLAN.md` §15 and `docs/decisions.md`; this entry; devlog
 2026-10-27; branch `t/p0-12-owner-amendments`.
@@ -358,7 +360,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 |---|---|---|---|
 | B0 | Bootstrap: git, `.gitignore`, `rust-toolchain.toml`, dual licence, doc system v0, gaps v0, inventory v0 | 2026-10-26 | this file; `docs/inventory.md` (195 rows); `log/devlog.md` |
 | P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
-| P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.4-draft §15 D26/D27; `docs/decisions.md`; `docs/proposals/anti-pattern-register-extension.md`; `log/devlog.md` |
+| P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
 
 ---
 

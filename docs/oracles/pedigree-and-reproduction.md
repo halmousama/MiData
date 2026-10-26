@@ -138,6 +138,18 @@
 
 ## Anti-patterns — never reproduce
 
+> **Feeds `REBUILD_PLAN.md` §3 (one authoritative home — this list is provenance only):**
+> 1 → `contract.stable-keys` · 2 → `identity.columns-not-eav` · 3 → `payload.semantic-only` ·
+> 4 → `analytics.one-empty-contract` · 5 → `pedigree.write-time-links` ·
+> 6 → `pedigree.bounded-traversal` · 7 → `pedigree.bounded-traversal` ·
+> 8 → `value.distinct-missing-states` · 9 → `test-integrity.command-surface` ·
+> 10 → `errors.typed-reasons` · 11 → `test-integrity.no-vacuous-assertions` ·
+> 12 → `config.business-vocabularies` · 13 → `config.business-vocabularies` ·
+> 14 → `species.registry-defaults` · 15 → `import.row-diagnostics` ·
+> 16 → `test-integrity.assert-values` · 17 → `query.ast-validation` ·
+> 18 → `test-integrity.command-surface` · 19 → `test-integrity.assert-values` ·
+> 20 → `pedigree.write-time-links`
+
 1. **Internal row ids leak into the graph contract:** nodes are addressed by database identifier while parent references are farm tags — two identity spaces in one payload. Keep one stable animal identity; never expose storage ids.
 2. **Pedigree links and identity stored as dynamic observations:** sex, species, breed, sire and dam are all "just measurements", so a sire link can be re-recorded with a later date and silently change ancestry. Identity and parent links are columns (D7).
 3. **Presentation attributes in the data payload** (a stroke style proving an edge is dashed) — style is a theme token.
