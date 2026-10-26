@@ -181,6 +181,15 @@
 
 ## Anti-patterns — never reproduce
 
+> **Feeds `REBUILD_PLAN.md` §3 (one authoritative home — this list is provenance only):**
+> 1 → `test-integrity.no-vacuous-assertions` · 2 → `test-integrity.named-for-boundary` ·
+> 3 → `import.row-diagnostics` · 4 → `import.row-diagnostics` · 5 → `import.row-diagnostics` ·
+> 6 → `import.one-field-path` · 7 → `test-integrity.no-vacuous-assertions` ·
+> 8 → `onboarding.derived-state` · 9 → `seed.explicit-guard` · 10 → `config.inputs-exercised` ·
+> 11 → `config.inputs-exercised` · 12 → `query.ast-validation` · 13 → `query.ast-validation` ·
+> 14 → `errors.typed-reasons` · 15 → `value.typed-at-write` ·
+> 16 → D21/D5 (waived surfaces — not a register row)
+
 1. **Vacuous atomicity tests.** Three of four "atomicity" tests inject no failure and then assert success. Never accept an all-or-nothing claim without an injected failure and a zero-rows assertion (see PD-17 for the same defect).
 2. **Mislabelled tests.** One test claims "does not partially commit" and asserts both rows *do* commit; another named for "uninstall twice is idempotent" asserts the second call *raises*.
 3. **Silent merge of duplicate identifiers within one file:** two rows sharing a tag become one animal with the last value, reported as "1 added, 1 updated". Refuse with an actionable duplicate-identifier error (DE-19, HM-2).

@@ -93,6 +93,14 @@
 
 ## Anti-patterns — never reproduce
 
+> **Feeds `REBUILD_PLAN.md` §3 (one authoritative home — this list is provenance only):**
+> 1 → `value.distinct-missing-states` · 2 → `value.one-resolver` ·
+> 3 → `value.distinct-missing-states` · 4 → `test-integrity.no-vacuous-assertions` ·
+> 5 → `test-integrity.command-surface` · 6 → `errors.typed-reasons` ·
+> 7 → `test-integrity.command-surface` · 8 → `retention.canonical-active-filter` ·
+> 9 → `retention.canonical-active-filter` · 10 → `schema.no-sentinels` ·
+> 11 → `test-integrity.named-for-boundary` · 12 → `test-integrity.injected-dependencies`
+
 1. **Two representations of "no value":** an animal with no observation for a referenced field is *absent* from the result, while an animal whose computation fails is *present and uncomputable*. Same user-visible condition, two shapes.
 2. **Validation and evaluation disagree:** evaluating a formula whose field key does not exist returns an empty result, while validation rejects the same key — a typo silently reads as "no animals have data".
 3. **Division by zero and missing input collapse to the same null**, so the caller cannot distinguish "impossible" from "no data".

@@ -144,6 +144,7 @@ Every task runs the five-step loop:
 - **Never commit red:** every commit keeps the workspace building and touched-crate gates green. Mid-task commits are your session checkpoints — commit early, commit often (a crashed session is recovered from the branch + devlog).
 - Snapshot goldens, generated docs and `Cargo.lock` travel **in the same commit** as their motivating change — an artifact never drifts from its code.
 - Tagging, force-push, history rewriting, pushing to main: escalation items (§7).
+- **No session ends with uncommitted work** — commit the checkpoint before stopping; always verify repo state with `git status` before asserting it.
 
 ```sh
 cargo fmt --check

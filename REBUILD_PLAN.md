@@ -1,7 +1,7 @@
 # MiData Native — Master Rebuild Plan
 
-> **Version:** 0.3-draft (awaiting owner approval)
-> **Last reviewed:** 2026-10-27 · **Last updated:** 2026-10-27 · **Change:** Git workflow & traceability added (§13.4, D25)
+> **Version:** 0.5-draft (anti-pattern register extended — owner M7 review)
+> **Last reviewed:** 2026-10-27 · **Last updated:** 2026-10-27 · **Change:** §3 extended by 37 owner-approved oracle-extraction rows, thematically grouped with stable slug keys; four owner rewords applied verbatim (D28).
 > **Owner:** project owner (decision authority) · **Executor:** AI coding agent(s) under this plan + `AGENTS.md`
 > **Inputs:** `uploads/PROJECT_REPORT.md` (legacy behaviour specification) · `ARTCRAFT_INVESTIGATION.md` (methodology source, storytold/photocraft)
 > **Language policy:** this document and every repo artifact are written in **English** (execution language of agents). Product UI strings: **English (source) + French**. No Arabic UI in v1.
@@ -51,7 +51,7 @@ Architectural consequences (all mandatory, from Phase 0):
 4. **CLI is a first-class citizen** (`apps/midata-cli`), shipped from Phase 1, growing with the registry.
 5. **Control-channel + MCP seams exist from day one** (the registry is the seam); the loopback JSON-lines server and MCP wrapper are implemented in Phase 6.
 6. **The audit log doubles as agent observability:** every command execution records actor (user/ai/cli), params digest, and results.
-7. **`AGENTS.md` is part of the product,** kept under ~7–8 KB (bootloader + orientation table), with detail pushed to `docs/*` read on demand.
+7. **`AGENTS.md` is part of the product,** kept as a **lean bootloader**: rules not procedures, **one authoritative home per topic**, target ≤ ~12 KB (iron rules + orientation table), with procedures and detail pushed to `docs/*` read on demand. `AGENTS.md` may summarize and point — it never duplicates a doc (D27).
 
 ### 1.4 Honest positioning
 
@@ -73,23 +73,109 @@ egui yields a clean, professional **tool aesthetic** — not Tailwind/React glos
 
 ## 3. Anti-pattern register (legacy lessons → enforced countermeasures)
 
-| Legacy defect (PROJECT_REPORT §19–20) | Countermeasure in MiData Native | Enforced by |
-|---|---|---|
-| Flattening ignores `record_date` → "current value" arbitrary | Latest-value semantics defined: max `recorded_on`, tie-break max id (§5.4) | store tests + oracle scenarios |
-| N+1 entity listing (10k animals → 10k queries) | Single window-function query flattens the whole list (§5.4) | perf budget test on 10k-animal fixture (§12) |
-| Dead schema (`pending_changes` unused) & phantom deps (`alembic`) | "No dead anything" rule: every table/flag/dep is used; deprecated code deleted immediately | `cargo machete` (unused deps) + review rule in AGENTS.md |
-| Half-implemented validation rules (inert `rule_type`s) | `rule_type` is a Rust enum; every variant implemented and tested; no inert options exist | exhaustive match (compiler) + tests |
-| Layering leaks (business logic in controllers) | Layered crates L0–L5; UI/CLI may not contain domain logic | `cargo xtask check-layers` (CI gate) |
-| Docs drift (README ≠ code; 12 documented divergences) | Numbers are **generated** (`xtask stats` → `docs/scorecard.md`); decisions logged; docs carry review stamps | CI regenerates & diffs scorecard |
-| Stale committed SPA bundle ("Rumetrics" title shipped) | No committed build artifacts, ever; generated docs are marked and CI-verified | `.gitignore` policy + CI |
-| Secret crypto derived from hardcoded `SECRET_KEY`; API key in bundle | Secrets in **OS keyring** (`keyring` crate); no server, no embedded keys | architecture (nothing to embed) |
-| In-memory AI confirmation tokens (lost on restart) | `pending_changes` persisted in SQLite with expiry + single-use (§9) | integration test: restart-survival |
-| Unauthenticated LAN/ngrok exposure; invalid CORS | Removed entirely (no server). Future remote access goes through the documented Phase-7 strategy with auth designed in | architecture |
-| Monolith files (`statistical_engine.py` 1,720 lines; `ChatStream.tsx` 897) | File budget: soft cap 500 lines, alarm 800; "new area = new file"; no `utils.rs` dumps | `cargo xtask file-budget` ratchet |
-| Mixed/stale lockfiles, deps mixing prod/test/desktop | Single `Cargo.lock`; `[workspace.dependencies]` central list; dev-deps separated | workspace policy + cargo-deny |
-| Theme/storage key mismatch (`rumetrics-ui-theme` vs `midata-ui-theme`) | One naming convention; all persistence keys defined in a single constants module | code review + grep gate (`rumetrics` = 0 hits) |
-| Zero tags, no CI, red lint tolerated | CI from Phase 0 on Linux+Windows; clippy `-D warnings`; **every release is tagged** | branch protection + release checklist (§13) |
-| Agent context exhaustion as codebase grows | Context-economy system: boundaries=compression, crate READMEs, orientation table, devlog continuity, ≤5-files-per-task rule | §11 process + file budget |
+**This register is binding.** It has two parts. §3.1 holds the original rows taken from
+`PROJECT_REPORT §19–20`; their **`#` numbers are stable citation handles** — cite "row 8", never "the eighth
+row". §3.2–§3.8 hold the rows extracted from the eight oracle files (`docs/oracles/*`, P0-11) and approved
+by the owner after M7 review (D28); each carries a **stable slug** — cite the slug
+(`analytics.typed-results`), never a list position. Slugs are contract: **never renamed, never reused**, and
+a new defect class is a new slug. A finding an existing row already enforces is **folded into that row** as
+a provenance clause, never duplicated as a new row.
+
+### 3.1 Original register (rows 1–15)
+
+| # | Legacy defect (PROJECT_REPORT §19–20) | Countermeasure in MiData Native | Enforced by |
+|---|---|---|---|
+| 1 | Flattening ignores `record_date` → "current value" arbitrary | Latest-value semantics defined: max `recorded_on`, tie-break max id (§5.4). Oracle extract re-observed date-blind flattening — no second flattening implementation exists anywhere | store tests + oracle scenarios |
+| 2 | N+1 entity listing (10k animals → 10k queries) | Single window-function query flattens the whole list (§5.4); N+1 listing re-observed in the oracle extract | perf budget test on 10k-animal fixture (§12) |
+| 3 | Dead schema (`pending_changes` unused) & phantom deps (`alembic`) | "No dead anything" rule: every table/flag/dep is used; deprecated code deleted immediately. Oracle extract adds dead configuration/health toggles | `cargo machete` (unused deps) + review rule in AGENTS.md |
+| 4 | Half-implemented validation rules (inert `rule_type`s) | `rule_type` is a Rust enum; every variant implemented and tested; no inert options exist (oracle extract re-observed inert variants) | exhaustive match (compiler) + tests |
+| 5 | Layering leaks (business logic in controllers) | Layered crates L0–L5; UI/CLI may not contain domain logic. Oracle extract adds empty crates and domain logic in controllers | `cargo xtask check-layers` (CI gate) |
+| 6 | Docs drift (README ≠ code; 12 documented divergences) | Numbers are **generated** (`xtask stats` → `docs/scorecard.md`); decisions logged; docs carry review stamps — incl. hand-maintained numbers drifting from code in the oracle extract | CI regenerates & diffs scorecard |
+| 7 | Stale committed SPA bundle ("Rumetrics" title shipped) | No committed build artifacts, ever; generated docs are marked and CI-verified — covers the oracle extract's launcher console shipped as a UI surface | `.gitignore` policy + CI |
+| 8 | Secret crypto derived from hardcoded `SECRET_KEY`; API key in bundle | Secrets in **OS keyring** (`keyring` crate); no server, no embedded keys — including credential files on disk, an API key encrypted into the app DB, and a key derived from an application constant (oracle extract) | architecture (nothing to embed) |
+| 9 | In-memory AI confirmation tokens (lost on restart) | `pending_changes` persisted in SQLite with expiry + single-use (§9); a token living only in a stream event is the same defect (oracle extract) | integration test: restart-survival |
+| 10 | Unauthenticated LAN/ngrok exposure; invalid CORS | Removed entirely (no server). Future remote access goes through the documented Phase-7 strategy with auth designed in | architecture |
+| 11 | Monolith files (`statistical_engine.py` 1,720 lines; `ChatStream.tsx` 897) | File budget: soft cap 500 lines, alarm 800; "new area = new file"; no `utils.rs` dumps; monolith modules re-observed in the oracle extract | `cargo xtask file-budget` ratchet |
+| 12 | Mixed/stale lockfiles, deps mixing prod/test/desktop | Single `Cargo.lock`; `[workspace.dependencies]` central list; dev-deps separated; re-observed in the oracle extract | workspace policy + cargo-deny |
+| 13 | Theme/storage key mismatch (`rumetrics-ui-theme` vs `midata-ui-theme`) | One naming convention; all persistence keys defined in a single constants module; storage/theme key mismatch re-observed in the oracle extract | code review + grep gate (`rumetrics` = 0 hits) |
+| 14 | Zero tags, no CI, red lint tolerated | CI from Phase 0 on Linux+Windows; clippy `-D warnings`; **every release is tagged**; re-observed in the oracle extract | branch protection + release checklist (§13) |
+| 15 | Agent context exhaustion as codebase grows | Context-economy system: boundaries=compression, crate READMEs, orientation table, devlog continuity, ≤5-files-per-task rule; re-observed in the oracle extract | §11 process + file budget |
+
+### 3.2 Analytics results
+
+| Slug | Legacy defect class (where observed) | Countermeasure in MiData Native | Enforced by |
+|---|---|---|---|
+| `analytics.structured-insights` | **Insights as free-form English prose**, asserted by substring ("not found", "requires") — analytics, assistant | Insights are structured (template key + params + severity) resolved through i18n; tests assert key and params, never text | `midata-analytics` types + i18n tests |
+| `analytics.numeric-bounds` | **Presentation formatting inside the analytics engine** (histogram bins shipped as range *strings*) — analytics | The engine returns numeric bounds/counts; labels and formatting exist only at the UI edge | typed result structs + snapshot |
+| `analytics.typed-results` | **One polymorphic, null-filled result envelope** for every analysis (`trend_line: null`, `outliers: {high:[],low:[]}`) — analytics | Typed per-analysis result variants: absence is a variant, not a null field, so a caller cannot read a meaningless key | Rust enums (exhaustive match) |
+| `analytics.one-empty-contract` | **Contradictory empty/error signalling** — same condition returns data in one path and an empty chart in another; silent "Unknown" buckets; unknown root returns empty success — analytics, pedigree, storage | One contract: typed `CommandError` for invalid input; structured empty result **with a reason code** for valid input with no data; a missing dimension is named in the error, never bucketed as "Unknown" | domain `CommandError` + per-command tests |
+| `analytics.single-engine` | **A second dispatch surface / second analytics engine** with its own string dispatch and column lists — analytics, assistant, query | One command registry and one analytics engine (D16/D23); a new computation is a new function inside `midata-analytics`, never a parallel executor | `xtask check-layers` + review |
+
+### 3.3 Query safety
+
+| Slug | Legacy defect class (where observed) | Countermeasure in MiData Native | Enforced by |
+|---|---|---|---|
+| `query.ast-validation` | **Query safety by first-keyword / substring matching** — no AST, wildcard and aliases bypass the whitelist, hardcoded source pair, free-string aggregate names, statement type inferred from an English error — query, exchange | `midata-queryguard` only: single SELECT/WITH decided on the AST; wildcard and aliases resolved into the whitelist; sources registry-driven; aggregate functions allowlisted | queryguard suite (AI-6…AI-9) |
+| `query.bound-params` | **Values interpolated into query text** instead of bound — the "injection" test asserted the payload appeared verbatim — query | Every value is a bound parameter; the injection suite asserts refusal *and* an untouched database, never quote-counting | queryguard + AI-19 |
+| `query.exercised-caps` | **Caps declared but never exercised** — the only cap test asserts the flag is off; size/timeout caps absent — query | Each cap has a test that reaches it (5,000 rows · 50 KB · 500 aggregated · 200-char strings · query timeout, i.e. the SQLite progress-handler interrupt guard against runaway queries) | queryguard cap tests |
+| `query.single-language` | **Two query languages in one surface** (SQL *and* a DSL) — assistant, query | One language: SQL through the validation lab (D28a). No second parser, no second documentation set | architecture + review |
+
+### 3.4 AI contract
+
+| Slug | Legacy defect class (where observed) | Countermeasure in MiData Native | Enforced by |
+|---|---|---|---|
+| `contract.stable-keys` | **Database identifiers in the public/agent contract** — row ids in a graph payload, internal table names as model enum values — pedigree, assistant, query | One stable identity per animal (the farm tag `custom_id`) and stable machine keys for fields/modes; the public and agent-facing contract (command params and outputs) carries these keys only — storage row ids and table names never cross the command boundary | command-output types + tests |
+| `errors.typed-reasons` | **Transport concepts as the domain contract** — 400/404 carry domain meaning, errors are English text, refusal classes differ per resource — storage, pedigree, retention | Domain errors are typed `CommandError`s rendered through i18n at the edge; no HTTP/transport type below the app; every rejection carries a machine-readable reason class so agents can branch | domain error tests |
+| `ai.deterministic-provider` | **Non-deterministic streaming tests** — "there might be an error event (no LLM running)" — assistant | The provider is stubbed; the test asserts the terminal event deterministically, with no network and no timing assumptions | `midata-ai` stub-provider tests |
+
+### 3.5 Data I/O & onboarding
+
+| Slug | Legacy defect class (where observed) | Countermeasure in MiData Native | Enforced by |
+|---|---|---|---|
+| `identity.machine-keys` | **Display strings used as identity keys** — import reactivates a widget by title / a mode by name, so renaming or translating duplicates it — retention, exchange | Machine keys are identity; labels are presentation. Match on `key`, never on `label` | store lookups + rename test |
+| `import.row-diagnostics` | **Silent row-level data loss in import/onboarding** — duplicate identifiers merged, rows without an identifier dropped, unknown bundle ids skipped, only aggregate counters reported — exchange, onboarding, pedigree | Per-row diagnostics with source-row index + reason code (`CommandError`), and an explicit refusal for duplicate identifiers inside one file (DE-19/HM-2) | import pipeline tests |
+| `import.one-field-path` | **Two install paths with two safety levels** — a field-key collision fatal for a pack but silently tolerated in onboarding — exchange, onboarding | Exactly one field-creation path used by packs, onboarding and the AI proposal flow | `midata-ops` API + test |
+| `onboarding.derived-state` | **Split completion state** — a marker file *and* database rows must agree, and both disagreement cases report "not onboarded" while data exists — onboarding | One source of truth: state is derived from the database; no on-disk marker | `onboarding.status` + test |
+| `seed.explicit-guard` | **Demo or destructive seed on live data without a guard** — demo animals appended beside a real herd — onboarding | Seed is an explicit, confirmed command (`--force` to rebuild), refuses on a non-empty non-seed herd, and stamps `source='seed'` | `seed.demo` tests |
+| `config.inputs-exercised` | **Configuration inputs accepted and never exercised** — health toggles no code reads, a custom-species list ignored, widgets created despite the feature being off — onboarding, exchange | Every settings/config input is read by shipped code in the same phase or deleted; feature toggles gate the artefacts they claim to gate | activation test per input + `file-budget` review |
+
+### 3.6 Pedigree
+
+| Slug | Legacy defect class (where observed) | Countermeasure in MiData Native | Enforced by |
+|---|---|---|---|
+| `species.registry-defaults` | **Species defaults hardcoded in code and tests** — gestation literals in Rust, every other species silently gets nothing — pedigree, onboarding | Per-species defaults are registry data; tests read them from the registry, never pin literals (AGENTS rule 4) | no-species-enumeration test |
+| `config.business-vocabularies` | **Closed business vocabularies in code** — twelve fixed purpose tags (one per field), "normal" meaning none, a pregnancy status literal reset inside an action — pedigree | Business vocabularies (purpose tags, pregnancy-like field values, suggestion lists) are multi-valued configuration data read from field/species config; structural identity enums (sex, entity lifecycle status) remain typed code constraints per D7 — the distinction is written in `docs/architecture.md` | field-config tests + review |
+| `payload.semantic-only` | **Presentation attributes inside data payloads** — a stroke style proving an edge is dashed — pedigree | Presentation is theme tokens at the UI edge; the analytics/graph payload carries semantics only | payload types + theme review |
+| `pedigree.bounded-traversal` | **Unbounded or non-deterministic traversal** — depth-only guard lets a wide component exceed the node cap; truncation asserts only an upper bound with no selection rule — pedigree | Every traversal carries a visited set, generation bound (1–10) and the 500-node cap **on every path**, with a deterministic truncation rule | pedigree tests on wide fixtures |
+| `pedigree.write-time-links` | **Write-time link validation absent** — self-parenting accepted and rendered; blank parent tags normalised silently; unknown root returns empty success — pedigree | Validate sex and self-reference at write time with actionable `CommandError`s; pre-existing bad data is a surfaced data-quality warning; a blank tag is reported, not silently converted | `animal.*`/birth tests |
+
+### 3.7 Storage & settings
+
+| Slug | Legacy defect class (where observed) | Countermeasure in MiData Native | Enforced by |
+|---|---|---|---|
+| `value.distinct-missing-states` | **Two representations of "no value"** — absent row vs present-but-uncomputable; division by zero and missing input both collapse to null — storage, formula | One vocabulary: `missing`, `not_evaluated`, `error{reason}` are distinct variants; "not applicable / data missing" is never silently `false` | `midata-domain` result types + rule tests |
+| `value.one-resolver` | **Validation and evaluation disagree** — a formula accepts a field key its validator rejects, so a typo reads as "no animals have data" — storage | One key-resolution path shared by validation and evaluation; an unresolved placeholder is an error, never a silent empty result | shared resolver + tests |
+| `identity.columns-not-eav` | **Identity and pedigree facts stored as observations** (sex/species/breed/birth-date/parents as "just measurements"; ancestry changed by re-recording) — analytics, pedigree, exchange | Identity is columns on `entities`; parent links are `sire_id`/`dam_id`; age is computed (D7). Never an EAV identity fact | schema + AGENTS rule 2 |
+| `schema.no-sentinels` | **Magic sentinel values encode meaning** (`mode_id = 0` = "no mode"; a sentinel string in an id column; a "role" value that secretly means authorization) — analytics, retention, storage | Absence is `Option`; ownership/purpose are explicit typed columns; protection policy and purpose are separate concepts | domain types + schema |
+| `state.command-only-mutations` | **State changed by direct row mutation** — tests flip an active flag or reactivate a record without a command: no audit, no validation, divergent error behaviour — retention, storage | Every state change goes through a registered command; tests dispatch the real command instead of mutating rows or flags directly — no audit-less, validation-less mutation path exists | `command_hunt` + audit assertions |
+| `audit.every-mutation` | **Destructive-ish operations with no audit trail** — deactivate/reactivate/install/uninstall record nothing — retention | Every mutating command writes exactly one `audit_log` row (actor + batch token where applicable), including lifecycle operations | audit-count tests |
+| `retention.canonical-active-filter` | **Retention with no single canonical active filter** — soft-deleted fields/modes still leak into pickers and re-scoping; neighbouring entities use inconsistent delete semantics | One canonical active predicate used by *every* read surface, and a written per-resource delete policy (soft vs hard) tested on the surface the user sees | store queries + list-surface tests |
+| `settings.typed-facade` | **Typed settings modelled as stringly key/value rows** (temperature stored as text) — assistant, storage | The settings surface is a typed serde struct with `#[serde(default)]` (round-trip tested); the K/V table is a storage detail behind that typed facade; no locale-dependent parsing of persisted numbers/dates | settings types + round-trip tests |
+| `value.typed-at-write` | **Inconsistent storage typing papered over with per-query casts** (`CAST(weight AS DOUBLE)` everywhere) — assistant | Observations are typed at write time through domain constructors (one non-NULL column per `data_type`); money is integer minor units end-to-end | value-encoding tests |
+
+### 3.8 Test integrity
+
+| Slug | Legacy defect class (where observed) | Countermeasure in MiData Native | Enforced by |
+|---|---|---|---|
+| `test-integrity.injected-dependencies` | **Hidden global state and cross-module fixtures** — a module-level cache patched by tests, fixtures inferred from another file, private helpers imported — assistant, query, storage | Dependencies injected (store handle, clock, provider); fixtures come only from `midata-testkit`; behaviour is tested through the public command surface | crate API + review |
+| `test-integrity.no-vacuous-assertions` | **Vacuous or tautological assertions** — empty test bodies, `assert a or b`, "atomicity" tests that inject no failure and assert success, a "does not partially commit" test asserting both rows commit, duplicate tests under different names (asserted in six oracle files) | Every test states the boundary it exercises in its name and asserts the negative case; an atomicity test injects a failure **and** asserts zero rows; duplicates are merged, not counted | review + `command_hunt` + ratchet on test count with named evidence |
+| `test-integrity.assert-values` | **Structure-only acceptance** — profitability/dashboard assert key presence only; "type supported" proven by whichever pack happens to use it; pack totals pinned to magic numbers | Acceptance asserts the value (money in minor units, metric formula documented) and invariants ("every declared field installed"), never key presence or magic totals | oracle-mapped tests |
+| `test-integrity.command-surface` | **Tests coupled to internals** — driver/table names, a specific registered executor, private whitelist helpers, storage-layer-only assertions for user-visible exclusion | Tests go through the command surface and assert what the user/agent sees; fixture DB comes from `midata-testkit` | review + layer check |
+| `test-integrity.named-for-boundary` | **Module named for a surface it does not test** (the single most misleading artefact in the legacy suite) | A test file's name states the behaviour under test; a mismatch is a defect, not a convention | review |
+
+**How to use a row.** When an inventory task implements a behaviour, the row's countermeasure is an
+acceptance criterion, not advice: the enforcing artefact (test name, snapshot, xtask gate) cited in
+`docs/inventory.md` evidence is what closes it. `docs/contributing.md` §3 is the operational form of §3.8.
 
 ---
 
@@ -230,7 +316,7 @@ Graduations are owner-approved decisions (recorded in `docs/decisions.md`); a sp
 ### 5.2 Table catalogue (spec-level)
 
 ```sql
--- v1 (Phase 0) --------------------------------------------------------------
+-- v1 — birth-gated per phase, see the D26 note below -----------------------
 CREATE TABLE species (
   id INTEGER PRIMARY KEY,
   key TEXT NOT NULL UNIQUE,             -- machine key: 'cow','sheep','goat', user-added 'camel'…
@@ -326,6 +412,7 @@ CREATE TABLE validation_rules (
   is_active INTEGER NOT NULL DEFAULT 1
 );
 
+-- Phase 3 addition (D26): default-widget seeding ships with the dashboard -------
 CREATE TABLE widgets (
   id INTEGER PRIMARY KEY,
   widget_type TEXT NOT NULL,            -- 'kpi','line','bar','table','alert_board','progress_list','donut','profitability'
@@ -363,6 +450,12 @@ CREATE TABLE pending_changes (id INTEGER PRIMARY KEY, token TEXT NOT NULL UNIQUE
                               consumed INTEGER NOT NULL DEFAULT 0,
                               created_at TEXT NOT NULL, expires_at TEXT NOT NULL);  -- PERSISTED (legacy bug fixed)
 ```
+
+> **Birth-gated schema (D26):** migrations create each table in the phase that first uses it — P0:
+> species…audit_log **except** `widgets`; P3: `widgets` (+ default-widget seeding); P5: `conversations`,
+> `messages`, `pending_changes`; P6: pack-provenance columns (`origin`/`pack_id` on
+> `field_definitions`/`modes`/`widgets`) via an owner-approved migration. "No dead schema" (§5.1.5)
+> outranks "full v1 schema at once".
 
 ### 5.3 Value encoding rules
 
@@ -416,7 +509,7 @@ Deterministic generator (`xtask` or CLI verb `midata seed --demo [--force]`): ~5
 
 ### 6.1 Tracking model
 
-`docs/inventory.md` (created in Phase 0, task P0-D3) transcribes PROJECT_REPORT §3 into **one row per testable behaviour**, grouped in blocks with stable ids:
+`docs/inventory.md` (delivered by bootstrap B0; reconciled in P0-8) transcribes PROJECT_REPORT §3 into **one row per testable behaviour**, grouped in blocks with stable ids:
 
 | Block | Ids | Legacy source |
 |---|---|---|
@@ -471,7 +564,7 @@ Screens (one file each under `midata-app/src/screens/`, thin: dispatch commands,
 
 ### 7.4 i18n (EN source + FR)
 
-- TSV catalogues `midata-app/src/i18n/en.tsv`, `fr.tsv` (ArtCraft pattern); lookup via `t!("key")`; **every** user-facing string — including `CommandError` messages and insights templates — goes through i18n from day one (avoiding ArtCraft's "engine messages still English" partial state).
+- TSV catalogues live in the `midata-i18n` crate (`crates/midata-i18n/catalogues/en.tsv` / `fr.tsv`, embedded at build) — L0, shared by app and cli (D24 authoritative); lookup via `t!("key")`; **every** user-facing string — including `CommandError` messages and insights templates — goes through i18n from day one (avoiding ArtCraft's "engine messages still English" partial state).
 - `cargo xtask i18n-coverage` measures key coverage; 100% FR is a Phase-6 exit gate; coverage is a ratchet.
 - Language setting: `settings.language ∈ {en, fr}`, live-switchable.
 
@@ -527,7 +620,7 @@ Screens (one file each under `midata-app/src/screens/`, thin: dispatch commands,
 
 ### 11.1 Artifact set
 
-Created in Phase 0 and kept alive thereafter: `AGENTS.md` (≤8 KB, English, header credit: *"Structure adapted from storytold/photocraft AGENTS.md (MIT OR Apache-2.0)"*) · `ROADMAP.md` (headline numbers: inventory coverage %, screens done, tests count, budget status; stamped Last reviewed/updated/Change; includes an honest "Why not 1.0 yet" section) · `docs/*` (§4.1) · `log/devlog.md` · local gitignored `plan/`.
+Created in Phase 0 and kept alive thereafter: `AGENTS.md` (lean bootloader ≤ ~12 KB: rules not procedures, one authoritative home per topic; English, header credit: *"Structure adapted from storytold/photocraft AGENTS.md (MIT OR Apache-2.0)"*) · `ROADMAP.md` (headline numbers: inventory coverage %, screens done, tests count, budget status; stamped Last reviewed/updated/Change; includes an honest "Why not 1.0 yet" section) · `docs/*` (§4.1) · `log/devlog.md` · local gitignored `plan/`.
 
 ### 11.2 Golden rules (authoritative text lives in AGENTS.md; summary here)
 
@@ -685,8 +778,8 @@ Every artifact links back to its origin; every task is reconstructable from git 
 | **Total** | | **~510–990 agent-hours** |
 
 ### Phase 0 — Foundations
-**Scope:** repo + workspace + CI (§13.1) · `AGENTS.md` + full `docs/` skeleton + `ROADMAP.md` v0 + devlog · `xtask` (check-layers, file-budget, ci, stats, new-command/new-screen templates, seed, bench skeleton, i18n-coverage) · `midata-domain` v0 (types, enums, Value rules, CommandError) · `midata-i18n` (TSV catalogues en/fr, `t!()` lookup, coverage data) · `midata-store` v0 (engine, PRAGMAs, migrations → full v1 schema §5.2, repos, latest-value queries) · `midata-ops` v0 (onboarding-merge + seed workflows) · `midata-engine` v0 (Command trait, Session, registry, audit hook, undo seam) · `midata-testkit` (temp-DB harness, demo-seed builders, snapshot + command-test helpers) · `midata-app` shell (eframe window, Screen router, nav, theme tokens light/dark, settings load/save — i18n via `midata-i18n`) · **1-step onboarding** (species preset choice + optional demo seed → creates species/fields/modes/system-mode/widgets) · `midata-cli` skeleton (`commands`) · `docs/inventory.md` v0 generated from PROJECT_REPORT §3 · `docs/gaps.md` v0 populated with Phase-1 tasks · seed generator (§5.7).
-**Exit criteria:** `xtask ci` green on ubuntu+windows · app boots to dashboard with demo data · onboarding idempotent · migration idempotency tests · AGENTS.md ≤ 8 KB · 0 file-budget violations · snapshots: shell + onboarding · devlog active.
+**Scope:** repo + workspace + CI (§13.1) · `AGENTS.md` + full `docs/` skeleton + `ROADMAP.md` v0 + devlog · `xtask` (check-layers, file-budget, ci, stats, new-command/new-screen templates, seed, bench skeleton, i18n-coverage) · `midata-domain` v0 (types, enums, Value rules, CommandError) · `midata-i18n` (TSV catalogues en/fr, `t!()` lookup, coverage data) · `midata-store` v0 (engine, PRAGMAs, migrations v1 → birth-gated schema per §5.2 (D26), repos, latest-value queries) · `midata-ops` v0 (onboarding-merge + seed workflows) · `midata-engine` v0 (Command trait, Session, registry, audit hook, undo seam) · `midata-testkit` (temp-DB harness, demo-seed builders, snapshot + command-test helpers) · `midata-app` shell (eframe window, Screen router, nav, theme tokens light/dark, settings load/save — i18n via `midata-i18n`) · **1-step onboarding** (species preset choice + optional demo seed → creates species/fields/modes/system-mode presets; default widgets seeded in P3 with the dashboard) · `midata-cli` skeleton (`commands`) · `docs/inventory.md` v1 reconciled in P0-8 · `docs/gaps.md` v0 populated with Phase-1 tasks · seed generator (§5.7).
+**Exit criteria:** `xtask ci` green on ubuntu+windows · app boots to dashboard with demo data · onboarding idempotent · migration idempotency tests · `AGENTS.md` lean bootloader ≤ ~12 KB · 0 file-budget violations · snapshots: shell + onboarding · devlog active.
 
 ### Phase 1 — Core herd
 **Scope:** reusable **DataTable** kit + DynamicFieldRenderer + modal/toast/confirm kit (§7.3) · Settings→Fields manager (CRUD, toggle, categories, options editor, cardinality, units, inline min/max, EN/FR labels) · Settings→Species manager (add/edit custom species, gestation defaults) · Animals list screen (columns = identity + active-mode fields, sort/filter/paginate/select, context menu) · Animal detail (identity card, latest values, full history timeline + per-field charts, edit, delete-with-confirm, PDF card placeholder) · create/edit animal (dynamic form + identity + parent pickers with sex validation + phantom-tag support) · observations: single / **batch** (one animal, many fields) / **mass** (many animals, same fields) entry screens · all as commands (`animal.*`, `observation.*`, `field.*`, `species.*`) + graceful-failure tests + `command_hunt` v1 · audit log writing · CLI: `run`, `seed` · Developer-mode flag plumbing (persisted, gating nothing yet).
@@ -747,8 +840,11 @@ Every artifact links back to its origin; every task is reconstructable from git 
 | D23 | 2026-10-27 | Crate layout L0–L5 incl. dedicated `midata-engine` (command registry) + `apps/{midata, midata-cli}` + `xtask` | architect (D13 consequence) |
 | D24 | 2026-10-27 | Crate architecture refined: added `midata-i18n` (L0, shared by app+cli), `midata-ops` (L2 workflows — keeps engine commands thin dispatch), `midata-queryguard` (L2 SQL-validation lab — placed **below** the engine so AI (P5) and dynamic widgets (P6) share one validator; fixes the upward-dependency trap), `midata-exchange` (L2 file formats — isolates heavy deps), `midata-testkit` (dev fixtures). Layers = registered DAG, not a strict chain. `midata-app` restricted to domain+engine+i18n. Crates born in the phase that first uses them. Split triggers documented (§4.8) | owner consultation (crate-structure review) |
 | D25 | 2026-10-27 | Git workflow adopted: private GitHub remote; protected `main` (no direct pushes — owner squash-merges PRs); one branch per task `t/<task-id>-<slug>`; conventional commit subjects carrying `[task-id]`; mandatory `Co-Authored-By` attribution on agent commits; green-commits-only with mid-task commits as session checkpoints; goldens/generated-docs/Cargo.lock committed with their motivating change; annotated release tags `vX.Y.Z` + milestone tags `m/phase-N`; full traceability chain (§13.4) | owner consultation (git organization) |
+| D26 | 2026-10-27 | **Schema is birth-gated:** each table is created by the migration of the phase that first uses it. Phase 0: species…audit_log **except** `widgets`; P3: `widgets` (+ default-widget seeding); P5: `conversations`, `messages`, `pending_changes`; P6: pack-provenance columns (`origin`/`pack_id` on `field_definitions`/`modes`/`widgets`) via an owner-approved migration. The "no dead schema" rule (§5.1.5) outranks "full v1 schema at once" | owner rulings on bootstrap ambiguities |
+| D27 | 2026-10-27 | **Bootstrap rulings batch:** `docs/roadmap.md` mirror stamp (A2 ratified) · A4 root commit on `main` ratified, task branches from P0-1 · `P0-n` task-id scheme canonical · P0-8 inventory reconciliation rescoped · i18n location = D24 (`midata-i18n`) · `AGENTS.md` slimmed as a lean bootloader (rules not procedures, one authoritative home per topic, target ≤ ~12 KB) · licence holder "MiData contributors" stays provisional, O1 open · new Git rule: no session ends with uncommitted work | owner rulings on bootstrap ambiguities |
+| D28 | 2026-10-27 | **§3 anti-pattern register extended by 37 owner-approved rows from the oracle extraction (M7 review)** — grouped thematically (analytics results · query safety · AI contract · data I/O & onboarding · pedigree · storage & settings · test integrity) with stable slug keys instead of review numbers; findings already covered are folded into rows 1–15 as provenance clauses, never duplicated. Sub-decisions: **(a)** single query language — the legacy DSL is dropped, SQL through `midata-queryguard` only (`query.single-language`); **(b)** the public/agent contract carries stable machine keys only — no storage row ids or table names (`contract.stable-keys`); **(c)** settings are exposed as a typed serde facade over the K/V table (`settings.typed-facade`) | owner review of the M7 proposal |
 
-*Plan-document decisions (this file):* v0.1 initial draft — 2026-10-27 · v0.2 crate-architecture revision (D24) — 2026-10-27 · v0.3 git workflow (D25) — 2026-10-27.
+*Plan-document decisions (this file):* v0.1 initial draft — 2026-10-27 · v0.2 crate-architecture revision (D24) — 2026-10-27 · v0.3 git workflow (D25) — 2026-10-27 · v0.4 owner rulings on bootstrap ambiguities (D26–D27) — 2026-10-27 · v0.5 anti-pattern register extension (D28) — 2026-10-27.
 
 ## 16. Open items (non-blocking; defaults apply until owner rules)
 
@@ -842,13 +938,13 @@ Policy: `[workspace.dependencies]` centralizes versions; `deny.toml` licence all
 ## Appendix C — Phase 0 artifact checklist
 
 - [ ] Repo initialized, workspace builds, `Cargo.lock` committed
-- [ ] `AGENTS.md` (≤8 KB, English, attribution header) + orientation table
+- [ ] `AGENTS.md` (lean bootloader ≤ ~12 KB: rules not procedures, one authoritative home per topic; English, attribution header) + orientation table
 - [ ] `docs/`: architecture · development · contributing (task loop, gates, add-a-command, add-a-screen) · gaps v0 · inventory v0 (from PROJECT_REPORT §3) · decisions (seeded with §15 of this plan) · ui-design · i18n · testing (oracle-mapping skeleton) · scorecard (generated stub)
 - [ ] `ROADMAP.md` v0 (stamped; headline numbers defined) + `log/devlog.md` started
 - [ ] `xtask`: check-layers · file-budget · ci · stats · i18n-coverage · new-command · new-screen · seed · bench (skeleton)
 - [ ] CI workflows (ubuntu+windows) green incl. cargo-deny + machete + scorecard diff
 - [ ] Crates born per §4.1 birth phases (P0 set: domain, i18n, store, ops, engine, app, testkit + apps/* + xtask) + crate READMEs (public-API stubs); `xtask check-layers` operational with the P0 crates and their allowed edges registered in `xtask/src/layers.rs`
-- [ ] Schema v1 migrations + idempotency tests + repos + latest-value query tests (incl. 10k-row perf fixture)
+- [ ] Schema v1 migrations (**birth-gated per D26**) + idempotency tests + repos + latest-value query tests (incl. 10k-row perf fixture)
 - [ ] Command trait + registry + audit hook + first commands (`settings.*`, `onboarding.*`, `seed.demo`)
 - [ ] App shell: window, router, nav, tokens (light/dark), i18n loader, settings persistence
 - [ ] Onboarding 1-step + demo seed generator (deterministic; pig-policy verified by test: seed contains only preset species)

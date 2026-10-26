@@ -127,6 +127,10 @@ secret, because that secret belongs to the LLM endpoint (AI-16, keyring), not to
 
 ## Anti-patterns noted while transcribing
 
+> **Feeds `REBUILD_PLAN.md` §3 (one authoritative home — this list is provenance only):**
+> 1 → `test-integrity.named-for-boundary` · 2 → §3 row 5 + `errors.typed-reasons` ·
+> 3 → §3 row 8 · 4 → §3 row 7 · 5 → `identity.machine-keys`
+
 1. **A module named for a surface it does not test** — the single most misleading artefact in the legacy
    suite, and the reason a blanket waiver would have silently dropped 42 valid oracles.
 2. **Transport-layer behaviour asserted as domain behaviour** (port probing, socket release, process
