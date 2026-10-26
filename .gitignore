@@ -1,0 +1,24 @@
+# Build output (Rust) — never committed (REBUILD_PLAN §13.4, §3 anti-pattern register)
+target/
+
+# Local planning drafts: research, estimates, execution notes (REBUILD_PLAN §4.1, §13.4).
+# The binding documents live at the repo root and in docs/.
+plan/
+
+# Local database files and SQLite WAL sidecars (C5: single SQLite file, WAL).
+# Test databases live in temp dirs, never in the tree.
+*.db
+*.db-wal
+*.db-shm
+
+# Portable-mode data directory next to the executable (C5 / AGENTS.md owner policies).
+midata_data/
+
+# Logs (tracing file appender target).
+logs/
+*.log
+
+# Secrets / tokens: the only secret store is the OS keyring (rule 14).
+*.token
+.env
+.env.*

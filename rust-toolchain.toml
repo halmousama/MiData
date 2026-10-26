@@ -1,0 +1,8 @@
+# Toolchain pin policy (REBUILD_PLAN §4.7/§18): stable Rust only.
+# The channel is intentionally the moving `stable` track — no nightly features are used and
+# `unsafe_code = "forbid"` is a workspace lint (AGENTS.md rule: never grow unsafe).
+# Component list matches the pre-completion gate (docs/contributing.md): fmt + clippy.
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]
+profile = "minimal"
