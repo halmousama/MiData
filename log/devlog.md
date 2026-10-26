@@ -240,6 +240,8 @@ a corrupt file (IX-11).
 
 **Numbers**
 - Tests: 0 → **35** (all xtask gate unit tests; nextest green).
+- CI: PR #2 — `ci (ubuntu-latest)` and `ci (windows-latest)` both **pass** (22 s / 56 s,
+  run 40419756246). First real two-OS proof.
 - Crates in workspace: **1** (`xtask`); 13 registered but not yet born.
 - File-budget violations: **0** across 12 Rust files. `unsafe` tokens: 0. Clippy warnings: 0.
 - Inventory coverage unchanged at 0 / 222; i18n coverage `n/a` (loud tracked skip until P0-2).
