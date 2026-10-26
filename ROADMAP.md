@@ -16,7 +16,7 @@ report; the binding detail lives in `REBUILD_PLAN.md` (§15 Decision Log wins an
 | Metric | Now | Target (v1.0 gate) |
 |---|---|---|
 | Inventory coverage (rows with evidence) | **0 / 222 rows — 0%** | ≥ 90% of the KEEP list |
-| Tests | **35** (xtask gate unit tests) | ≥ 300 (ratchet from Phase 1) |
+| Tests | **37** (xtask gate unit tests) | ≥ 300 (ratchet from Phase 1) |
 | Crates in the workspace | **1** (`xtask`; product crates birth from P0-2) | 11 crates + 2 apps + xtask |
 | Screens with snapshot goldens | **0 / 13** | every screen ≥ 1 golden |
 | i18n coverage (EN / FR) | **n/a** (catalogues arrive in P0-2) | EN 100% · FR 100% |

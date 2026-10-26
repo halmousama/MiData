@@ -70,7 +70,7 @@ first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace
 
 **Delivered (evidence).**
 - `cargo xtask ci` green locally: `cargo fmt --all --check` · `clippy --workspace --all-targets -D
-  warnings` · `nextest run --workspace` (**35 tests**) · `check-layers` · `file-budget` ·
+  warnings` · `nextest run --workspace` (**37 tests**) · `check-layers` · `file-budget` ·
   `i18n-coverage` · banned-name grep · `stats` + committed-scorecard diff · `cargo deny` ·
   `cargo machete`. The PR's **ubuntu + windows jobs are green** — PR #2, run
   [40419756246](https://github.com/halmousama/MiData/actions/runs/40419756246) (ubuntu 22 s,
@@ -86,8 +86,14 @@ first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace
   the run before any later step).
 - **Baselines committed with zero violations:** `docs/file-budget.baseline` (empty),
   `docs/i18n-coverage.baseline` (`state: no-catalogues`, loud skip until P0-2),
-  `docs/scorecard.md` (GENERATED, 0/222 inventory, 35 tests, 1 crate, 0 budget violations, 0
+  `docs/scorecard.md` (GENERATED, 0/222 inventory, 37 tests, 1 crate, 0 budget violations, 0
   clippy/unsafe). No timestamps in generated output, so ubuntu and windows diff identically.
+- **Missing-tool skip is kind-based, not text-based** (self-check, owner-approved 2026-10-27):
+  `ci::is_missing_binary` classifies a `SKIP` from the spawn `io::ErrorKind::NotFound` only, so an
+  installed tool that fails and prints "No such file or directory" itself (a missing `deny.toml`) can
+  no longer be downgraded to a local skip — §3.8 `test-integrity.no-vacuous-gates`. Regression tests:
+  `ci::tests::a_failed_run_is_never_downgraded_to_a_missing_binary` (fails against the string-matching
+  predicate — the negative proof) and `ci::tests::a_binary_that_cannot_be_spawned_is_classified_missing`.
 - **Design seams planned for P0-2+:** `docs/architecture.md` §9 records clock / store-handle /
   provider / actor injection through `Session`, no globals and no module-level connection.
 - **Owner TODO (also in the devlog):** after this PR merges, enable **Require status checks** in branch
@@ -386,7 +392,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | B0 | Bootstrap: git, `.gitignore`, `rust-toolchain.toml`, dual licence, doc system v0, gaps v0, inventory v0 | 2026-10-26 | this file; `docs/inventory.md` (195 rows); `log/devlog.md` |
 | P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
 | P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
-| P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (35 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
+| P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (37 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
 
 ---
 
@@ -408,3 +414,10 @@ entry when they grow.
 5. **`docs/legacy-spec/PROJECT_REPORT.md` is committed as the behaviour spec.** It is reference-only and
    must never become an implementation source; if any agent starts quoting its Python/React/Git layout
    content as a build guide, that is a rule-5 violation to stop immediately.
+6. **The declared MSRV is unverified** (found 2026-10-27, self-check while clearing PR #2). The root
+   workspace declares `rust-version = "1.80"`, but nothing proves it: `rust-toolchain.toml` pins the
+   moving `stable` track and CI runs whatever stable resolves to, so a dependency or language feature
+   newer than 1.80 could land and only be caught when someone builds on 1.80. *Evidence:* `Cargo.toml`
+   (`rust-version`), `rust-toolchain.toml` (`channel = "stable"`), `.github/workflows/ci.yml` (no MSRV
+   job). *Fix options:* a pinned `1.80` CI job, or drop the claim and state "stable only" explicitly —
+   both are cheap; the owner picks one when the first product crate adds a real dependency risk.

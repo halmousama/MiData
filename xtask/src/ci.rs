@@ -114,11 +114,58 @@ fn run_external_tool(root: &Path, program: &str, args: &[&str]) -> Result<()> {
     }
 }
 
+/// True only when the binary itself could not be spawned.
+///
+/// The test is the `io::ErrorKind` of the spawn failure, never the text of the message. A tool that
+/// *did* run and then failed can legitimately print "No such file or directory" itself (a missing
+/// `deny.toml`, an absent input file); classifying that by string match would downgrade a failing
+/// gate to a local skip, which is a gate that does not bite (`REBUILD_PLAN.md` §3.8
+/// `test-integrity.no-vacuous-gates`). `process::capture` keeps the spawn `io::Error` as the error
+/// source, so it is found in the chain; a tool's stderr is folded into a plain message and is not.
 fn is_missing_binary(error: &anyhow::Error) -> bool {
-    error.chain().any(|cause| {
-        let text = cause.to_string();
-        text.contains("No such file or directory")
-            || text.contains("os error 2")
-            || text.contains("The system cannot find the file")
-    })
+    error
+        .chain()
+        .filter_map(|cause| cause.downcast_ref::<std::io::Error>())
+        .any(|io_error| io_error.kind() == std::io::ErrorKind::NotFound)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn manifest_dir() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    }
+
+    /// The loophole this guards: an *installed* tool that fails and mentions a missing file in its
+    /// own stderr must fail the gate. Before the kind-based check this was reported as `SKIP` with
+    /// exit 0 locally, so `cargo xtask ci` could pass while `cargo-deny` had actually failed.
+    #[test]
+    fn a_failed_run_is_never_downgraded_to_a_missing_binary() {
+        let error = anyhow::anyhow!(
+            "`cargo-deny check` failed with exit status: exit status: 1: \
+             error: failed to open deny.toml: No such file or directory (os error 2)"
+        );
+        assert!(
+            !is_missing_binary(&error),
+            "a tool that ran and failed must fail the gate, never skip it"
+        );
+    }
+
+    /// The other direction, end to end through `process::capture`: a binary that cannot be spawned
+    /// stays a loud local skip candidate, because the spawn `io::Error` is `NotFound`.
+    #[test]
+    fn a_binary_that_cannot_be_spawned_is_classified_missing() {
+        let error = process::capture(
+            "midata-tool-that-does-not-exist",
+            &["--version"],
+            &manifest_dir(),
+        )
+        .expect_err("spawning a nonexistent binary must be an error");
+        assert!(
+            is_missing_binary(&error),
+            "a genuinely missing binary must still be skippable, with its io::Error cause intact"
+        );
+    }
 }

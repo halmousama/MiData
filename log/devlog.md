@@ -277,3 +277,36 @@ a corrupt file (IX-11).
 2. **P0-2** `midata-domain` + `midata-i18n` — the first crates; run `cargo xtask i18n-coverage
    --write-baseline` when the catalogues are born so the skip becomes a real measurement.
 3. **P0-3** `midata-store` + birth-gated migrations (D26).
+
+## 2026-10-27 — P0-1 · Review round 1: no findings delivered; one gate-honesty fix
+
+**What happened.** The fix-round session was launched with an unfilled template (`<branch>`, `PR #<N>`,
+`round <k>`, and no findings block). Verified before acting: PR #2 on `t/p0-1-workspace-ci` has
+**0 reviews, 0 review comments, 0 issue comments** via the GitHub API, and no findings file exists
+locally, so **zero external findings exist to fix or contest**. Per owner ruling, the implementer did
+**not** self-audit in the reviewer role (reviewer/implementer separation, `docs/contributing.md` §9);
+an independent REVIEWER session runs next.
+
+**Gates verified green locally** on the branch before and after the change (`cargo xtask ci`: fmt ·
+clippy `-D warnings` · 37 nextest · check-layers · file-budget · i18n loud skip · banned-names ·
+stats + committed-scorecard diff · cargo-deny · cargo-machete).
+
+**Observation 01 (owner-approved fix, §3.8 `test-integrity.no-vacuous-gates`).** `ci::is_missing_binary`
+classified a missing tool by string-matching `No such file or directory` / `os error 2` /
+`The system cannot find the file` anywhere in the error chain. `process::capture` folds a tool's
+**stderr** into that same error, so an *installed* tool that failed while naming a missing file (e.g.
+`cargo-deny` without `deny.toml`, or `git -C /nonexistent status` → `fatal: cannot change to
+'/nonexistent': No such file or directory`) was printed as `SKIP` and returned **0** locally — a gate
+that silently did not bite. Now classified from the spawn `io::ErrorKind::NotFound` only. Negative
+proof: the new regression test fails against the old predicate
+(`a tool that ran and failed must fail the gate, never skip it`) and passes with the fix; the opposite
+direction is covered end to end through `process::capture`. Tests 35 → **37**.
+
+**Observation 02 (recorded, not fixed).** The declared MSRV (`rust-version = "1.80"`) is unverified —
+no pinned-toolchain job exists. Row 6 of gaps "Known shortfalls".
+
+**Observation 03 (reported to the owner, untouched).** `docs/review-templates.md` is **untracked** on
+this branch (author unknown; it is the reviewer-agent contract). Left uncommitted rather than adopted.
+
+**Still open (rank order).** 1. Independent REVIEWER session on PR #2. 2. P0-10 `AGENTS.md` diet.
+3. P0-2 `midata-domain` + `midata-i18n`.
