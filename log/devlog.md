@@ -411,3 +411,31 @@ which quotes the sentence this commit replaces — reword it when that branch la
 
 **Numbers.** commits on `main` 7 → 7 (rewritten, none added); `Co-Authored-By` occurrences 14 → 0 across
 the rewritten local refs; tree `b886fe2f` unchanged; backup bundle `../midata-pre-scrub.bundle` (359 KB).
+
+## 2026-10-27 — D31 · Supervisor mode: delegated merge authority
+
+**What landed.** D31 is recorded as a row in `REBUILD_PLAN.md` §15 and a section in
+`docs/decisions.md`; `AGENTS.md` gains §12 as the operating procedure and `docs/review-templates.md`
+gains the SUPERVISOR template (stages 0–7). A SUPERVISOR agent may now run consecutive task cycles —
+fresh implementer, fresh reviewer, at most two review rounds — and squash-merge through `gh pr merge`
+without owner action, but only while all five conditions hold: APPROVE with 0 BLOCKER/0 MAJOR, both
+required checks green on the PR head, no escalation flag, no owner-reserved surface in the diff, and no
+`plan/HOLD`. Budget 3 tasks then an owner digest; a task that fails twice escalates instead of being
+retried; the owner revokes by creating `plan/HOLD` or by amending the row.
+
+**Why it is not a self-merging implementer.** Delegation goes to an agent that never implements and
+never reviews, and the merge itself happens on GitHub, so branch protection and the required checks are
+enforced server-side rather than trusted. Workers start with fresh contexts, which makes the repository
+the only memory: the compaction risk disappears because no binding rule lives in a conversation summary.
+
+**Precondition, checked before adopting.** A probe subagent reported shell access, `git 2.53.0`, an
+authenticated `gh` with `repo`/`workflow` scopes and filesystem write access.
+
+**Urgent queue closed first.** The remote `t/p0-2-domain-i18n` tip was force-pushed to `cb4405c` (clean
+ancestry on `f862d25`) before anything else — leaving it on `94d2fd5` would have kept `b65e614`
+reachable and returned the trailers through the next squash. PR #4 was then squash-merged as `14a79ca`
+after confirming the D30 row and the four flipped surfaces; its branch was deleted and `main` scans
+clean.
+
+**Numbers.** `main` 8 commits; trailer occurrences on `main` 0; PR #4 checks green (ubuntu 19 s, windows
+45 s); the D30 session's four follow-up items are down to three.

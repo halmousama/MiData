@@ -238,6 +238,20 @@ Then append the terse entry to `log/devlog.md` (what landed, numbers, what's sti
 6. Snapshot goldens (light + dark where layout-relevant; EN, FR spot) — **look at the PNG**.
 7. Update inventory + devlog.
 
+## 12. Autonomous cycle (supervisor mode, per D31)
+
+- The SUPERVISOR never implements and never reviews: it picks the top gaps task, spawns a fresh
+  IMPLEMENTER subagent (kickoff template), then a fresh REVIEWER subagent (REVIEWER template,
+  parameters only — no summaries, no opinions), arbitrates rounds (max 2), and merges only under
+  the five D31 conditions via `gh pr merge --squash --delete-branch`.
+- Every worker is a fresh context; binding constraints are re-read from this file each cycle,
+  never carried in conversation memory. Compaction between cycles is safe precisely because the
+  docs are the source of truth — but no binding rule may exist only in a compacted summary.
+- `plan/HOLD` (gitignored) stops the loop at the next cycle boundary; two failures of the same
+  task, a round-3 review, or any unmet merge condition stop it immediately with an escalation.
+- Each cycle ends with: merge report paragraph + one supervisor devlog line (task, verdicts,
+  CI run ids, deviations, next task).
+
 ---
 
 **If you remember nothing else:** never crash · everything is a command · acceptance test first · the gate is non-negotiable · look at the PNG · update docs and devlog before committing · **when in doubt, leave it out.**

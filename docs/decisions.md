@@ -239,6 +239,33 @@ preserved in order), and the push was `--force-with-lease` against the verified 
 `8979bc0`/`123ffb2`/`bf9813d`/`b65e614` survive only as closed-PR archive; the pre-scrub backup bundle sits
 outside the repo at `../midata-pre-scrub.bundle` and is never committed.
 
+### D31 — Delegated merge authority and the autonomous cycle
+**2026-10-27 (owner consultation).** A SUPERVISOR agent may run consecutive task cycles without owner
+action. It never implements and never reviews: it picks the top `docs/gaps.md` entry, spawns a
+fresh-context IMPLEMENTER, then a fresh-context REVIEWER that receives parameters only (no summaries, no
+opinions, no implementer devlog claims), arbitrates at most two review rounds, and squash-merges with
+`gh pr merge --squash --delete-branch` — GitHub-side, so branch protection and the required checks are
+enforced server-side rather than trusted.
+**Merge conditions (all required; any failure = stop and escalate):** reviewer APPROVE with 0 BLOCKER/0
+MAJOR · both required checks green on the PR head · no escalation flag on the task · the diff touches no
+owner-reserved surface (schema migrations, the dependency set, deletion of committed data, §3 security
+rows, branding) · no `plan/HOLD` file.
+**Limits:** default budget of 3 tasks then an owner digest; a task failing twice escalates instead of
+being retried; a round-3 review escalates; the owner revokes at any time by creating `plan/HOLD` or by
+amending this row. The owner keeps merge authority on escalations, phase gates and releases.
+**Why fresh contexts rather than one long-lived session:** a single session accumulates drift and loses
+exact decision text to compaction, and a supervisor that merges its own work removes the owner's last
+systematic checkpoint. Fresh workers make the repository the only memory — `AGENTS.md`, `docs/gaps.md`,
+`docs/decisions.md` and `log/devlog.md` are re-read every cycle, so no binding rule can survive only
+inside a conversation summary.
+**Precondition verified 2026-10-27:** a spawned subagent reports shell access, `git 2.53.0`, an
+authenticated `gh` (scopes `repo`/`workflow`) and filesystem write access — the loop's tooling premise
+holds on this machine. If a future harness cannot give workers git/`gh`, D31 is void and the owner runs
+the cycles by hand.
+**Consequence:** D25's "the owner squash-merges every PR" becomes "the owner squash-merges every PR
+outside the D31 envelope"; `AGENTS.md` §12 is the operating procedure, `docs/review-templates.md` gains
+the SUPERVISOR template, and every delegated merge leaves a report paragraph in the devlog.
+
 ## 2. Open items with defaults (REBUILD_PLAN §16)
 
 These are not decisions yet — they are defaults that hold until the owner rules. Listed here so the

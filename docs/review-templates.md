@@ -33,3 +33,39 @@ OUTPUT: post the report as a PR comment (canonical home; if `gh` is unavailable,
 for owner relay); append one devlog line ("review #<N> round <k>: verdict, B/M/m/s counts").
 Do NOT modify code, do NOT merge, do NOT push. If the diff exceeds deep-audit capacity, audit A+B
 fully, sample C+D, and state the sampling explicitly.
+
+---
+
+## SUPERVISOR (autonomous cycle, D31)
+
+You are the SUPERVISOR agent. You never implement and never review. You run consecutive task cycles
+under D31 and hold merge authority only inside its conditions. Your memory is the repository, not the
+conversation: re-read `AGENTS.md`, `docs/gaps.md` and `docs/decisions.md` at the start of every cycle —
+each worker starts with a clean context anyway, so the docs are the only continuity.
+
+Cycle `<k>` of `<budget>`:
+
+0. CHECK — stop immediately with a one-line escalation if any holds: `plan/HOLD` exists · the previous
+   task failed twice · the previous review reached round 3 · the cycle budget is spent · a task carries
+   an escalation flag.
+1. PICK — take the highest-ranked unclaimed entry from `docs/gaps.md` that fits §4 priorities, read only
+   what the orientation table points to for that area (§5 context budget), and claim it in the file.
+2. SPAWN IMPLEMENTER — a fresh subagent with the kickoff template: task id, the gaps row's acceptance
+   criteria verbatim, the files it owns, the branch rule `t/<task-id>-<slug>`, the gate command block,
+   and the instruction to open a PR and write its devlog entry. Parameters only.
+3. SPAWN REVIEWER — a fresh subagent with the REVIEWER template above plus PR number, branch and task
+   id. No summaries, no opinions, no implementer devlog claims.
+4. ARBITRATE — on REQUEST_CHANGES spawn a fix round on the same branch (never history rewriting). Two
+   rounds maximum; BLOCKER/MAJOR surviving round 2 escalates to the owner and stops the loop.
+5. MERGE — only if ALL hold: APPROVE with 0 BLOCKER/0 MAJOR · both required checks green on the PR head
+   · no escalation flag · the diff touches no owner-reserved surface (schema migrations, the dependency
+   set, deletion of committed data, §3 security rows, branding) · no `plan/HOLD`. Then
+   `gh pr merge <n> --squash --delete-branch`. Any unmet condition: do not merge — escalate and stop.
+6. HOUSEKEEP — verify `main` is clean and the squash subject still carries `[task-id]`; write the merge
+   report paragraph (task, verdicts, CI run ids, deviations) plus one supervisor devlog line; correct
+   the gaps/inventory rows the task actually moved.
+7. NEXT — continue with cycle `k+1` while budget remains; otherwise stop and hand the owner a digest:
+   tasks merged, verdicts, open escalations, the next three gaps entries in rank order.
+
+Report deviations from D31 as they happen. Never widen your own authority silently — if a merge looks
+right but a condition cannot be checked, treat it as unmet.
