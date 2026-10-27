@@ -167,11 +167,12 @@ failure, so a layer violation is a CI fact rather than a review opinion.
 ### D25 — Git workflow and traceability
 **2026-10-27 (owner consultation).** Private GitHub remote; protected `main` (no direct pushes — the
 owner squash-merges PRs); one branch per task `t/<task-id>-<slug>`; conventional commit subjects
-carrying `[task-id]`; mandatory `Co-Authored-By` attribution on agent commits; green commits only, with
+carrying `[task-id]`; green commits only, with
 mid-task commits as session checkpoints; goldens, generated docs and `Cargo.lock` committed with their
 motivating change; annotated release tags `vX.Y.Z` plus milestone tags `m/phase-N`; the full
 traceability chain of `REBUILD_PLAN.md` §13.4. **Consequence:** `docs/contributing.md` §Git is the
 operational form; tagging, force-push and history rewriting are escalation items.
+**Partly superseded (D30):** the mandatory `Co-Authored-By` attribution clause is repealed.
 
 ### D26 — Schema is birth-gated
 **2026-10-27 (owner).** Each table is created by the migration of the phase that first uses it. Phase 0
@@ -210,6 +211,33 @@ settings are a typed serde facade with `#[serde(default)]` over the K/V table.
 authoritative home, and provenance survives here and in each oracle file's slug pointers. Test integrity
 (§3.8) is operationalised as a checklist in `docs/contributing.md` §3. Slugs are contract: never renamed,
 never reused.
+
+### D29 — Independent reviewer loop per PR
+**2026-10-27 (owner consultation).** Every PR that touches `crates/`, `apps/` or `xtask/` receives one
+independent REVIEWER session before owner merge; docs-only PRs (under 50 changed lines, no code) take the
+fast path (checklist sections A + D). The reviewer is a fresh session with no memory of the implementing
+one, audits the diff against the fixed template in `docs/review-templates.md`, and reports findings as
+BLOCKER · MAJOR · MINOR · SUGGESTION — a finding that cites no binding clause or oracle id is a SUGGESTION
+by definition. The verdict is APPROVE iff zero BLOCKER + zero MAJOR. The implementer fixes BLOCKER/MAJOR on
+the task branch (never by rewriting history) or contests with a counter-citation, and the owner arbitrates
+contests. Two rounds maximum; a third means the dispute is architectural. The reviewer never modifies code
+and never merges.
+**Consequence:** `docs/contributing.md` §9 is the operational form; reports live as PR comments (canonical)
+plus one devlog line per round.
+
+### D30 — No attribution trailers, and the history that carried them was scrubbed
+**2026-10-27 (owner ruling).** D25's mandatory `Co-Authored-By:` trailer is repealed. No `Co-Authored-By`
+line and no AI-vendor/model name may appear in a commit message, in code, or in any doc, devlog or gap
+entry. Session and model traceability, if the owner wants it at all, lives only in the gitignored `plan/`
+kit — never on a published surface.
+**Consequence:** the banned-names gate grows a vendor/model term list and a `commit-msg` hook enforces the
+rule locally (both still open); until they land the rule is review-enforced, and
+`AGENTS.md` says so rather than claiming a gate that does not exist. The trailers already in `main`'s
+history were removed on 2026-10-27 by rewriting every ref with `git-filter-repo` using a message-only
+callback: every tree stayed byte-identical (`main`'s tree hash `b886fe2f` before and after, all 7 commits
+preserved in order), and the push was `--force-with-lease` against the verified old tip. Pre-scrub SHAs
+`8979bc0`/`123ffb2`/`bf9813d`/`b65e614` survive only as closed-PR archive; the pre-scrub backup bundle sits
+outside the repo at `../midata-pre-scrub.bundle` and is never committed.
 
 ## 2. Open items with defaults (REBUILD_PLAN §16)
 

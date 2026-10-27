@@ -140,11 +140,16 @@ Every task runs the five-step loop:
 
 **Git discipline** (full workflow: `REBUILD_PLAN.md` §13.4 / `docs/contributing.md`):
 - One branch per task: `t/<task-id>-<slug>`. **Never push to `main`** — push your task branch, open the PR; the owner squash-merges (one green commit per closed task).
-- Commit subject: `<type>(<area>): <subject> [<task-id>]`, body with what & why, `Refs:` line, and the **mandatory `Co-Authored-By:` trailer** naming the agent/model.
+- Commit message: `<type>(<area>): <subject> [<task-id>]`, body with what & why, `Refs:` line.
+  **No Co-Authored-By trailers and no AI-vendor/model names anywhere** — not in commit messages,
+  code, docs, devlog or gaps (D30, supersedes D25's trailer clause). Session/model traceability,
+  if the owner wants it, lives only in the gitignored `plan/` kit. Review-enforced today: the
+  `commit-msg` hook and the vendor/model term list in the banned-names gate do not exist yet.
 - **Never commit red:** every commit keeps the workspace building and touched-crate gates green. Mid-task commits are your session checkpoints — commit early, commit often (a crashed session is recovered from the branch + devlog).
 - Snapshot goldens, generated docs and `Cargo.lock` travel **in the same commit** as their motivating change — an artifact never drifts from its code.
 - Tagging, force-push, history rewriting, pushing to main: escalation items (§7).
 - **No session ends with uncommitted work** — commit the checkpoint before stopping; always verify repo state with `git status` before asserting it.
+- Code-bearing PRs are audited by an independent reviewer session before owner merge (`docs/contributing.md` §9); APPROVE requires zero BLOCKER/MAJOR findings; contests go to the owner.
 
 ```sh
 cargo fmt --check
