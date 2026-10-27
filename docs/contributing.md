@@ -125,15 +125,14 @@ owner call, only when intermediate commits have archaeology worth keeping.
 <body: what & why; numbers when perf-relevant; any deviation noted>
 
 Refs: gaps <task-id> · inventory <row-ids>
-Co-Authored-By: <agent/model identity> <noreply@…>
 ```
 
 - `type` ∈ `feat · fix · refactor · perf · test · docs · chore · ci · build · bootstrap · integration ·
   revert`; `area` = crate or surface (`engine`, `store`, `app`, `ops`, `analytics`, `docs`, `ci`…).
 - The `[task-id]` in the subject makes `git log --grep '\[P1-3\]'` a complete task archaeology tool.
-- **AI attribution is mandatory:** every agent-authored commit carries a `Co-Authored-By:` trailer
-  naming the agent/model. The owner's commits may be signed. Anything the trailer cannot express
-  (session notes, model switches, retries) goes in the devlog.
+- **No attribution trailer (D30):** no `Co-Authored-By:` line and no AI-vendor/model name in a commit
+  message, in code, or in any doc, devlog or gap entry. Owner commits may be signed. Session and model
+  notes live only in the gitignored `plan/` kit.
 - **Green commits only.** Mid-task commits are checkpoints; a red commit is never pushed.
 
 Example:
@@ -145,7 +144,6 @@ One window-function statement replaces per-entity lookups; brute-force
 cross-check test on the 2k fixture; flatten of 10k animals measured at 41 ms.
 
 Refs: gaps P0-3 · inventory DE-7, HM-3
-Co-Authored-By: MiData Agent (DeepSeek V4.1 Flash Free) <noreply@opencode.ai>
 ```
 
 **What travels with what.** `Cargo.lock`, snapshot goldens and generated docs (`docs/scorecard.md`) are
@@ -188,3 +186,22 @@ migration list, workspace `Cargo.toml`) get small surgical edits — **re-read b
 commands and screens go in new modules. Write `Cargo.toml` changes atomically (temp file outside
 `crates/`, then `mv`). If another agent's in-progress edit breaks the build, wait and retry — never fix
 their files. Delete a finished agent's `target/agent-*` directory.
+
+## 9. Review loop (independent reviewer per PR)
+
+- Every PR that touches `crates/`, `apps/` or `xtask/` receives one independent REVIEWER session
+  before owner merge. Docs-only PRs (< 50 changed lines, no code) get the fast path: checklist
+  sections A + D only.
+- The reviewer is a fresh session with no memory of the implementing session. It audits the diff
+  against the contract (AGENTS.md, §3 slugs, D-numbers, the task row's acceptance criteria, DoD)
+  using the fixed template in `docs/review-templates.md` (REVIEWER).
+- Findings carry severities: BLOCKER · MAJOR · MINOR · SUGGESTION. A finding that cites no binding
+  clause or oracle id is a SUGGESTION by definition. Verdict: APPROVE iff zero BLOCKER + zero MAJOR.
+- The implementing agent receives the report (FIX-ROUND template) and either fixes each
+  BLOCKER/MAJOR (new commits on the task branch — never history rewriting) or contests it with a
+  counter-citation; contests are owner-arbitrated.
+- Maximum two review rounds per PR; a third round means the dispute is architectural — owner
+  arbitrates directly. MINOR/SUGGESTION never block; cheap ones are fixed, the rest become gaps.md
+  follow-ups.
+- The reviewer never modifies code, never merges. The owner merges after APPROVE (D25).
+- Reports live as PR comments (canonical) + one devlog line each round.

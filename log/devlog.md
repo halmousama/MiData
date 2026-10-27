@@ -378,3 +378,36 @@ no CI-green claim is made here until the PR checks report it.
 3. P0-2 `midata-domain` + `midata-i18n` (with the S2 acceptance and the first real `en_total`).
 
 **Review #2 round 2 (independent REVIEWER, separate session):** APPROVE — 0 BLOCKER / 0 MAJOR / 0 MINOR / 2 SUGGESTION (N1: line 287 cites a non-existent `docs/contributing.md` §9, N2: gaps records no run id for the fix commit `b1d52fe`); round-1 items R1–R6, S1 and S3–S5 verified fixed in the tree (R1 positive+negative layer tests, R2 `done_with_evidence`, R3 §7.1 11-screen golden filter, R4 EN-total ratchet, R5 deny/machete rows, R6 known-shortfall 7) and **S2 confirmed as a P0-2 acceptance wire, not a gate change** (orphans still report-only); round-1 header's "6 MINOR" reconciled to the 5 listed (11 findings total); full report in PR #2 comment <https://github.com/halmousama/MiData/pull/2#issuecomment-6437110096>; gate re-run green on this machine at `b1d52fe` (43/43) and both PR checks green; no code touched, nothing pushed — this line left uncommitted for the implementing agent.
+
+## 2026-10-27 — P0-13 · D30 policy recorded; `main` history scrubbed
+
+**What landed.** D29 (independent reviewer loop) and D30 (attribution repeal) are now recorded in
+`REBUILD_PLAN.md` §15 and `docs/decisions.md` — D30 had been cited by `AGENTS.md`, `docs/gaps.md` and
+this log while existing in no decision table at all. The four places that still mandated the
+`Co-Authored-By` trailer (`REBUILD_PLAN.md` §13.4, `docs/contributing.md` §Git, `docs/decisions.md` D25,
+`docs/review-templates.md` A) now state the ban instead, and the example commit in `docs/contributing.md`
+no longer puts the owner's name and address on an agent-authored commit. Two defects in the in-flight D30
+edit were fixed before it landed: a stray object-id fragment inside `unrepresentable` (`REBUILD_PLAN.md`
+§5.5) and that misattributed example line.
+
+**History.** `main`'s seven commits were rewritten with `git-filter-repo` (message-only callback,
+`^Co-Authored-By:` stripped case-insensitively, trailing whitespace renormalised). Every tree stayed
+byte-identical (`b886fe2f` before and after) and the subject and order of all seven are unchanged; the
+push was `--force-with-lease` against the verified old tip `b65e614`. The squash commit of PR #2 carried
+six trailer lines on its own — a squash-merge aggregates the PR's commit trailers into one message, which
+is how the name reached `main` though no PR body mentioned it.
+
+**Repo settings.** Squash-only: `allow_merge_commit` and `allow_rebase_merge` disabled. `main` had no
+branch protection at all (the GET returned 404), so this session created it rather than restoring it:
+required status checks `ci (ubuntu-latest)` and `ci (windows-latest)`, strict up-to-date required, force
+pushes and deletions blocked, no review requirement (a solo owner cannot approve their own PR).
+
+**Not done on purpose.** The scrub scope was `main` only, by owner choice. `t/p0-1-workspace-ci` and
+`t/p0-12-owner-amendments` still carry the old commits on the remote, and `t/p0-2-domain-i18n`'s remote
+tip still has `b65e614` in its ancestry — force-push that branch before opening its PR or the trailer
+returns with the merge. D30 also stays honour-system: no `commit-msg` hook, and the banned-name gate
+still greps only the legacy product name. The formal gap entry lives in P0-2's `docs/gaps.md` §8,
+which quotes the sentence this commit replaces — reword it when that branch lands.
+
+**Numbers.** commits on `main` 7 → 7 (rewritten, none added); `Co-Authored-By` occurrences 14 → 0 across
+the rewritten local refs; tree `b886fe2f` unchanged; backup bundle `../midata-pre-scrub.bundle` (359 KB).

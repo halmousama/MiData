@@ -10,8 +10,9 @@ binding clause it violates (AGENTS rule, §3 slug, D-number, gaps acceptance ite
 or an oracle id; uncited observations are SUGGESTIONS.
 
 A. SCOPE & PROCESS — diff matches the task row (no creep, no borrowed work); commit convention
-   (subject+[task-id], Refs, Co-Authored-By); no red commit in branch history; gaps/inventory/
-   scorecard/devlog updated with evidence (test names, snapshot paths).
+   (subject+[task-id], Refs; no `Co-Authored-By` trailer and no vendor/model name — D30); no red
+   commit in branch history; gaps/inventory/scorecard/devlog updated with evidence (test names,
+   snapshot paths).
 B. CONTRACT — no DAG edge outside the registered layers; nothing below app imports egui et al;
    scan the diff against all §3 rows; golden rules (no unwrap/unsafe outside tests, hostile
    input, chrono-only dates, minor-unit money, i18n-only strings, tokens-only visuals); new
