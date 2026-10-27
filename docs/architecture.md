@@ -1,8 +1,10 @@
 # Architecture
 
-> **Status:** target architecture — **no crates exist yet** (pre-P0-1). Nothing below is implemented;
-> this file records what `REBUILD_PLAN.md` §4–§9 and the §15 decision log bind us to, so a task can be
-> judged against it. Update it when a crate is born, not before.
+> **Status:** P0-1 landed — the workspace and `xtask` gates exist; **only `xtask` is a crate**. Product
+> crates are birth-gated from P0-2 (D26), so nothing below is implemented yet. This file records what
+> `REBUILD_PLAN.md` §4–§9 and the §15 decision log bind us to, so a task can be judged against it.
+> It is updated when a crate is born **and** when a binding decision is fixed ahead of the crate that
+> implements it (the §9 injection seams bind from P0-2, before those crates exist).
 > **Source:** `REBUILD_PLAN.md` §4 (target architecture), §5 (data model), §8 (analytics), §9 (AI),
 > §10 (agent surfaces); owner decisions D1–D25.
 
@@ -21,7 +23,10 @@ product drivable by agents as well as by people (D13).
 
 Layers are a **registered DAG**, not a strict chain — every crate and every allowed edge is declared in
 `xtask/src/layers.rs` and checked by `cargo xtask check-layers` (D24). An undeclared edge fails CI, so a
-layer violation is a build fact, not a review opinion.
+layer violation is a build fact, not a review opinion. Application crates are roots, never libraries:
+the headless `midata-cli` may depend only on `midata-domain`, `midata-i18n`, `midata-store` and
+`midata-engine` (never the egui shell), while `apps/midata` — the UI composition root — is the one crate
+allowed to link `midata-app`.
 
 ```text
 L0  midata-domain      pure types & value semantics (species/sex/status/data types/cardinality/value
@@ -184,7 +189,33 @@ in the analytics path**. Randomness is seeded; DuckDB and polars are excluded.
 `midata-app` and app state are serde-serializable so an automation surface can read and drive them; the
 registry is self-documenting via `params_doc`, so an agent discovers capabilities without reading source.
 
-## 9. What this file is not
+## 9. Dependency-injection seams (binding from P0-2)
+
+The rebuild must be testable without hidden globals. The legacy defect
+`test-integrity.injected-dependencies` (“module-level cache patched by tests, fixtures inferred from
+another file”) is structurally excluded by one rule: **everything that touches the outside world is
+injected through the `Session`/`Context`, never reached through a global.**
+
+| Seam | Shape (lands in) | Why |
+|---|---|---|
+| Clock | `trait Clock { fn now_utc(&self) -> DateTime<Utc>; fn today(&self) -> NaiveDate; }` in `midata-domain` (P0-2); `SystemClock` in the composition root, `FixedClock` in `midata-testkit` | Dates drive age, latest-value, alerts and analytics; tests must not depend on wall time (`docs/testing.md` determinism rule) |
+| Store handle | `Store` owns `Mutex<Connection>` (P0-3); `Session` carries `&Store`/`Arc<Store>`; no module-level connection, no `static` | One handle, WAL, shared by UI/CLI/AI workers; tests open a tempfile DB and inject it |
+| LLM provider | `trait LlmProvider` in `midata-ai` (P5), streaming events over a channel; a stub provider in tests | `ai.deterministic-provider` anti-pattern: no network, no timing assumptions |
+| Actor + batch token | `Session { actor, batch_token }`, set by each surface (`user`/`cli`/`ai`/`seed`) | Audit rows are a consequence of the injected session, not a global “current user” |
+| Filesystem roots | data/exports/backups/log dirs resolved once in the composition root and passed down | Portable mode and tests need different roots without env-var mutation |
+
+Rules that make this natural from the first crate:
+
+- **No `static mut`, no interior-mutable globals, no `OnceLock`/`lazy_static` for state.** A constant
+  is fine; a process-wide handle is not.
+- `DateTime::now`/`Utc::now` may be called **only** inside `SystemClock`; otherwise the `Clock` is passed.
+- `midata-app` never receives a store handle (layer rule); it dispatches commands and renders output.
+- The composition roots (`apps/midata`, `apps/midata-cli`, `midata-testkit`) are the only places that
+  construct real implementations; every other crate accepts its dependencies as arguments.
+- `xtask` follows the same rule today: it takes `root: &Path` explicitly and reads the workspace once
+  per gate — no current-directory globals.
+
+## 10. What this file is not
 
 It is not a phase plan (`docs/roadmap.md`), not the work queue (`docs/gaps.md`), and not the parity
 checklist (`docs/inventory.md`). If this file and `REBUILD_PLAN.md` ever disagree, the plan's §15

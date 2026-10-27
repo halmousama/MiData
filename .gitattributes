@@ -1,0 +1,11 @@
+# One canonical line ending on every platform. xtask writes generated files with `\n`; without this,
+# a Windows checkout with autocrlf would show a bogus scorecard diff on every CI run.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary

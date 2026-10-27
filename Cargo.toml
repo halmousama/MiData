@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+members = ["xtask"]
+
+# Dependency policy (AGENTS.md rule 15, REBUILD_PLAN.md Appendix A):
+# versions centralize here, and a dependency is added when the crate that first uses it is born —
+# no pre-populated manifest entries, because an unused dependency is dead code by another name.
+# `xtask` is the only crate in P0-1 (product crates are birth-gated from P0-2, D26).
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+rust-version = "1.80"
+
+[workspace.dependencies]
+anyhow = "1.0.98"
+serde_json = "1.0.140"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unimplemented = "deny"
+todo = "deny"
+unreachable = "deny"
+indexing_slicing = "deny"
+
+# The shell's last-resort panic guard (AGENTS.md "never crash") requires unwinding.
+[profile.release]
+panic = "unwind"

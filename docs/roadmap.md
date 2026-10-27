@@ -4,14 +4,15 @@
 > scope/exit-criteria here.** It exists because the orientation table points here for "scope, exit
 > criteria, current focus"; it adds no scope of its own. A phase-scope change is an amendment to the
 > plan, then a re-sync here — never the reverse (D27/A2).
-> **Updated:** 2026-10-27 (P0-12 owner rulings) · **Current focus:** **Phase 0 — Foundations**
+> **Updated:** 2026-10-27 (P0-1) · **Current focus:** **Phase 0 — Foundations**
 
 ## Current focus
 
-**Phase 0 — Foundations.** Stage is *pre-Phase-0*: repository bootstrap (B0), oracle extraction (P0-11)
-and owner rulings (P0-12) are closed; no workspace, no crates, no CI yet. Next task is **P0-1**
-(`docs/gaps.md` rank 1). Phase 0 closes only when
-its exit criteria below are met **and** the owner signs off; Phase 1 tasks are then populated in
+**Phase 0 — Foundations.** P0-1 (workspace + `xtask` + CI) is closed: the gate exists on ubuntu and
+windows, the registered crate DAG is in `xtask/src/layers.rs`, and the scorecard is generated. Only
+`xtask` is a crate; the P0 product crates are birth-gated (D26). Next task is **P0-10** (`AGENTS.md`
+diet, rank 2), then **P0-2** (`midata-domain` + `midata-i18n`). Phase 0 closes only when its exit
+criteria below are met **and** the owner signs off; Phase 1 tasks are then populated in
 `docs/gaps.md`.
 
 ## Phase table
@@ -31,9 +32,9 @@ its exit criteria below are met **and** the owner signs off; Phase 1 tasks are t
 
 ## Phase scope notes that shape day-to-day work
 
-- **Crates are born in the phase that first uses them** (§4.1): P0 = domain, i18n, store, ops, engine,
-  app, testkit + apps + xtask; P3 adds analytics + exchange; P5 adds queryguard + ai. No empty crates,
-  ever.
+- **Crates are born in the phase that first uses them** (§4.1, D26): P0-1 ships `xtask` only; P0-2
+  births domain + i18n; P0-3 store + ops; P0-4 engine + testkit; P0-5 app + `apps/midata`; P0-7
+  `apps/midata-cli`; P3 adds analytics + exchange; P5 adds queryguard + ai. No empty crates, ever.
 - Every phase ends with: gate green on both OSes · snapshots updated and viewed · inventory/gaps/
   scorecard/devlog current · an owner UAT checkpoint · a milestone tag `m/phase-N`.
 - Mobile/remote access is **not** built in any phase; Phase 7 writes the strategy document only (D2/C8).

@@ -1,6 +1,6 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-27 (P0-12 owner rulings) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-27 (P0-1 closed; round-1 review fixes applied) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -15,7 +15,7 @@
 
 | Rank | id | Task | Kind | Impact | Est. (h) | Depends on | Status |
 |---|---|---|---|---|---|---|---|
-| 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | open |
+| 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
 | 2 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 33.5 KB against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
 | 3 | P0-2 | `midata-domain` + `midata-i18n` | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open |
 | 4 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 | open |
@@ -26,15 +26,20 @@
 | 9 | P0-8 | Inventory v0 reconciliation (re-scoped) | docs | Turns the hand-written checklist into a machine-checkable contract | 2 | — | open |
 | 10 | P0-9 | Snapshots + gates polish | quality | Locks the Phase-0 exit criteria and the ratchets in place | 6 | P0-5, P0-6 | open |
 
-**Sum:** 72 agent-hours (Phase-0 estimate band is 40–80 h — `REBUILD_PLAN.md` §14). Phase 0 closes when
-every row above is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction,
-3 h) closed on 2026-10-26 and P0-12 (owner rulings, 1.5 h) on 2026-10-27 — see §Closed.
+**Sum:** 62 agent-hours open (72 at queue start; P0-1 closed 10 h). Phase 0 closes when every open row
+is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on
+2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27 and P0-1 on 2026-10-27 — see §Closed.
 
 ---
 
-## P0-1 — Workspace, `xtask`, CI  ·  10 h  ·  rank 1
+## P0-1 — Workspace, `xtask`, CI  ·  10 h  ·  rank 1  ·  **done 2026-10-27**
 
 **Kind:** infra · **Source:** `REBUILD_PLAN.md` §4.1/§4.2/§13.1, Appendix C bullets 1, 3, 5.
+
+**Scope decision (taken under autonomy, recorded here).** The recommended split in §Scope was chosen:
+P0-1 creates the workspace + `xtask` **only**; product crates are birth-gated per task (D26). Only
+`anyhow` and `serde_json` are workspace dependencies because only `xtask` uses them — no pre-populated
+dependency table, which would be a dead manifest by another name.
 
 **Why now.** Nothing can be built or gated until the workspace, the layer checker and CI exist. The
 first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace lints that make
@@ -61,16 +66,66 @@ first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace
   fail with an "unsupported" message rather than a panic.
 - `.github/workflows/ci.yml`: ubuntu + windows matrix; fmt, clippy `-D warnings`, nextest, check-layers,
   file-budget, i18n-coverage, cargo-deny, cargo-machete, scorecard regeneration diff, snapshots on Linux.
+  **Snapshots are not delivered by P0-1** (no snapshot step exists; the earlier bullet was aspirational):
+  tracked as known-shortfall 7, target P0-9, not left in prose.
 - `rumetrics` grep gate (zero occurrences) as a `xtask ci` step.
 
-**Evidence to record.** `cargo xtask ci` green locally; the PR's **both workflow jobs** (ubuntu +
-windows) green on the owner's remote (live since 2026-10-27, D27 — branch protection means this is a
-merge gate, not a nice-to-have); `docs/scorecard.md` committed and CI-diffed; layer check demonstrably
-fails on a deliberately illegal edge (temporary, reverted — captured in the devlog, not committed).
+**Delivered (evidence).**
+- `cargo xtask ci` green locally: `cargo fmt --all --check` · `clippy --workspace --all-targets -D
+  warnings` · `nextest run --workspace` (**43 tests**) · `check-layers` · `file-budget` ·
+  `i18n-coverage` · banned-name grep · `stats` + committed-scorecard diff · `cargo deny` ·
+  `cargo machete`. The PR's **ubuntu + windows jobs are green** — PR #2, run
+  [40419756246](https://github.com/halmousama/MiData/actions/runs/40419756246) (ubuntu 22 s,
+  windows 56 s) — the first real two-OS proof; P0-12 could not provide it. Re-verified on the round-1
+  fix commit `b7035e7`: run
+  [40421245292](https://github.com/halmousama/MiData/actions/runs/40421245292) green on both OSes
+  (ubuntu 20 s, windows 43 s).
+- **Registered DAG:** 14 crates registered in `xtask/src/layers.rs` (13 planned + `xtask`), with birth
+  phase and manifest home per crate; intra-layer edges (`ops → analytics/exchange`,
+  `engine → ops`, `ai → queryguard`) included. Unregistered crates and unregistered external
+  dependencies fail. Application roots are not libraries: `midata-cli` has an explicit allowlist
+  (domain, i18n, store, engine) and can never link the egui shell, while `apps/midata → midata-app` is
+  the one declared app-to-app edge (round-1 **R1**, `APP_EDGES`).
+- **Every gate shown to bite** (intentional violation, caught, reverted — output quoted in the PR body):
+  layer check (unregistered `clap` edge; app-edge rules proven by `ui_composition_root_may_depend_on_the_app_shell`,
+  `headless_cli_may_not_depend_on_the_ui_shell`, `application_crate_cannot_be_a_dependency`),
+  file budget (501-line file + stale-baseline unit test), i18n coverage (stale `no-catalogues`
+  baseline; FR-missing ratchet regression; **EN-total shrink**, round-1 R4), stats (hand-edited
+  scorecard fails `--check`; golden filter and done-with-evidence numerator unit-tested, R2/R3),
+  banned-name grep (term in a shipped file), `ci` (format violation stops the run before any later
+  step), `cargo-deny` (temporary GPL-licensed path dependency → licence not allowed) and
+  `cargo-machete` (temporary unused path dependency → unused dependency), both appended to the PR body
+  for round-1 R5.
+- **Baselines committed with zero violations:** `docs/file-budget.baseline` (empty),
+  `docs/i18n-coverage.baseline` (`state: no-catalogues`, loud skip until P0-2),
+  `docs/scorecard.md` (GENERATED, 0/222 inventory, **43 tests**, 1 crate, 0 golden screens of the 11
+  in `REBUILD_PLAN.md` §7.1, 0 budget violations, 0 clippy/unsafe). No timestamps in generated output,
+  so ubuntu and windows diff identically.
+- **Missing-tool skip is kind-based, not text-based** (self-check, owner-approved 2026-10-27):
+  `ci::is_missing_binary` classifies a `SKIP` from the spawn `io::ErrorKind::NotFound` only, so an
+  installed tool that fails and prints "No such file or directory" itself (a missing `deny.toml`) can
+  no longer be downgraded to a local skip — §3.8 `test-integrity.no-vacuous-gates`. Regression tests:
+  `ci::tests::a_failed_run_is_never_downgraded_to_a_missing_binary` (fails against the string-matching
+  predicate — the negative proof) and `ci::tests::a_binary_that_cannot_be_spawned_is_classified_missing`.
+- **Round-1 review fixes (2026-10-27, PR #2 comment
+  [6430093550](https://github.com/halmousama/MiData/pull/2#issuecomment-6430093550)):** R1 app-edge rule
+  + explicit CLI allowlist (three new layer tests, 37 → 43 tests overall); R2 coverage numerator =
+  `done` rows with non-empty evidence (parser test); R3 goldens counted only under
+  `crates/midata-app/**/snapshots/**` with the target set to the 11 §7.1 screens; R4 EN-total ratchet
+  enforced (no stored-but-ignored baseline field); R5 deny + machete negative proofs; R6 snapshot
+  deferral moved to known-shortfall 7; S1 birth is "declared & printed, enforced by owner review
+  (D26)"; S2 orphan FR keys fatal once catalogues exist, wired into P0-2 acceptance; S3 scorecard says
+  "enforced by the gate"; S4 PR body stale count fixed; S5 CI actions pinned to commit SHAs and the
+  architecture header aligned with §9.
+- **Design seams planned for P0-2+:** `docs/architecture.md` §9 records clock / store-handle /
+  provider / actor injection through `Session`, no globals and no module-level connection.
+- **Owner TODO (also in the devlog):** after this PR merges, enable **Require status checks** in branch
+  protection for `ci (ubuntu-latest)` and `ci (windows-latest)`.
 
-**Risks.** Dependency approval: every crate here is already named in Appendix A, so no new escalation —
-but the versions chosen must still pass `cargo deny`. Windows runner availability is the first thing to
-verify, since D12 makes it binding.
+**Risks.** Dependency approval: only `anyhow` + `serde_json` were added (both in Appendix A), so no new
+escalation — `cargo deny` runs in CI. Windows parity is verified by the matrix on every PR; the P0-1 PR
+is the first run of that matrix. The Linux snapshot step is deferred to P0-9 (known-shortfall 7), not
+claimed here.
 
 ---
 
@@ -133,6 +188,10 @@ counts.
   correction left to record.)
 - Key-naming convention (`cmd.animal.create.title`, `err.animal.duplicate_custom_id`, `screen.x.y`) and
   a test that every key in `en.tsv` has a `fr.tsv` row or is listed as pending.
+- **Acceptance carried from round-1 S2:** once both catalogues exist, an **orphan FR key** (present in
+  FR, absent in EN) is a **fatal** gate failure, not a printed report line — `docs/i18n.md` §5: orphan
+  keys are deleted, not parked. The first real baseline written in P0-2 must record `en_total`, so the
+  R4 non-decrease ratchet is live from the day the catalogues appear.
 
 **Evidence.** Unit test names in the crate; `cargo xtask i18n-coverage` reporting a real number;
 per-crate README public-API sections filled in; `docs/i18n.md` updated with the convention actually
@@ -283,7 +342,8 @@ every block; phase column consistent with D26 (no widget/conversation table cred
 goldens for shell + onboarding in EN **and** FR, light and dark where layout matters; a documented
 "look at the PNG" step in `docs/development.md`; the full gate block (`cargo fmt --check` → clippy →
 nextest → check-layers → file-budget → i18n-coverage → snapshots → bench --quick → stats) wired into
-`xtask ci` and into CI; ratchet baselines recorded (test count, coverage, file-budget violations = 0).
+`xtask ci` and into CI; **a Linux-only CI snapshot job** (the step P0-1 deferred — known-shortfall 7);
+ratchet baselines recorded (test count, coverage, file-budget violations = 0).
 
 **Evidence.** Goldens committed and visually reviewed (devlog notes "viewed"); `cargo xtask ci` green on
 both OSes; baseline numbers in `docs/scorecard.md`.
@@ -361,6 +421,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | B0 | Bootstrap: git, `.gitignore`, `rust-toolchain.toml`, dual licence, doc system v0, gaps v0, inventory v0 | 2026-10-26 | this file; `docs/inventory.md` (195 rows); `log/devlog.md` |
 | P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
 | P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
+| P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (43 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
 
 ---
 
@@ -369,11 +430,10 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 Items that are real but too small — or too dependent — to queue on their own. Promote to a `P<phase>-n`
 entry when they grow.
 
-1. **`docs/scorecard.md` is a stub.** Every number in `ROADMAP.md` is hand-written until `xtask stats`
-   exists (P0-1/P0-9). Risk: the "drifting hand-written numbers" anti-pattern. Mitigation: the stub is
-   marked GENERATED and CI must diff it before Phase 0 closes.
-2. **No `deny.toml` / `Cargo.lock` yet** — they arrive with the first crate (P0-1); licence compliance is
-   therefore unverified until then.
+1. ~~**`docs/scorecard.md` is a stub.**~~ **Resolved 2026-10-27 (P0-1):** `cargo xtask stats` generates
+   the scorecard deterministically and CI diffs it. `ROADMAP.md` quotes it.
+2. ~~**No `deny.toml` / `Cargo.lock` yet**~~ **Resolved 2026-10-27 (P0-1):** both committed; `cargo
+   deny check` is a CI gate.
 3. **`docs/mobile-access-strategy.md` is absent by design** (Phase 7, C8/D2). Any early attempt to add
    axum or a server is a scope violation, not a gap.
 4. ~~**Oracle mapping is empty** (`docs/testing.md` skeleton).~~ **Resolved 2026-10-26 (P0-11):** 470
@@ -383,3 +443,16 @@ entry when they grow.
 5. **`docs/legacy-spec/PROJECT_REPORT.md` is committed as the behaviour spec.** It is reference-only and
    must never become an implementation source; if any agent starts quoting its Python/React/Git layout
    content as a build guide, that is a rule-5 violation to stop immediately.
+6. **The declared MSRV is unverified** (found 2026-10-27, self-check while clearing PR #2). The root
+   workspace declares `rust-version = "1.80"`, but nothing proves it: `rust-toolchain.toml` pins the
+   moving `stable` track and CI runs whatever stable resolves to, so a dependency or language feature
+   newer than 1.80 could land and only be caught when someone builds on 1.80. *Evidence:* `Cargo.toml`
+   (`rust-version`), `rust-toolchain.toml` (`channel = "stable"`), `.github/workflows/ci.yml` (no MSRV
+   job). *Fix options:* a pinned `1.80` CI job, or drop the claim and state "stable only" explicitly —
+   both are cheap; the owner picks one when the first product crate adds a real dependency risk.
+7. **CI has no snapshot step** (found 2026-10-27, round-1 review of PR #2, R6). The P0-1 Scope bullet
+   promised "snapshots on Linux" and the workflow header repeated it, but `.github/workflows/ci.yml`
+   runs only `cargo xtask ci` and `xtask/src/ci.rs` has no snapshot section — the deferral lived in PR
+   prose and a YAML comment, which is where deviations go to die. *Target:* **P0-9** (snapshot harness
+   goldens + a Linux-only CI step). *Evidence:* `.github/workflows/ci.yml` (no snapshot step),
+   `xtask/src/ci.rs` (no snapshot section), P0-9 scope in this file.
