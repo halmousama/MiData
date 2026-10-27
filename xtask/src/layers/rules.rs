@@ -7,6 +7,10 @@ pub(crate) struct CrateRule {
     pub name: &'static str,
     pub layer: &'static str,
     /// Phase that births the crate (D26: no crate before the phase that first uses it).
+    ///
+    /// This is **metadata**: `check-layers` prints it and never compares it against a phase
+    /// constant (the gate does not know which phase is running). Birth order is enforced by owner
+    /// review against D26, not by this gate.
     pub birth: &'static str,
     /// Repository-relative manifest location, used to catch a crate that drifted to another folder.
     pub manifest: &'static str,
@@ -239,8 +243,15 @@ pub(crate) const REGISTRY: &[CrateRule] = &[
         layer: "app",
         birth: "P0-7",
         manifest: "apps/midata-cli/Cargo.toml",
-        internal: &[],
-        any_internal: true,
+        // The headless binary links the data/engine spine only. It must never link the egui shell
+        // (`midata-app`) or any other surface crate: `midata` is an app root, not a library.
+        internal: &[
+            "midata-domain",
+            "midata-i18n",
+            "midata-store",
+            "midata-engine",
+        ],
+        any_internal: false,
         external: &["*"],
         dev_external: &["midata-testkit"],
         dev_only: false,
@@ -295,5 +306,23 @@ pub(crate) const ONLY_IN: &[(&str, &[&str])] = &[
     ("genpdf", &["midata-exchange"]),
 ];
 
-/// Crates that application roots may never depend on.
+/// Crates that are application roots, never libraries.
 pub(crate) const APP_CRATES: &[&str] = &["midata-app", "midata", "midata-cli"];
+
+/// App-root crate to the app crates it may depend on (D24).
+///
+/// Application crates are roots, not libraries: nothing below the app layer may depend on one. The
+/// one legal app-to-app edge is the UI composition root (`apps/midata`) depending on the egui shell
+/// (`midata-app`) — it cannot open a window otherwise. Listing an edge here is the **only** way to
+/// allow it, so `midata-cli → midata-app` stays forbidden (the headless binary must never link the
+/// egui shell) even though `midata-cli` is itself an app root.
+pub(crate) const APP_EDGES: &[(&str, &[&str])] = &[("midata", &["midata-app"])];
+
+/// The app crates `package` may depend on; empty for every crate that is not a declared app root.
+pub(crate) fn allowed_app_edges(package: &str) -> &'static [&'static str] {
+    APP_EDGES
+        .iter()
+        .find(|(name, _)| *name == package)
+        .map(|(_, edges)| *edges)
+        .unwrap_or(&[])
+}

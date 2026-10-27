@@ -313,3 +313,66 @@ this branch (author unknown; it is the reviewer-agent contract). Left uncommitte
 
 **Still open (rank order).** 1. Independent REVIEWER session on PR #2. 2. P0-10 `AGENTS.md` diet.
 3. P0-2 `midata-domain` + `midata-i18n`.
+
+**Review #2 round 1 (independent REVIEWER, separate session):** REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 6 MINOR / 5 SUGGESTION; R1 is the shipped-contract defect (`APP_CRATES` rejects the required `midata → midata-app` edge, proven by a throwaway-copy test); full report in PR #2 comment <https://github.com/halmousama/MiData/pull/2#issuecomment-6430093550>; gate re-run green on this machine (37/37), no code touched, nothing pushed — this line left uncommitted for the implementing agent.
+
+## 2026-10-27 — P0-1 · PR #2 round-1 fix session (R1–R6, S1–S5)
+
+**Review record reconciliation (bookkeeping).** The round-1 report header claimed **6 MINOR** but listed
+five (R2–R6). The report is otherwise consistent: 1 MAJOR (R1) + 5 MINOR + 5 SUGGESTION = 11 findings.
+This entry treats the header as a counting slip, not a missing item: **R1–R6 and S1–S5 are all applied**,
+and the PR body's fix-round table carries all eleven.
+
+**R1 (MAJOR) — app roots are not libraries.** `xtask/src/layers/rules.rs` gained `APP_EDGES`, the only
+place an app-to-app edge may be declared; today it holds exactly `midata → midata-app` (the eframe
+composition root needs the egui shell). `check_workspace` rejects an app crate as a dependency unless
+the depending package declares that edge, so `midata-cli → midata-app` stays forbidden. `midata-cli`
+lost `any_internal` and now has an explicit allowlist — domain, i18n, store, engine (testkit as dev).
+Three new layer tests: `ui_composition_root_may_depend_on_the_app_shell` (positive),
+`headless_cli_may_not_depend_on_the_ui_shell` (negative), `application_crate_cannot_be_a_dependency`
+(negative, engine → cli), plus `headless_cli_has_an_explicit_internal_allowlist`. Negative proof run:
+temporarily moving the declared edge to `midata-cli` failed **both** the positive and the negative test
+(`left: [Violation { package: "midata", message: "depends on application crate \`midata-app\` …" }]`),
+then reverted.
+
+**R2 — coverage numerator.** `docs/scorecard.md` now counts `done` rows with a **non-empty** evidence
+cell (`—`/`-` do not count); `InventoryStats.done_with_evidence` is the ratchet input, asserted by
+`inventory_numerator_requires_done_and_evidence` (three `done` rows, two with evidence, one numerator).
+
+**R3 — golden metric.** Only PNGs under `crates/midata-app/**/snapshots/**` count
+(`is_screen_golden`, unit-tested); the target is **11**, the screen list in `REBUILD_PLAN.md` §7.1, and
+both facts are stated in the generated scorecard's source/notes. End-to-end proof: `touch
+docs/logo.png` left the metric at 0/11, a probe at `crates/midata-app/snapshots/probe.png` moved it to
+1/11; both removed.
+
+**R4 — EN-total ratchet.** `i18n::check` now fails when the EN catalogue is smaller than
+`docs/i18n-coverage.baseline` (`en_total`), so the field is no longer stored-and-ignored. `docs/i18n.md`
+§5 documents both ratchets and the deletion rule (delete FR row + regenerate the baseline in one
+change). Negative proof: temporary 1-key catalogues against `en_total: 2` failed with `EN catalogue
+shrank: 1 key(s), baseline records 2 …`; reverted. Unit test
+`ratchet_fails_when_the_en_catalogue_shrinks`.
+
+**R5 — deny + machete negative proofs.** Temporary path dependencies under `/tmp/opencode`:
+`temp-gpl` (`license = "GPL-3.0-only"`) made `cargo-deny check licenses` fail with `GPL-3.0-only …
+rejected: license is not explicitly allowed`; `temp-unused` was reported by `cargo-machete` as an
+unused dependency (exit 1). Both removed, `xtask/Cargo.toml` and `Cargo.lock` reverted.
+
+**R6 — snapshot deferral tracked.** `docs/gaps.md` known-shortfall **7** records that CI has no snapshot
+step, with the target **P0-9**, and P0-9's scope now names the Linux-only CI job; the P0-1 Scope bullet
+and the workflow comment no longer imply it exists.
+
+**S1** `birth` is documented as "declared and printed; enforced by owner review (D26)" in
+`rules.rs`/`layers.rs`. **S2** orphan-FR-keys-fatal is P0-2 acceptance in `docs/gaps.md` and
+`docs/i18n.md` §5. **S3** the scorecard says "0 (enforced by the gate)". **S4** the PR body's stale
+`35` is corrected to `37` at the time of the fix (the branch now measures 43; the fix-round table states
+both). **S5** all four CI actions are pinned to commit SHAs with the release tag in a trailing comment,
+and `docs/architecture.md`'s header now matches §9 (updated when a binding decision is fixed ahead of
+the crate).
+
+**Numbers.** `xtask` tests **37 → 43**; workspace still 1 crate; inventory 0/222 (numerator now
+`done`+evidence); goldens 0/11; i18n loud skip unchanged. `docs/scorecard.md` regenerated.
+`cargo xtask ci` green locally after the changes; the two-OS re-run starts with the pushed commit —
+no CI-green claim is made here until the PR checks report it.
+
+**Still open (rank order).** 1. Round-2 reviewer session on PR #2. 2. P0-10 `AGENTS.md` diet.
+3. P0-2 `midata-domain` + `midata-i18n` (with the S2 acceptance and the first real `en_total`).

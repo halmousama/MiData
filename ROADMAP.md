@@ -3,7 +3,7 @@
 > **Stage:** Phase 0 in progress — workspace + `xtask` gate + ubuntu/windows CI landed (P0-1); no
 > product crates yet
 > **Last reviewed:** 2026-10-27 · **Last updated:** 2026-10-27 · **Change:** P0-1 — workspace, gate
-> suite, CI matrix and generated scorecard
+> suite, CI matrix, generated scorecard and the round-1 review fixes (R1–R6, S1–S5)
 > **Current focus:** **Phase 0 — Foundations** (`docs/roadmap.md`, next task **P0-10**)
 
 MiData is a local-first livestock management and analysis desktop application — native Rust + egui, one
@@ -15,10 +15,10 @@ report; the binding detail lives in `REBUILD_PLAN.md` (§15 Decision Log wins an
 
 | Metric | Now | Target (v1.0 gate) |
 |---|---|---|
-| Inventory coverage (rows with evidence) | **0 / 222 rows — 0%** | ≥ 90% of the KEEP list |
-| Tests | **37** (xtask gate unit tests) | ≥ 300 (ratchet from Phase 1) |
+| Inventory coverage (done rows with evidence) | **0 / 222 rows — 0%** | ≥ 90% of the KEEP list |
+| Tests | **43** (xtask gate unit tests) | ≥ 300 (ratchet from Phase 1) |
 | Crates in the workspace | **1** (`xtask`; product crates birth from P0-2) | 11 crates + 2 apps + xtask |
-| Screens with snapshot goldens | **0 / 13** | every screen ≥ 1 golden |
+| Screens with snapshot goldens | **0 / 11** (the `REBUILD_PLAN.md` §7.1 screens) | every screen ≥ 1 golden |
 | i18n coverage (EN / FR) | **n/a** (catalogues arrive in P0-2) | EN 100% · FR 100% |
 | File-budget violations | **0** (12 files scanned) | 0 |
 | Clippy warnings · `unsafe` | **0 · 0** | 0 · 0 |

@@ -3,7 +3,8 @@
 > **Status:** P0-1 landed — the workspace and `xtask` gates exist; **only `xtask` is a crate**. Product
 > crates are birth-gated from P0-2 (D26), so nothing below is implemented yet. This file records what
 > `REBUILD_PLAN.md` §4–§9 and the §15 decision log bind us to, so a task can be judged against it.
-> Update it when a crate is born, not before.
+> It is updated when a crate is born **and** when a binding decision is fixed ahead of the crate that
+> implements it (the §9 injection seams bind from P0-2, before those crates exist).
 > **Source:** `REBUILD_PLAN.md` §4 (target architecture), §5 (data model), §8 (analytics), §9 (AI),
 > §10 (agent surfaces); owner decisions D1–D25.
 
@@ -22,7 +23,10 @@ product drivable by agents as well as by people (D13).
 
 Layers are a **registered DAG**, not a strict chain — every crate and every allowed edge is declared in
 `xtask/src/layers.rs` and checked by `cargo xtask check-layers` (D24). An undeclared edge fails CI, so a
-layer violation is a build fact, not a review opinion.
+layer violation is a build fact, not a review opinion. Application crates are roots, never libraries:
+the headless `midata-cli` may depend only on `midata-domain`, `midata-i18n`, `midata-store` and
+`midata-engine` (never the egui shell), while `apps/midata` — the UI composition root — is the one crate
+allowed to link `midata-app`.
 
 ```text
 L0  midata-domain      pure types & value semantics (species/sex/status/data types/cardinality/value

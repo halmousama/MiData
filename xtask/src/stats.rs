@@ -10,7 +10,10 @@ use std::fmt::Write as _;
 use std::path::Path;
 
 pub const SCORECARD: &str = "docs/scorecard.md";
-const TARGET_SCREENS: usize = 13;
+/// The screen count target: `REBUILD_PLAN.md` §7.1 lists the screens that must each own a golden
+/// (`onboarding, dashboard, animal_list, animal_detail, entry, analytics_studio, deep_analysis,
+/// pedigree, packs, settings, assistant`).
+const TARGET_SCREENS: usize = 11;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct InventoryStats {
@@ -19,6 +22,14 @@ pub struct InventoryStats {
     pub partial: usize,
     pub waived: usize,
     pub with_evidence: usize,
+    /// The coverage numerator: `done` rows whose evidence cell is non-empty. A row flipped to
+    /// `done` without evidence cannot raise the headline ratchet.
+    pub done_with_evidence: usize,
+}
+
+/// A row counts as evidenced when its evidence cell holds something a reader can follow.
+fn has_evidence(cell: &str) -> bool {
+    !cell.is_empty() && cell != "—" && cell != "-"
 }
 
 /// Parse the row tables in `docs/inventory.md` (`| id | behaviour | status | phase | evidence |`).
@@ -39,17 +50,20 @@ pub fn parse_inventory(text: &str) -> InventoryStats {
         }
 
         stats.total = stats.total.saturating_add(1);
-        match cells.get(3).copied() {
-            Some("done") => stats.done = stats.done.saturating_add(1),
-            Some("partial") => stats.partial = stats.partial.saturating_add(1),
-            Some("waived") => stats.waived = stats.waived.saturating_add(1),
+        let status = cells.get(3).copied().unwrap_or_default();
+        match status {
+            "done" => stats.done = stats.done.saturating_add(1),
+            "partial" => stats.partial = stats.partial.saturating_add(1),
+            "waived" => stats.waived = stats.waived.saturating_add(1),
             _ => {}
         }
 
-        if let Some(evidence) = cells.get(5).copied() {
-            if !evidence.is_empty() && evidence != "—" && evidence != "-" {
-                stats.with_evidence = stats.with_evidence.saturating_add(1);
-            }
+        let evidenced = cells.get(5).copied().is_some_and(has_evidence);
+        if evidenced {
+            stats.with_evidence = stats.with_evidence.saturating_add(1);
+        }
+        if status == "done" && evidenced {
+            stats.done_with_evidence = stats.done_with_evidence.saturating_add(1);
         }
     }
 
@@ -110,8 +124,19 @@ fn count_unsafe_tokens(root: &Path) -> Result<usize> {
     Ok(count)
 }
 
+/// A screen golden is a PNG under `crates/midata-app/**/snapshots/**`. Counting every `.png` in the
+/// repository would let a logo or a README screenshot inflate the coverage ratchet.
+fn is_screen_golden(relative: &str) -> bool {
+    relative.starts_with("crates/midata-app/")
+        && relative.contains("/snapshots/")
+        && relative.ends_with(".png")
+}
+
 fn count_golden_pngs(root: &Path) -> Result<usize> {
-    Ok(source::files_with_extension(root, "png")?.len())
+    Ok(source::files_with_extension(root, "png")?
+        .iter()
+        .filter(|file| is_screen_golden(&file.relative))
+        .count())
 }
 
 pub fn render(root: &Path) -> Result<String> {
@@ -119,7 +144,7 @@ pub fn render(root: &Path) -> Result<String> {
         .context("reading docs/inventory.md")?;
     let inventory = parse_inventory(&inventory_text);
     let coverage_percent = inventory
-        .done
+        .done_with_evidence
         .saturating_mul(100)
         .checked_div(inventory.total)
         .unwrap_or(0);
@@ -168,8 +193,8 @@ pub fn render(root: &Path) -> Result<String> {
     out.push_str("|---|---|---|---|\n");
     writeln!(
         out,
-        "| Inventory coverage (rows with evidence) | {} / {} rows ({}%) | `docs/inventory.md` | ↑ only |",
-        inventory.done, inventory.total, coverage_percent
+        "| Inventory coverage (done rows with evidence) | {} / {} rows ({}%) | `docs/inventory.md` | ↑ only |",
+        inventory.done_with_evidence, inventory.total, coverage_percent
     )?;
     writeln!(
         out,
@@ -183,7 +208,7 @@ pub fn render(root: &Path) -> Result<String> {
     )?;
     writeln!(
         out,
-        "| Screens with ≥1 snapshot golden | {} / {} | `*.png` goldens | ↑ only |",
+        "| Screens with ≥1 snapshot golden | {} / {} | `crates/midata-app/**/snapshots/**/*.png`; target = `REBUILD_PLAN.md` §7.1 screens | ↑ only |",
         goldens, TARGET_SCREENS
     )?;
     writeln!(
@@ -203,7 +228,9 @@ pub fn render(root: &Path) -> Result<String> {
         file_budget::ALARM_LIMIT,
         budget_violations
     )?;
-    out.push_str("| Clippy warnings | 0 (enforced) | `cargo clippy -D warnings` | = 0 |\n");
+    out.push_str(
+        "| Clippy warnings | 0 (enforced by the gate) | `cargo clippy -D warnings` | = 0 |\n",
+    );
     let unsafe_keyword = concat!("un", "safe");
     writeln!(
         out,
@@ -219,17 +246,25 @@ pub fn render(root: &Path) -> Result<String> {
 
     out.push_str("\n## Notes\n\n");
     out.push_str(
-        "- Coverage counts `done` rows only; a wired row without evidence does not count.\n",
+        "- Coverage counts `done` rows whose evidence cell is non-empty (`—`/`-` do not count); a row\n",
     );
+    out.push_str("  flipped to `done` without evidence cannot raise the ratchet.\n");
     writeln!(
         out,
-        "- Inventory rows: {} total · {} done · {} partial · {} waived · {} with evidence.",
+        "- Inventory rows: {} total · {} done · {} partial · {} waived · {} with evidence · {} done with evidence.",
         inventory.total,
         inventory.done,
         inventory.partial,
         inventory.waived,
-        inventory.with_evidence
+        inventory.with_evidence,
+        inventory.done_with_evidence
     )?;
+    out.push_str(
+        "- A screen golden is a PNG under `crates/midata-app/**/snapshots/**`; the target is the 11\n",
+    );
+    out.push_str(
+        "  screens listed in `REBUILD_PLAN.md` §7.1, not every image in the repository.\n",
+    );
     out.push_str(
         "- The test count is a source scan of test attributes (doc tests excluded). It is a\n",
     );
@@ -281,6 +316,48 @@ mod tests {
         assert_eq!(stats.done, 1);
         assert_eq!(stats.partial, 1);
         assert_eq!(stats.with_evidence, 2);
+        assert_eq!(stats.done_with_evidence, 1);
+    }
+
+    /// The headline ratchet must not move for a row that claims `done` without a followable
+    /// evidence cell — the defect R2 found in the old numerator (`done` alone).
+    #[test]
+    fn inventory_numerator_requires_done_and_evidence() {
+        let text = "\
+| id | behaviour | status | phase | evidence |
+|---|---|---|---|---|
+| HM-1 | Done with a test name | done | P1 | test_create |
+| HM-2 | Done with a dash | done | P1 | — |
+| HM-3 | Done with an empty cell | done | P1 | |
+| HM-4 | Partial with a test name | partial | P1 | test_list |
+";
+        let stats = parse_inventory(text);
+        assert_eq!(stats.done, 3);
+        assert_eq!(stats.with_evidence, 2);
+        assert_eq!(
+            stats.done_with_evidence, 1,
+            "only a done row with evidence may raise the coverage ratchet"
+        );
+    }
+
+    /// R3: only screen goldens count; a logo or a doc screenshot must not inflate coverage.
+    #[test]
+    fn golden_counter_only_accepts_app_screen_snapshots() {
+        assert!(is_screen_golden(
+            "crates/midata-app/src/screens/dashboard/snapshots/dashboard_light.png"
+        ));
+        assert!(is_screen_golden(
+            "crates/midata-app/snapshots/onboarding_dark.png"
+        ));
+        assert!(!is_screen_golden("assets/logo.png"));
+        assert!(!is_screen_golden("docs/images/screenshot.png"));
+        assert!(!is_screen_golden("crates/midata-app/logo.png"));
+        assert!(!is_screen_golden(
+            "crates/midata-analytics/snapshots/chart.png"
+        ));
+        assert!(!is_screen_golden(
+            "crates/midata-app/src/screens/dashboard/snapshots/README.md"
+        ));
     }
 
     #[test]

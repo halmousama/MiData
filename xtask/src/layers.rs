@@ -7,10 +7,15 @@
 //!
 //! Enforcement details:
 //! - `midata-testkit` is a **dev-dependency only**.
-//! - Nothing may depend on `midata-app`, `midata` or `midata-cli`.
+//! - Application crates are roots, never libraries: nothing below the app layer may depend on one.
+//!   The single app-to-app edge is declared per root in `APP_EDGES` — today only
+//!   `midata → midata-app` (the UI composition root needs the egui shell). `midata-cli` declares
+//!   none, so the headless binary can never link the egui shell.
 //! - Heavy/unstable crates are restricted to their home crate even when an app wildcard is used:
 //!   egui stack → `midata-app`/`midata`; tokio/reqwest → `midata-ai`; sqlparser → `midata-queryguard`;
 //!   file-format crates → `midata-exchange`; banned crates → nowhere.
+//!
+//! `birth` is declared and printed, never enforced here; birth order (D26) is owner review.
 
 use crate::workspace::{DependencyKind, Workspace};
 use anyhow::{bail, Result};
@@ -20,7 +25,7 @@ use std::path::Path;
 
 mod rules;
 
-use rules::{CrateRule, APP_CRATES, BANNED_ANYWHERE, ONLY_IN, REGISTRY};
+use rules::{allowed_app_edges, CrateRule, APP_CRATES, BANNED_ANYWHERE, ONLY_IN, REGISTRY};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Violation {
@@ -75,12 +80,24 @@ pub fn check_workspace(workspace: &Workspace) -> Vec<Violation> {
 
             if registered.contains(dep) {
                 if APP_CRATES.contains(&dep) {
-                    violations.push(violation(
-                        &package.name,
-                        format!(
-                            "depends on application crate `{dep}` — nothing may depend on an app"
-                        ),
-                    ));
+                    // An app crate is a root, not a library. An app root may depend on one only
+                    // when its own rule declares that exact edge (`APP_EDGES`); every other crate
+                    // — including `midata-cli`, which declares none — is rejected.
+                    if !allowed_app_edges(&package.name).contains(&dep) {
+                        violations.push(violation(
+                            &package.name,
+                            format!(
+                                "depends on application crate `{dep}` — nothing may depend on an app unless its rule declares the edge"
+                            ),
+                        ));
+                        continue;
+                    }
+                    if !dependency.is_path {
+                        violations.push(violation(
+                            &package.name,
+                            format!("internal dependency `{dep}` must be a path dependency"),
+                        ));
+                    }
                     continue;
                 }
 
@@ -281,6 +298,21 @@ mod tests {
                 );
             }
         }
+
+        // Every declared app-to-app edge must name a registered app root, and may only be declared
+        // by an app root itself.
+        for (package, edges) in rules::APP_EDGES {
+            assert!(
+                APP_CRATES.contains(package),
+                "`{package}` declares an app edge but is not an app root"
+            );
+            for edge in *edges {
+                assert!(
+                    APP_CRATES.contains(edge),
+                    "`{package}` declares `{edge}` as an app edge but it is not an app crate"
+                );
+            }
+        }
     }
 
     #[test]
@@ -400,6 +432,65 @@ mod tests {
                 .iter()
                 .any(|item| item.message.contains("nothing may depend on an app")),
             "apps are never dependencies: {violations:?}"
+        );
+    }
+
+    /// The UI composition root is the one legal app-to-app edge: without it `apps/midata` cannot
+    /// open a window (it must link `midata-app`). This test is the positive half of R1.
+    #[test]
+    fn ui_composition_root_may_depend_on_the_app_shell() {
+        let model = workspace(vec![
+            package(
+                "midata",
+                &[dependency("midata-app", DependencyKind::Normal)],
+            ),
+            package("midata-app", &[]),
+        ]);
+        assert_eq!(
+            check_workspace(&model),
+            Vec::new(),
+            "`midata` must be allowed to depend on `midata-app`"
+        );
+    }
+
+    /// The headless binary must never link the egui shell. This is the negative half of R1: the
+    /// gate rejected this edge for the right reason only after `midata-cli` got an explicit
+    /// internal allowlist instead of the app wildcard.
+    #[test]
+    fn headless_cli_may_not_depend_on_the_ui_shell() {
+        let model = workspace(vec![
+            package(
+                "midata-cli",
+                &[dependency("midata-app", DependencyKind::Normal)],
+            ),
+            package("midata-app", &[]),
+        ]);
+        let violations = check_workspace(&model);
+        assert!(
+            violations
+                .iter()
+                .any(|item| item.message.contains("nothing may depend on an app")),
+            "midata-cli → midata-app must be rejected: {violations:?}"
+        );
+    }
+
+    /// Proof that `midata-cli` no longer carries the app wildcard: an edge outside its explicit
+    /// allowlist (the analytics engine) fails the same way any L5-only edge does.
+    #[test]
+    fn headless_cli_has_an_explicit_internal_allowlist() {
+        let model = workspace(vec![
+            package(
+                "midata-cli",
+                &[dependency("midata-analytics", DependencyKind::Normal)],
+            ),
+            package("midata-analytics", &[]),
+        ]);
+        let violations = check_workspace(&model);
+        assert!(
+            violations
+                .iter()
+                .any(|item| item.message.contains("illegal internal edge")),
+            "midata-cli may depend only on domain, i18n, store and engine: {violations:?}"
         );
     }
 }

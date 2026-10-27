@@ -3,7 +3,11 @@ name: CI
 # The gate is the same code locally and in CI: every job runs `cargo xtask ci`, which executes
 # fmt · clippy -D warnings · nextest · check-layers · file-budget · i18n-coverage · banned-name grep ·
 # scorecard diff · cargo-deny · cargo-machete. Both OSes are binding (D12): Linux is the development
-# OS, Windows is the release priority. Snapshots (Linux only) join the matrix with P0-5.
+# OS, Windows is the release priority. Snapshot goldens are not in this workflow yet; that deferral is
+# tracked as a known shortfall in docs/gaps.md (target P0-9), not as prose here.
+#
+# Every action is pinned to a commit SHA (with the release tag in a trailing comment): the only
+# supply-chain surface of an offline-first app is CI, so a mutable tag is a needless risk.
 
 on:
   push:
@@ -34,18 +38,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install Rust stable (rustfmt + clippy)
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
         with:
           components: rustfmt, clippy
 
       - name: Cache cargo build
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
 
       - name: Install CI-only tools (nextest, deny, machete)
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@5488ac5a951645ce95062214902ac4b6bc1a1037 # v2
         with:
           tool: cargo-nextest,cargo-deny,cargo-machete
 
