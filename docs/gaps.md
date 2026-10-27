@@ -1,6 +1,6 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-27 (P0-1 closed; round-1 review fixes applied) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-27 (P0-2 closed: domain + i18n born, i18n gate now fatal) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -17,7 +17,7 @@
 |---|---|---|---|---|---|---|---|
 | 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
 | 2 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 33.5 KB against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
-| 3 | P0-2 | `midata-domain` + `midata-i18n` | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open |
+| 3 | P0-2 | `midata-domain` + `midata-i18n` | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | **done** (2026-10-27) |
 | 4 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 | open |
 | 5 | P0-4 | `midata-engine` skeleton | feature | Command registry + audit hook — the agent-first seam | 8 | P0-2, P0-3 | open |
 | 6 | P0-5 | `midata-app` shell + theme | feature | First pixels: window, router, tokens, settings persistence | 12 | P0-2, P0-4 | open |
@@ -26,9 +26,10 @@
 | 9 | P0-8 | Inventory v0 reconciliation (re-scoped) | docs | Turns the hand-written checklist into a machine-checkable contract | 2 | — | open |
 | 10 | P0-9 | Snapshots + gates polish | quality | Locks the Phase-0 exit criteria and the ratchets in place | 6 | P0-5, P0-6 | open |
 
-**Sum:** 62 agent-hours open (72 at queue start; P0-1 closed 10 h). Phase 0 closes when every open row
-is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on
-2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27 and P0-1 on 2026-10-27 — see §Closed.
+**Sum:** 54 agent-hours open (72 at queue start; P0-1 closed 10 h, P0-2 closed 8 h). Phase 0 closes
+when every open row is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle
+extraction, 3 h) closed on 2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27
+and P0-2 on 2026-10-27 — see §Closed.
 
 ---
 
@@ -164,7 +165,7 @@ counts.
 
 ---
 
-## P0-2 — `midata-domain` + `midata-i18n`  ·  8 h  ·  rank 3
+## P0-2 — `midata-domain` + `midata-i18n`  ·  8 h  ·  rank 3  ·  **done 2026-10-27**
 
 **Kind:** feature (L0) · **Source:** `REBUILD_PLAN.md` §4.1, §5.3, §5.5, §7.4; Appendix C bullets 5–7.
 
@@ -196,6 +197,29 @@ counts.
 **Evidence.** Unit test names in the crate; `cargo xtask i18n-coverage` reporting a real number;
 per-crate README public-API sections filled in; `docs/i18n.md` updated with the convention actually
 enforced.
+
+**Outcome (2026-10-27).** Both crates born and registered in the DAG with `birth: "P0-2"`;
+`check-layers` green with 3 registered crates. **60 tests** in `midata-domain`, **16** in `midata-i18n`
+(128 workspace-wide, scorecard regenerated). The i18n gate flips from advisory to fatal in this task:
+orphan FR key, unused EN key, EN shrink and FR-missing growth each fail the build, proved by a
+temporary edit against the **real** catalogues (output quoted in the PR body) plus 11 unit tests in
+`xtask/src/i18n/gate.rs`. First committed baseline: `state: catalogues`, `en_total: 19`,
+`fr_missing: 0`; the 19 keys are exactly the `err.*` messages the domain crate can return — no
+speculative `screen.*`/`cmd.*` keys, which the unused-key rule would now reject.
+
+Deviations taken under autonomy, all recorded:
+- **`t!(translator, "key")`, not `t!("key")`** — a process-wide language is a global, which
+  `docs/architecture.md` §9 forbids, and it would make a two-language snapshot render impossible.
+  Written into `docs/i18n.md` §1.
+- **`SystemClock` lives in `midata-domain`** beside the `Clock` trait: no composition root exists until
+  P0-5, and a source-scan test (`tests/seams_and_errors.rs`) proves `Utc::now()` appears only there.
+- **`serde_json` is a dev-dependency only** of `midata-domain` (already an approved Phase-0 crate; no
+  new lock entry, recorded as `dev_external` in `xtask/src/layers/rules.rs`). The `multi_select`
+  JSON-array codec is hand-rolled, strict and bounded because the crate may not persist `serde_json`.
+
+**Still open from this task's scope:** none. Follow-ups discovered while working are queued below
+(commit-msg hook + vendor-name grep for D30; `midata-testkit`'s `FixedClock` arrives with P0-4).
+
 
 ---
 
@@ -422,6 +446,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
 | P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
 | P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (43 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
+| P0-2 | `midata-domain` + `midata-i18n` born; i18n gate made fatal | 2026-10-27 | `crates/midata-domain/` (60 tests, `README.md`), `crates/midata-i18n/` (16 tests, 19-key `en.tsv`/`fr.tsv`, `README.md`), `xtask/src/i18n/gate.rs` (11 tests, 4 rules), `docs/i18n-coverage.baseline` (`en_total 19`), `docs/architecture.md` §9 (clock + translator seams), `docs/i18n.md` §1/§5, `docs/scorecard.md`; PR body carries the four negative proofs against the real catalogues; `log/devlog.md` |
 
 ---
 
@@ -456,3 +481,10 @@ entry when they grow.
    prose and a YAML comment, which is where deviations go to die. *Target:* **P0-9** (snapshot harness
    goldens + a Linux-only CI step). *Evidence:* `.github/workflows/ci.yml` (no snapshot step),
    `xtask/src/ci.rs` (no snapshot section), P0-9 scope in this file.
+8. **D30 is not enforced yet** (found 2026-10-27, during P0-2). `AGENTS.md` §5 now says no
+   `Co-Authored-By` trailers and no AI-vendor/model names anywhere, "enforced locally by the
+   commit-msg hook and in CI by the banned-names gate" — but `.git/hooks/` is empty (no `commit-msg`
+   hook) and `xtask/src/gates.rs::banned_names` still greps only the legacy product name, not vendor or
+   model names. Until both exist the rule is honour-system. *Fix:* a checked-in hook installer plus a
+   second term list in the banned-name gate (≈1 h, self-contained) — promote to a ranked entry when the
+   owner wants it mechanical. *Evidence:* `ls .git/hooks/`, `xtask/src/gates.rs`, `AGENTS.md` §5.

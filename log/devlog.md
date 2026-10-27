@@ -378,3 +378,56 @@ no CI-green claim is made here until the PR checks report it.
 3. P0-2 `midata-domain` + `midata-i18n` (with the S2 acceptance and the first real `en_total`).
 
 **Review #2 round 2 (independent REVIEWER, separate session):** APPROVE — 0 BLOCKER / 0 MAJOR / 0 MINOR / 2 SUGGESTION (N1: line 287 cites a non-existent `docs/contributing.md` §9, N2: gaps records no run id for the fix commit `b1d52fe`); round-1 items R1–R6, S1 and S3–S5 verified fixed in the tree (R1 positive+negative layer tests, R2 `done_with_evidence`, R3 §7.1 11-screen golden filter, R4 EN-total ratchet, R5 deny/machete rows, R6 known-shortfall 7) and **S2 confirmed as a P0-2 acceptance wire, not a gate change** (orphans still report-only); round-1 header's "6 MINOR" reconciled to the 5 listed (11 findings total); full report in PR #2 comment <https://github.com/halmousama/MiData/pull/2#issuecomment-6437110096>; gate re-run green on this machine at `b1d52fe` (43/43) and both PR checks green; no code touched, nothing pushed — this line left uncommitted for the implementing agent.
+
+---
+
+## 2026-10-27 — P0-2 · `midata-domain` + `midata-i18n` born; i18n gate made fatal
+
+**Landed**
+- `crates/midata-domain` (L0, pure, zero I/O, deps `serde`/`chrono`/`thiserror`): identity vocabulary
+  (`Sex`, `Status` + `validate_exit_date`, `SpeciesKey` as an open registry — no species enum anywhere),
+  dynamic-field vocabulary (`DataType`, `Cardinality`, `Value`/`EncodedValue` with the exactly-one-column
+  rule, strict bounded JSON-array codec for `multi_select`, ISO dates, finite numbers), `latest_value`
+  ordering (`recorded_on` then `id`), `Age::between` (leap-day anniversary clamp), `Money` in `i64`
+  minor units, `PedigreeBounds` (1–10 generations, 500 nodes), `CommandError` (reason + i18n key +
+  params) and the `Clock`/`SystemClock` seam. Crate header denies
+  unwrap/expect/panic/todo/unimplemented/unreachable/indexing.
+- `crates/midata-i18n` (L0, pure): `en.tsv` (source) + `fr.tsv` embedded with `include_str!`,
+  `Catalogue::{embedded,from_tsv_pair,get,coverage}`, `Translator::{t,format,has}`, `t!`/`tf!`,
+  `Language` (`en`/`fr`, default `en`). 19 keys, all `err.*` — only strings the domain crate can return.
+- `xtask i18n-coverage` is now a real gate with four teeth (`xtask/src/i18n/gate.rs`, 11 unit tests):
+  **orphan FR key fatal** (the round-1 S2 wire), **unused EN key fatal** (speculative key = dead key),
+  EN total may not shrink, missing FR may not grow. Report line now prints EN total, FR
+  translated/EN-total + percentage, FR rows, missing/orphan/unused and the baseline.
+- Both crates registered in `xtask/src/layers.rs` with `birth: "P0-2"`; per-crate `README.md` public-API
+  contracts written; `docs/i18n.md` §1/§5/§6 and `docs/architecture.md` §9 (clock + translator seams)
+  updated to the shipped shape.
+
+**Decisions taken under autonomy (all in the docs)**
+- `t!(translator, "key")` instead of `t!("key")`: a process-wide language is a global, which
+  `docs/architecture.md` §9 forbids — recorded in `docs/i18n.md` §1 as a deliberate refinement.
+- `SystemClock` ships inside `midata-domain` (no composition root exists before P0-5); a source-scan
+  test asserts `Utc::now()` appears only there.
+- `serde_json` is a **dev-dependency** of `midata-domain` only (approved Phase-0 crate, no new lock
+  entry, declared as `dev_external` in `xtask/src/layers/rules.rs`); the persisted codec is hand-rolled.
+- Integration-test helpers carry a file-level `#![allow(clippy::expect_used)]` with a comment: the
+  workspace policy already allows `expect` in tests, but the lint only sees `#[test]` functions, so
+  fixture helpers have to opt in explicitly (no non-test code is affected).
+
+**Negative proofs (temporary edits to the real catalogues, each reverted)**
+- orphan FR row → `orphan FR key(s) …: err.orphan.row`, gate fails.
+- row deleted from both catalogues → `EN catalogue shrank: 18 key(s), baseline records 19`, gate fails.
+- row deleted from `fr.tsv` only → `FR coverage regressed: 1 missing key(s), baseline allows 0`, gate fails.
+- 20th key added to both, nothing referencing it → `EN key(s) that no product source references …:
+  err.speculative.placeholder`, gate fails.
+
+**Numbers.** Tests **43 → 128** (`midata-domain` 60, `midata-i18n` 16, `xtask` 52); crates **1 → 3**;
+i18n **n/a → EN 19 keys 100%, FR 19/19 (100%)**, baseline `state: catalogues / en_total: 19 /
+fr_missing: 0`; file-budget 0 violations over 36 Rust files; `check-layers` green (3 registered, 11
+planned); inventory 0/222 unchanged (no inventory row is claimed by a crate birth). `docs/scorecard.md`
+regenerated and committed with the change.
+
+**Still open (rank order).** 1. P0-3 `midata-store` v0 + migrations. 2. P0-10 `AGENTS.md` diet.
+3. D30 enforcement — the commit-msg hook and the vendor/model-name grep do not exist yet
+(`docs/gaps.md`, known shortfall 8): honour-system until then, which is why this commit carries no
+`Co-Authored-By` trailer and no model name. 4. `midata-testkit`'s `FixedClock` arrives with P0-4.
