@@ -1,0 +1,7 @@
+# Clippy policy (AGENTS.md golden rules; REBUILD_PLAN.md §4.7).
+# Non-test code must not unwrap/expect/panic/index. Tests may, because an assertion that cannot
+# panic is not an assertion — the boundary tests are expected to be blunt.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true

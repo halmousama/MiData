@@ -216,3 +216,165 @@ a corrupt file (IX-11).
 2. **P0-10** `AGENTS.md` → lean bootloader ≤ ~12 KB (owner reviews the final shape).
 3. **P0-2** `midata-domain` + `midata-i18n` — `value.distinct-missing-states` and `value.one-resolver` are
    its acceptance criteria.
+
+---
+
+## 2026-10-27 — P0-1 · Workspace, `xtask` gates, ubuntu+windows CI
+
+**Landed**
+- Root workspace (`resolver = "2"`, `unsafe_code = "forbid"`, clippy deny-list, `panic = "unwind"`,
+  `MIT OR Apache-2.0`), `Cargo.lock`, `.cargo/config.toml` (`cargo xtask` alias), `clippy.toml`,
+  `deny.toml`, `.gitattributes` (LF everywhere, binary exceptions).
+- **`xtask` only** — product crates stay birth-gated per task (D26). Dependencies: `anyhow` +
+  `serde_json` only; no pre-populated workspace dependency table.
+- Gates: `check-layers` (14-crate registered DAG with birth phase + manifest home, internal/external
+  edges, dev-only testkit, app-as-dependency ban, egui/tokio/sqlparser/file-format homes),
+  `file-budget` (500 soft / 800 alarm, shrink-only baseline), `i18n-coverage` (explicit
+  `no-catalogues` state, FR-missing ratchet, orphan report), `stats` (deterministic scorecard, no
+  timestamps), `banned-names`, `ci` (aggregator; missing local tools are loud skips, never passes),
+  and `new-command`/`new-screen`/`seed`/`bench` skeletons that return an unsupported error.
+- `.github/workflows/ci.yml`: `ci (ubuntu-latest)` + `ci (windows-latest)`, both run `cargo xtask ci`
+  (fmt · clippy `-D warnings` · nextest · all gates · scorecard diff · cargo-deny · cargo-machete).
+- Docs: `docs/architecture.md` §9 records the clock/store-handle/provider/actor injection seams for
+  P0-2+ (no globals, no module-level connection); development/roadmap/ROADMAP/gaps updated.
+
+**Numbers**
+- Tests: 0 → **35** (all xtask gate unit tests; nextest green).
+- CI: PR #2 — `ci (ubuntu-latest)` and `ci (windows-latest)` both **pass** (22 s / 56 s,
+  run 40419756246). First real two-OS proof.
+- Crates in workspace: **1** (`xtask`); 13 registered but not yet born.
+- File-budget violations: **0** across 12 Rust files. `unsafe` tokens: 0. Clippy warnings: 0.
+- Inventory coverage unchanged at 0 / 222; i18n coverage `n/a` (loud tracked skip until P0-2).
+- Scorecard is **generated, committed and CI-diffed** — `ROADMAP.md` now quotes it instead of hand counts.
+
+**Negative proofs recorded in the PR body (each violation temporary + reverted)**
+| Gate | Intentional violation | Result |
+|---|---|---|
+| check-layers | `xtask` → unregistered `clap` | `unregistered external dependency` |
+| file-budget | 501-line file | `new violation at 501 lines` |
+| i18n-coverage | catalogues appear over a `no-catalogues` baseline | stale-baseline failure |
+| i18n-coverage | EN key without FR over baseline `fr_missing: 0` | `FR coverage regressed` |
+| stats | hand-edited scorecard | `--check` reports stale |
+| banned-names | banned term in a shipped `.md` | occurrence reported |
+| ci | unformatted target file | stops at the format step |
+
+**Decisions taken under autonomy (AGENTS.md §7)**
+- Adopted the recommended P0-1 split (workspace + `xtask` only). Creating ten empty crates to match
+  Appendix C's older bullet would violate the birth-gating reading of D26.
+- `stats` counts tests by a deterministic source scan of test attributes (doc tests excluded) rather
+  than invoking nextest: the scorecard must be identical on ubuntu and windows and stable without
+  compiling test binaries. Documented in the scorecard itself.
+- Banned-name scope: shipped surfaces must be clean; the constitution/plan/decisions/gaps and the
+  legacy spec are allowlisted because their job is to state or quote the ban.
+
+**Owner TODO**
+- After this PR merges: enable **Require status checks** in branch protection for
+  `ci (ubuntu-latest)` and `ci (windows-latest)`. Until then the two jobs are informative, not merge
+  gates.
+
+**Still open (in rank order)**
+1. **P0-10** `AGENTS.md` → lean bootloader ≤ ~12 KB (owner reviews the final shape).
+2. **P0-2** `midata-domain` + `midata-i18n` — the first crates; run `cargo xtask i18n-coverage
+   --write-baseline` when the catalogues are born so the skip becomes a real measurement.
+3. **P0-3** `midata-store` + birth-gated migrations (D26).
+
+## 2026-10-27 — P0-1 · Review round 1: no findings delivered; one gate-honesty fix
+
+**What happened.** The fix-round session was launched with an unfilled template (`<branch>`, `PR #<N>`,
+`round <k>`, and no findings block). Verified before acting: PR #2 on `t/p0-1-workspace-ci` has
+**0 reviews, 0 review comments, 0 issue comments** via the GitHub API, and no findings file exists
+locally, so **zero external findings exist to fix or contest**. Per owner ruling, the implementer did
+**not** self-audit in the reviewer role (reviewer/implementer separation, `docs/contributing.md` §9);
+an independent REVIEWER session runs next.
+
+**Gates verified green locally** on the branch before and after the change (`cargo xtask ci`: fmt ·
+clippy `-D warnings` · 37 nextest · check-layers · file-budget · i18n loud skip · banned-names ·
+stats + committed-scorecard diff · cargo-deny · cargo-machete).
+
+**Observation 01 (owner-approved fix, §3.8 `test-integrity.no-vacuous-gates`).** `ci::is_missing_binary`
+classified a missing tool by string-matching `No such file or directory` / `os error 2` /
+`The system cannot find the file` anywhere in the error chain. `process::capture` folds a tool's
+**stderr** into that same error, so an *installed* tool that failed while naming a missing file (e.g.
+`cargo-deny` without `deny.toml`, or `git -C /nonexistent status` → `fatal: cannot change to
+'/nonexistent': No such file or directory`) was printed as `SKIP` and returned **0** locally — a gate
+that silently did not bite. Now classified from the spawn `io::ErrorKind::NotFound` only. Negative
+proof: the new regression test fails against the old predicate
+(`a tool that ran and failed must fail the gate, never skip it`) and passes with the fix; the opposite
+direction is covered end to end through `process::capture`. Tests 35 → **37**.
+
+**Observation 02 (recorded, not fixed).** The declared MSRV (`rust-version = "1.80"`) is unverified —
+no pinned-toolchain job exists. Row 6 of gaps "Known shortfalls".
+
+**Observation 03 (reported to the owner, untouched).** `docs/review-templates.md` is **untracked** on
+this branch (author unknown; it is the reviewer-agent contract). Left uncommitted rather than adopted.
+
+**Two-OS proof after the fix.** Commit `b7035e7` re-ran CI: `ci (ubuntu-latest)` and
+`ci (windows-latest)` both **green** (run 40421245292, 20 s / 43 s).
+
+**Still open (rank order).** 1. Independent REVIEWER session on PR #2. 2. P0-10 `AGENTS.md` diet.
+3. P0-2 `midata-domain` + `midata-i18n`.
+
+**Review #2 round 1 (independent REVIEWER, separate session):** REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 6 MINOR / 5 SUGGESTION; R1 is the shipped-contract defect (`APP_CRATES` rejects the required `midata → midata-app` edge, proven by a throwaway-copy test); full report in PR #2 comment <https://github.com/halmousama/MiData/pull/2#issuecomment-6430093550>; gate re-run green on this machine (37/37), no code touched, nothing pushed — this line left uncommitted for the implementing agent.
+
+## 2026-10-27 — P0-1 · PR #2 round-1 fix session (R1–R6, S1–S5)
+
+**Review record reconciliation (bookkeeping).** The round-1 report header claimed **6 MINOR** but listed
+five (R2–R6). The report is otherwise consistent: 1 MAJOR (R1) + 5 MINOR + 5 SUGGESTION = 11 findings.
+This entry treats the header as a counting slip, not a missing item: **R1–R6 and S1–S5 are all applied**,
+and the PR body's fix-round table carries all eleven.
+
+**R1 (MAJOR) — app roots are not libraries.** `xtask/src/layers/rules.rs` gained `APP_EDGES`, the only
+place an app-to-app edge may be declared; today it holds exactly `midata → midata-app` (the eframe
+composition root needs the egui shell). `check_workspace` rejects an app crate as a dependency unless
+the depending package declares that edge, so `midata-cli → midata-app` stays forbidden. `midata-cli`
+lost `any_internal` and now has an explicit allowlist — domain, i18n, store, engine (testkit as dev).
+Three new layer tests: `ui_composition_root_may_depend_on_the_app_shell` (positive),
+`headless_cli_may_not_depend_on_the_ui_shell` (negative), `application_crate_cannot_be_a_dependency`
+(negative, engine → cli), plus `headless_cli_has_an_explicit_internal_allowlist`. Negative proof run:
+temporarily moving the declared edge to `midata-cli` failed **both** the positive and the negative test
+(`left: [Violation { package: "midata", message: "depends on application crate \`midata-app\` …" }]`),
+then reverted.
+
+**R2 — coverage numerator.** `docs/scorecard.md` now counts `done` rows with a **non-empty** evidence
+cell (`—`/`-` do not count); `InventoryStats.done_with_evidence` is the ratchet input, asserted by
+`inventory_numerator_requires_done_and_evidence` (three `done` rows, two with evidence, one numerator).
+
+**R3 — golden metric.** Only PNGs under `crates/midata-app/**/snapshots/**` count
+(`is_screen_golden`, unit-tested); the target is **11**, the screen list in `REBUILD_PLAN.md` §7.1, and
+both facts are stated in the generated scorecard's source/notes. End-to-end proof: `touch
+docs/logo.png` left the metric at 0/11, a probe at `crates/midata-app/snapshots/probe.png` moved it to
+1/11; both removed.
+
+**R4 — EN-total ratchet.** `i18n::check` now fails when the EN catalogue is smaller than
+`docs/i18n-coverage.baseline` (`en_total`), so the field is no longer stored-and-ignored. `docs/i18n.md`
+§5 documents both ratchets and the deletion rule (delete FR row + regenerate the baseline in one
+change). Negative proof: temporary 1-key catalogues against `en_total: 2` failed with `EN catalogue
+shrank: 1 key(s), baseline records 2 …`; reverted. Unit test
+`ratchet_fails_when_the_en_catalogue_shrinks`.
+
+**R5 — deny + machete negative proofs.** Temporary path dependencies under `/tmp/opencode`:
+`temp-gpl` (`license = "GPL-3.0-only"`) made `cargo-deny check licenses` fail with `GPL-3.0-only …
+rejected: license is not explicitly allowed`; `temp-unused` was reported by `cargo-machete` as an
+unused dependency (exit 1). Both removed, `xtask/Cargo.toml` and `Cargo.lock` reverted.
+
+**R6 — snapshot deferral tracked.** `docs/gaps.md` known-shortfall **7** records that CI has no snapshot
+step, with the target **P0-9**, and P0-9's scope now names the Linux-only CI job; the P0-1 Scope bullet
+and the workflow comment no longer imply it exists.
+
+**S1** `birth` is documented as "declared and printed; enforced by owner review (D26)" in
+`rules.rs`/`layers.rs`. **S2** orphan-FR-keys-fatal is P0-2 acceptance in `docs/gaps.md` and
+`docs/i18n.md` §5. **S3** the scorecard says "0 (enforced by the gate)". **S4** the PR body's stale
+`35` is corrected to `37` at the time of the fix (the branch now measures 43; the fix-round table states
+both). **S5** all four CI actions are pinned to commit SHAs with the release tag in a trailing comment,
+and `docs/architecture.md`'s header now matches §9 (updated when a binding decision is fixed ahead of
+the crate).
+
+**Numbers.** `xtask` tests **37 → 43**; workspace still 1 crate; inventory 0/222 (numerator now
+`done`+evidence); goldens 0/11; i18n loud skip unchanged. `docs/scorecard.md` regenerated.
+`cargo xtask ci` green locally after the changes; the two-OS re-run starts with the pushed commit —
+no CI-green claim is made here until the PR checks report it.
+
+**Still open (rank order).** 1. Round-2 reviewer session on PR #2. 2. P0-10 `AGENTS.md` diet.
+3. P0-2 `midata-domain` + `midata-i18n` (with the S2 acceptance and the first real `en_total`).
+
+**Review #2 round 2 (independent REVIEWER, separate session):** APPROVE — 0 BLOCKER / 0 MAJOR / 0 MINOR / 2 SUGGESTION (N1: line 287 cites a non-existent `docs/contributing.md` §9, N2: gaps records no run id for the fix commit `b1d52fe`); round-1 items R1–R6, S1 and S3–S5 verified fixed in the tree (R1 positive+negative layer tests, R2 `done_with_evidence`, R3 §7.1 11-screen golden filter, R4 EN-total ratchet, R5 deny/machete rows, R6 known-shortfall 7) and **S2 confirmed as a P0-2 acceptance wire, not a gate change** (orphans still report-only); round-1 header's "6 MINOR" reconciled to the 5 listed (11 findings total); full report in PR #2 comment <https://github.com/halmousama/MiData/pull/2#issuecomment-6437110096>; gate re-run green on this machine at `b1d52fe` (43/43) and both PR checks green; no code touched, nothing pushed — this line left uncommitted for the implementing agent.
