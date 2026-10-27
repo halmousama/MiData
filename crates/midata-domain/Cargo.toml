@@ -1,0 +1,20 @@
+[package]
+name = "midata-domain"
+description = "L0 vocabulary of MiData: identity and value types, value-encoding rules, typed command errors and the injected clock seam."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+# Dev-only edge to an already-approved Phase-0 crate (Appendix A): the value contract is a *serde*
+# contract, so the representation has to be asserted, not assumed.
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

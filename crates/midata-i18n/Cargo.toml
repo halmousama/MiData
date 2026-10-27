@@ -1,0 +1,14 @@
+[package]
+name = "midata-i18n"
+description = "L0 string layer of MiData: EN/FR TSV catalogues embedded at build, lookup, placeholder formatting and coverage data."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true
