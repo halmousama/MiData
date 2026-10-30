@@ -12,6 +12,25 @@ pub fn run(root: &Path) -> Result<()> {
     section("format");
     process::run("cargo", &["fmt", "--all", "--check"], root)?;
 
+    // Tests run **before** clippy on purpose. `cargo xtask ci` itself is executing
+    // `target/debug/xtask.exe` (the `cargo xtask` alias is `cargo run`), and on Windows a running
+    // executable is locked: if clippy ran first it would dirty the normal-bin fingerprint, and the
+    // next `cargo test` would try to replace `target/debug/xtask.exe` and fail with
+    // "failed to remove file ... Access is denied". Running nextest first means cargo sees the bin
+    // that `cargo run` just built as fresh and never relinks it. See `ci::tests`.
+    section("nextest");
+    if !process::is_available("cargo", &["nextest", "--version"], root) {
+        bail!(
+            "cargo-nextest is not installed — the gate cannot run and must not pretend to pass.\n\
+             Install it with: cargo install cargo-nextest --locked"
+        );
+    }
+    process::run(
+        "cargo",
+        &["nextest", "run", "--workspace", "--no-fail-fast"],
+        root,
+    )?;
+
     section("clippy");
     process::run(
         "cargo",
@@ -23,19 +42,6 @@ pub fn run(root: &Path) -> Result<()> {
             "-D",
             "warnings",
         ],
-        root,
-    )?;
-
-    section("nextest");
-    if !process::is_available("cargo", &["nextest", "--version"], root) {
-        bail!(
-            "cargo-nextest is not installed — the gate cannot run and must not pretend to pass.\n\
-             Install it with: cargo install cargo-nextest --locked"
-        );
-    }
-    process::run(
-        "cargo",
-        &["nextest", "run", "--workspace", "--no-fail-fast"],
         root,
     )?;
 
@@ -166,6 +172,27 @@ mod tests {
         assert!(
             is_missing_binary(&error),
             "a genuinely missing binary must still be skippable, with its io::Error cause intact"
+        );
+    }
+
+    /// Windows regression guard. `cargo xtask ci` is itself `target/debug/xtask.exe`, and Windows
+    /// locks a running executable. When clippy runs before the test step it dirties the normal-bin
+    /// fingerprint, so the following `cargo test` tries to replace that locked file and fails with
+    /// "failed to remove file ... Access is denied" (observed on windows-latest, PR #8). Running
+    /// nextest first keeps the bin that `cargo run` just built fresh, and cargo never relinks it.
+    #[test]
+    fn tests_run_before_clippy_so_the_running_binary_is_never_relinked_on_windows() {
+        let source = include_str!("ci.rs");
+        let nextest = source
+            .find("section(\"nextest\")")
+            .expect("the ci gate has a nextest section");
+        let clippy = source
+            .find("section(\"clippy\")")
+            .expect("the ci gate has a clippy section");
+        assert!(
+            nextest < clippy,
+            "nextest must run before clippy: clippy dirties the bin fingerprint and Windows cannot \
+             replace the running `target/debug/xtask.exe`"
         );
     }
 }
