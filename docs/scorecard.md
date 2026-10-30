@@ -9,7 +9,7 @@
 | Metric | Value | Source | Ratchet |
 |---|---|---|---|
 | Inventory coverage (done rows with evidence) | 0 / 222 rows (0%) | `docs/inventory.md` | ↑ only |
-| Tests (source scan) | 43 | `#[test]`-family attributes under `xtask/`, `crates/`, `apps/` | ↑ only |
+| Tests (source scan) | 77 | `#[test]`-family attributes under `xtask/`, `crates/`, `apps/` | ↑ only |
 | Crates in the workspace | 1 | `cargo metadata --no-deps` | — |
 | Screens with ≥1 snapshot golden | 0 / 11 | `crates/midata-app/**/snapshots/**/*.png`; target = `REBUILD_PLAN.md` §7.1 screens | ↑ only |
 | i18n coverage (EN) | n/a (no catalogue yet) | `cargo xtask i18n-coverage` | = 100% |

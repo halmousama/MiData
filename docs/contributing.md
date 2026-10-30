@@ -34,6 +34,7 @@ cargo nextest run -p <touched crates>            # full: cargo nextest run --wor
 cargo xtask check-layers
 cargo xtask file-budget
 cargo xtask i18n-coverage                        # no regression
+cargo xtask banned-names                         # legacy name + D30 attribution terms, ratcheted
 cargo test -p midata-app -- snapshot             # UI tasks: goldens updated AND viewed
 cargo test -p midata-engine --test command_hunt -- --ignored   # command changes
 cargo xtask bench --quick                        # hot paths (flatten, dashboard, import)
@@ -136,6 +137,28 @@ Refs: gaps <task-id> · inventory <row-ids>
   message, in code, or in any doc, devlog or gap entry. Owner commits may be signed. Session and model
   notes live only in the gitignored `plan/` kit.
 - **Green commits only.** Mid-task commits are checkpoints; a red commit is never pushed.
+
+**Commit-message hook (D30).** `.git/hooks/` is never committed, so installing the hook is one
+documented step per clone:
+
+```sh
+ln -sf ../../tools/hooks/commit-msg .git/hooks/commit-msg     # or copy it there, then chmod +x
+```
+
+`tools/hooks/commit-msg` runs `cargo xtask commit-msg <message-file>`, which rejects a message carrying
+an attribution trailer or a banned AI vendor/model name (the term list lives in `xtask/src/terms.rs`,
+assembled from fragments so the gate never flags its own definition). The hook **fails closed**: if the
+checker cannot run (no `cargo`, a broken symlink, no message file), the commit is refused rather than
+passed unverified. It needs no TTY and never prompts. `git commit --no-verify` still bypasses any hook,
+which is why the same rule is enforced by `cargo xtask banned-names` over the tree in CI: the hook is
+the fast local guard, the gate is the fact.
+
+The in-tree half of the rule is the same command: `cargo xtask banned-names` runs both term lists and
+fails on a new hit. Pre-existing hits are triaged in `docs/banned-names.baseline`
+(`path<TAB>term<TAB>reason`); `reason` is `reference` (an integration/compatibility target, or a
+document describing the ban) and `attribution` is never allowlisted. The allowlist is a ratchet — it
+may only shrink, and a stale entry (no matching hit) fails until the baseline is regenerated with
+`cargo xtask banned-names --write-baseline`.
 
 Example:
 

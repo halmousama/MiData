@@ -577,3 +577,124 @@ confirm the reading when P0-14 is picked up. (iv) `docs/banned-names.baseline` d
 P0-14 describes it as future work, not as landed.
 
 **cycle 1: P0-2f merged (PR #6, 3M→0M over 2 rounds, run 41127148842) · next: P0-14**
+
+---
+
+## 2026-10-30 — P0-14 · D30 mechanical enforcement: `commit-msg` hook + attribution term list
+
+**Landed**
+- `tools/hooks/commit-msg` — checked-in POSIX `sh` hook, no TTY, no prompt. It is a thin caller of
+  `cargo xtask commit-msg <message-file>` (or `$XTASK_BIN` when a built binary is supplied) and
+  **fails closed**: no message file, no work tree, no cargo or a broken binary refuses the commit
+  instead of passing it unverified. Install is one documented step (`docs/contributing.md` §6).
+- `xtask/src/terms.rs` — the D30 term list (the attribution trailer + AI vendor/model names), every
+  literal assembled from fragments so the gate cannot flag its own definition; matching is
+  case-insensitive and word-bounded (the first baseline sweep caught a tunnel product's name ending
+  in a model name as a false positive, which is why substring matching was not enough).
+- `xtask/src/attribution.rs` — the tree scan, the `path<TAB>term<TAB>reason` allowlist, the
+  shrink-only ratchet and the commit-message check; wired as `cargo xtask banned-names` (run inside
+  `cargo xtask ci` beside the legacy product-name list) and `cargo xtask commit-msg <file>`.
+- `docs/banned-names.baseline` — committed at birth with **5 allowlisted entries**, all `reference`:
+  the API dialect line in `docs/architecture.md`, the two docs that state the ban
+  (`docs/contributing.md`, `docs/review-templates.md`) and `log/devlog.md` twice (the history-scrub
+  record and the policy line it quotes). `ARTCRAFT_INVESTIGATION.md` joined `ALLOWED_PATHS`
+  (additive, stated in the PR).
+- Tests: **21** new unit tests (term assembly + self-source scan, boundary matching, triage rules,
+  baseline parsing, attribution-reason rejection, stale-entry ratchet, message check, git comments)
+  and 5 process-level hook tests (reject trailer, reject vendor term, accept clean, fail closed on a
+  missing file, fail closed on an unrunnable checker).
+
+**Numbers.** Tests 43 → **69** in `xtask` (`cargo nextest run -p xtask`: 69 passed). File budget
+unchanged at 0 violations (largest new file: `attribution.rs`, well under 500 lines). Inventory
+coverage unchanged (tooling task). Scorecard regenerated: test count 43 → 69, crates 1.
+
+**Negative proofs (commands in the PR body).** The hook rejects a synthetic bad message and accepts a
+synthetic good one; the gate fails on a synthetic introduced violation and passes once it is removed.
+
+**Still open**
+- **R7a owner confirmation** (carried from PR #6): the reference-vs-attribution rule narrows binding
+  D30 to attribution contexts. Implemented exactly as the P0-14 row specifies — the row's text is the
+  queued spec — and recorded in the row as pending confirmation. No D30 text was changed.
+- `git commit --no-verify` still bypasses any hook; the tree gate is the enforcement that survives
+  that, which is why both exist.
+
+**review #7 round 1: REQUEST_CHANGES, 0B/1M/4m/4s** (R1 major: `git commit -v` diff below the scissors line is scanned by the hook and refuses a clean message on `log/devlog.md` / `docs/architecture.md`).
+
+**Fix round for review #7 (R1–R9), same branch.**
+- **R1 (major)** — `attribution.rs::strip_git_comments` now cuts the message at Git's scissors line
+  (`# … >8 …`) before dropping comment lines. Git discards everything below that line, so the hook
+  does too: a verbose commit whose **diff** mentions a term passes again, while a trailer in the real
+  message still fails. Covered by `a_verbose_diff_below_the_scissors_line_is_not_scanned`,
+  `a_trailer_above_the_scissors_line_is_still_rejected` and the new process-level
+  `hook_accepts_a_verbose_message_whose_diff_mentions_a_term`; reproduced end-to-end in a scratch repo
+  (clean verbose commit exit 0 with the term below the scissors line; trailer commit exit 1).
+- **R2** — `Hit` carries `terms::TermKind`; `render_baseline` bails on any attribution hit that is not
+  already recorded, so `--write-baseline` can no longer launder an in-tree trailer into a `reference`
+  row. Deliberate refinement of the finding's "bail on any Attribution hit": a literal bail is
+  unrepairable, because `docs/contributing.md`, `docs/review-templates.md` and `log/devlog.md` quote
+  the trailer by design (they are not in `ALLOWED_PATHS`, the baseline is their only record), so the
+  generator could never run again. The rule is therefore "never *newly* allowlisted"; verified that
+  regeneration still reproduces the 5 rows, and that a refused write leaves the file byte-identical.
+  Tests: `the_baseline_generator_refuses_an_attribution_claim`,
+  `the_baseline_generator_still_records_a_ban_documenting_reference`,
+  `the_baseline_generator_renders_reference_rows`.
+- **R3** — `source::extensionless_text_files` (≤ 1 MiB, UTF-8 only) now feeds **both** name scans, so
+  `tools/hooks/commit-msg`, the licences and any future extensionless text file are in scope. Test:
+  `source::tests::extensionless_text_files_are_scanned_and_binaries_are_not`.
+- **R4** — the model list uses one word-bounded vendor stem instead of `-4` / `-5` needles, so a
+  suffixed model name (`…-4o`) is caught while a longer word is not. Test:
+  `a_model_name_with_a_suffix_is_still_found`.
+- **R5** — numbers corrected: **21 unit + 5 hook = 26** new tests (the scorecard's 43 → 69 was right).
+  Corrigendum: commit `a7f60c5`'s message says "11 unit tests"; history is not rewritten, so the
+  correction lives here and in the PR body.
+- **R6** — CI run [41129162523](https://github.com/halmousama/MiData/actions/runs/41129162523) added
+  to the P0-14 row's evidence.
+- **R7** — `docs/gaps.md` shortfall 9 names the exact stale sentence in `AGENTS.md` §5 ("…do not exist
+  yet") and that P0-14 makes it false; the file is owner-reserved, so the edit is recorded, not made.
+- **R8** — the baseline-file header now records that `docs/banned-names.baseline` sits in the shared
+  `ALLOWED_PATHS` and is therefore also exempt from the legacy product-name scan (harmless; the file
+  only holds allowlisted terms).
+- **R9** — `docs/gaps.md` shortfall 10 records that the end-to-end hook tests are `#![cfg(unix)]` and
+  never run on Windows CI, with the two cheap fix options.
+
+**Numbers after the fix round.** Tests 69 → **77** in `xtask` (`cargo nextest run -p xtask`: 77
+passed; +8: five attribution, one term-list, one source-walk, one hook). The attribution tests moved
+to `xtask/src/attribution/tests.rs` to stay under the 500-line file budget. File budget 0 violations;
+inventory coverage unchanged (tooling). `cargo xtask ci` green.
+
+**review #7 round 2: APPROVE, 0B/0M/2m/5s** (R1–R9 fixed, R2 substitute rule ruled in-substance compliant; residual allowlist keying and two stale PR-body numbers are MINOR).
+
+**Merge report (PR #7 · task P0-14 · cycle 2 of 3).** Full review (code path, A–D; section C executed,
+not assumed). Round 1: **REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 4 MINOR / 4 SUGGESTION** — R1 the hook
+scanned the whole `COMMIT_EDITMSG`, so under `git commit -v` the **diff** below Git's scissors line was
+scanned too and a clean commit was refused whenever its diff mentioned a term (and `log/devlog.md`,
+touched by nearly every task, contains one); R2 `--write-baseline` wrote `reference` for every hit, so an
+attribution trailer could be laundered into the allowlist; R3 extensionless files were invisible to the
+scan while the row claims the whole tree is in scope; R4 the `-4`/`-5` needles missed a suffixed model
+variant; R5 the stated test counts were not measured. Fix commits `0e95b9c`, `f8a1da5`, `6f006b2`,
+`aa0beb4`. Round 2: **APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 5 SUGGESTION**; R1 reproduced fixed
+end-to-end in a scratch repo (verbose commit accepted, trailer above the scissors line still rejected),
+R3/R4 bite, no new MAJOR. CI on the merged head `aa0beb4`: run **41130875779** — ubuntu 20 s,
+windows 53 s, both green. Reports: PR #7 comments
+[6533681360](https://github.com/halmousama/MiData/pull/7#issuecomment-6533681360) and
+[6533860284](https://github.com/halmousama/MiData/pull/7#issuecomment-6533860284).
+
+**Deviations, stated rather than buried.** (i) **R2 was implemented as a substitute, and the reviewer
+ruled it compliant rather than accepting it on trust:** the fixer refused the literal "bail on any
+attribution hit" because the three ban-documenting surfaces quote the trailer by design and are not in
+`ALLOWED_PATHS`, which would make `--write-baseline` permanently fail and the allowlist unrepairable —
+breaking the row's own (c). The substitute ("never *newly* allowlisted") closes the reproduced laundering
+path by measurement and the reviewer verified the residual hole. (ii) The substitute leaves **R10 open**:
+the allowlist is keyed by `(path, term)`, so an *additional* attribution line inside an already-allowlisted
+pair passes unremarked. Recorded, not hidden. (iii) `a7f60c5`'s message states an unmeasured test count;
+history is not rewritten (D30 forbids the alternative), so a corrigendum is recorded in the devlog and the
+PR body instead. (iv) **R7a still needs the owner:** the reference-vs-attribution rule narrows D30 to
+attribution contexts; P0-14 implements it as queued and both the row and the PR body say the
+clarification is outstanding. (v) Shortfalls 9 and 10 record the two debts this task creates: `AGENTS.md`
+§5 still says the hook and term list "do not exist yet" (now false — owner-reserved file, untouched), and
+the end-to-end hook tests are `#![cfg(unix)]`, so Windows CI exercises the gate but not the hook.
+
+**Numbers.** Tests 43 → 77 (+21 unit, +5 hook, +8 later); scanned text files 49 → 55 (extensionless pass);
+baseline 5 entries / 8 hits, all `reference`; `docs/scorecard.md` regenerated, not hand-edited.
+
+**cycle 2: P0-14 merged (PR #7, 1M→0M over 2 rounds, run 41130875779) · next: P0-2 re-land**

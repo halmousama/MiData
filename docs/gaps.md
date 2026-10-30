@@ -1,6 +1,6 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-30 (P0-2f docs truth pass closed: queue re-ranked, P0-14 promoted, roadmap focus corrected; review #6 round-1 fixes R1–R6/S1–S3 and the `ROADMAP.md` scope amendment applied) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-30 (P0-14 closed: D30 `commit-msg` hook + attribution term list + committed allowlist; P0-2f docs truth pass closed earlier the same day) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -17,7 +17,7 @@
 |---|---|---|---|---|---|---|---|
 | 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
 | 2 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | docs | Every session boots from a stale "current focus" | 1.5 | — (D31 merged) | **done** (2026-10-30, PR #6) |
-| 3 | P0-14 | D30 mechanical enforcement: `commit-msg` hook + vendor/model term list | tooling | D30 is honour-system until the hook and the second term list exist | 3 | — (D30 adopted 2026-10-27) | open |
+| 3 | P0-14 | D30 mechanical enforcement: `commit-msg` hook + vendor/model term list | tooling | D30 is honour-system until the hook and the second term list exist | 3 | — (D30 adopted 2026-10-27) | **done** (2026-10-30, PR #7) |
 | 4 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open — implementation on `t/p0-2-domain-i18n` (`cb4405c`); PR #3 **closed unmerged** 2026-10-27; re-land queued |
 | 5 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 (blocked until P0-2 is on `main`) | open |
 | 6 | P0-4 | `midata-engine` skeleton | feature | Command registry + audit hook — the agent-first seam | 8 | P0-2, P0-3 | open |
@@ -32,12 +32,12 @@
 carrying an `AGENTS.md` §12 condition-3 escalation flag (D31): this row's Status reads `escalated`, or a
 local `plan/ESCALATE` marker exists alongside `plan/HOLD`).
 
-**Sum:** 65 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h added and closed
-2026-10-30; P0-14 3 h added 2026-10-30; **P0-2's 8 h stays open — PR #3 closed unmerged**, so it is
-queued for re-land, not closed). Of the ten open rows, four are ready (`P0-14`, `P0-2` re-land, `P0-8`,
-`P0-10`) and six are blocked behind the re-land chain. Phase 0 closes when every open row is `done` and
-the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on 2026-10-26,
-P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27 and P0-2f on 2026-10-30 — see §Closed.
+**Sum:** 62 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h added and closed
+2026-10-30; P0-14 3 h added and closed 2026-10-30; **P0-2's 8 h stays open — PR #3 closed unmerged**,
+so it is queued for re-land, not closed). Of the nine open rows, three are ready (`P0-2` re-land,
+`P0-8`, `P0-10`) and six are blocked behind the re-land chain. Phase 0 closes when every open row is
+`done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on 2026-10-26,
+P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27, P0-2f and P0-14 on 2026-10-30 — see §Closed.
 
 ---
 
@@ -174,7 +174,7 @@ origin refs/heads/t/p0-2-domain-i18n` (`cb4405c`); `cargo xtask ci` green; devlo
 
 ---
 
-## P0-14 — D30 mechanical enforcement: `commit-msg` hook + vendor/model term list  ·  3 h  ·  rank 3
+## P0-14 — D30 mechanical enforcement: `commit-msg` hook + vendor/model term list  ·  3 h  ·  rank 3  ·  **done 2026-10-30 (PR #7)**
 
 **Kind:** tooling · **Source:** measured shortfall 8 (found 2026-10-27 during P0-2 on branch
 `t/p0-2-domain-i18n`, promoted here 2026-10-30); `REBUILD_PLAN.md` §15 **D30**; `AGENTS.md` §5.
@@ -230,6 +230,41 @@ reviewers apply it by hand).
 
 **Evidence.** Hook tests, gate negative proof, allowlist file + count, `cargo xtask ci` green, install
 paragraph in the contributor docs.
+
+**Delivered (2026-10-30, PR #7).**
+- (a) `tools/hooks/commit-msg` — POSIX `sh`, no TTY, no prompt; it runs
+  `cargo xtask commit-msg <message-file>` (or `$XTASK_BIN` when a built binary is supplied) and **fails
+  closed** when it cannot run. Install step documented in `docs/contributing.md` §6.
+- (b) `xtask/src/terms.rs` — the D30 term list, every literal assembled from fragments, with
+  `term_literals_never_appear_in_their_own_source` as the acceptance test; the scan lives in
+  `xtask/src/attribution.rs` and is wired into `cargo xtask banned-names` (run by `xtask ci`).
+  Matching is case-insensitive and word-bounded (the first baseline sweep caught a tunnel product's
+  name ending in a model name — a substring match was a false positive).
+- (c) `docs/banned-names.baseline` — **5 allowlisted entries** at birth (`path<TAB>term<TAB>reason`),
+  all triaged `reference`: `docs/architecture.md` (the API dialect the app speaks),
+  `docs/contributing.md` and `docs/review-templates.md` (documents that state the ban), and
+  `log/devlog.md` twice (the history-scrub record and the policy line it quotes). The gate prints the
+  count on every run; new hits fail; stale entries fail until
+  the baseline is regenerated, and an `attribution` reason is rejected by the parser, so the list can
+  only shrink.
+- (d) `ARTCRAFT_INVESTIGATION.md` added to `ALLOWED_PATHS` (additive; stated in the PR body), and the
+  allowlist file itself is exempt because it must name the terms it allows. Reference hits are
+  allowlisted with their reason; attribution hits are never allowlisted.
+- Negative proofs in the PR body: the hook rejects a synthetic bad message (and accepts a good one),
+  and the gate fails on a synthetic introduced violation and passes once it is removed.
+- `cargo xtask ci` green locally (26 new tests: 21 unit + 5 hook) and both PR jobs green on
+  [run 41129162523](https://github.com/halmousama/MiData/actions/runs/41129162523) (ubuntu + windows).
+- **Owner clarification requested 2026-10-30 (PR #6 R7a); implemented per this row pending
+  confirmation.** The reference-vs-attribution rule as written narrows binding D30 to attribution
+  contexts; this task implements that narrowing exactly and does not amend D30's text.
+
+**Review #7 round 1 (REQUEST_CHANGES, 0B/1M/4m/4s) — fixed on the same branch.** R1 (major): the hook
+now truncates the message at Git's scissors line, so `git commit -v` no longer rejects a clean message
+whose diff mentions a term. R2: the baseline generator keeps `TermKind` and refuses to allowlist an
+attribution hit. R3: both name scans also cover bounded extensionless UTF-8 files. R4: the vendor stem
+is matched word-bounded, so model suffixes (`-4o`) are caught. R5: the test count is corrected to 21
+unit + 5 hook = 26. R6–R9 recorded (run id, docs-truth and Windows-hook shortfalls, baseline-header
+note).
 
 ---
 
@@ -588,4 +623,19 @@ entry when they grow.
    second term list, with the term literals assembled in code so the gate cannot trip on its own
    definition and a committed allowlist (`docs/banned-names.baseline`) of pre-existing hits so it can be
    fatal from day one. *Evidence:*
-   `ls .git/hooks/`, `xtask/src/gates.rs`, `AGENTS.md` §5, P0-14 scope in this file.
+   `ls .git/hooks/`, `xtask/src/gates.rs`, `AGENTS.md` §5, P0-14 scope in this file. **Resolved
+   2026-10-30 (P0-14, PR #7):** both exist and `xtask ci` runs them; item 9 records the one remaining
+   stale sentence in `AGENTS.md`.
+9. **`AGENTS.md` §5 still denies that the D30 enforcement exists** (found 2026-10-30, PR #7 review round
+   1 R7; docs-truth). The sentence is: "Review-enforced today: the `commit-msg` hook and the vendor/model
+   term list in the banned-names gate **do not exist yet**." P0-14 makes it false: `tools/hooks/commit-msg`
+   and `xtask/src/terms.rs` exist and `xtask ci` runs them. `AGENTS.md` is owner-reserved, so the fix is
+   an owner edit (drop the sentence or reword it to "mechanically enforced: …"), not an agent one. The
+   same sentence is quoted as history in the P0-14 row above and must stay quoted there.
+10. **The end-to-end hook tests never run on Windows CI** (found 2026-10-30, PR #7 review round 1 R9).
+    `xtask/tests/commit_msg_hook.rs` is `#![cfg(unix)]` because it launches `sh` to run the hook; the
+    *gate* logic it exercises (`terms::find`, `check_message`, the scissors cut) is cross-platform and
+    covered by unit tests, but no test proves the hook script itself under `windows-latest`. *Fix
+    option:* a Windows job that runs the hook through Git's own `sh` (`git -c core.hooksPath=… commit`),
+    or a Rust-side test that feeds Git's message file shape without a shell. Cheap; needs a CI matrix
+    decision (P0-1 territory), so recorded rather than done.
