@@ -335,9 +335,15 @@ the branch's entries. Each acceptance bullet was re-verified on the merged tree 
   row → `FR coverage regressed: 1 missing key(s), baseline allows 0`; orphan FR key → `orphan FR
   key(s) …: err.orphan.row`; key removed from both → `EN catalogue shrank: 18 key(s), baseline
   records 19`.
-- **Gate:** `cargo fmt --check`, `clippy -D warnings`, `nextest` (162 tests), `check-layers`,
+- **Gate:** `cargo fmt --check`, `clippy -D warnings`, `nextest` (163 tests), `check-layers`,
   `file-budget` (40 files, 0 over cap), `i18n-coverage` (EN 19, FR 19/19), `banned-names` (0 new
   hits) and `cargo xtask ci` all green.
+- **Windows gate fix (found by this PR's CI, same task):** after the merge, `windows-latest` failed in
+  the `nextest` step with `failed to remove file target\debug\xtask.exe — Access is denied`: `cargo
+  xtask ci` *is* that executable, and clippy running before the test step dirtied the bin fingerprint
+  so `cargo test` tried to replace a locked running file. `xtask/src/ci.rs` now runs nextest before
+  clippy (the bin `cargo run` just built stays fresh), with a source-scan regression test
+  (`tests_run_before_clippy_so_the_running_binary_is_never_relinked_on_windows`). Both OS jobs green.
 - **D30 compliance:** the one branch text that printed a banned trailer literal in the devlog was
   rephrased; no baseline entry was added.
 

@@ -779,11 +779,19 @@ the real catalogues (each reverted, output in PR #8): missing FR row → `FR cov
 key(s), baseline allows 0`; orphan FR key → `orphan FR key(s) …: err.orphan.row`; key removed from both →
 `EN catalogue shrank: 18 key(s), baseline records 19`.
 
-**Numbers.** Tests **43 → 162** (merged tree: domain 60, i18n 16, xtask 52 unit + hook); crates **1 → 3**;
+**Numbers.** Tests **43 → 163** (merged tree: domain 60, i18n 16, xtask 87); crates **1 → 3**;
 i18n **EN 100% (19 keys), FR 19/19**; file-budget 0 violations over 40 Rust files; gate green (fmt,
-clippy, nextest 162, check-layers, file-budget, i18n-coverage, banned-names, `xtask ci`);
+clippy, nextest 163, check-layers, file-budget, i18n-coverage, banned-names, `xtask ci`);
 `docs/scorecard.md` regenerated and committed; `docs/i18n-coverage.baseline` carries the real
 `en_total: 19`.
+
+**Two defects found while verifying, both fixed here.** (i) The `midata-i18n` README claimed "no
+dependencies beyond the standard library" while the crate uses `serde` and `thiserror`; the API
+contract now matches the manifest. (ii) This PR's own `windows-latest` job failed in `nextest` with
+`failed to remove file target\debug\xtask.exe — Access is denied`: `cargo xtask ci` runs that
+executable, and clippy before the test step dirtied the bin fingerprint so `cargo test` tried to
+replace a locked running file. `xtask/src/ci.rs` now runs nextest before clippy, guarded by a
+source-scan regression test; both OS jobs are green.
 
 **Still open (rank order).** 1. P0-3 `midata-store` v0 + migrations (now unblocked). 2. P0-8 inventory
 reconciliation. 3. P0-10 `AGENTS.md` diet. `midata-testkit`'s `FixedClock` still arrives with P0-4.

@@ -16,7 +16,7 @@ report; the binding detail lives in `REBUILD_PLAN.md` (§15 Decision Log wins an
 | Metric | Now | Target (v1.0 gate) |
 |---|---|---|
 | Inventory coverage (done rows with evidence) | **0 / 222 rows — 0%** | ≥ 90% of the KEEP list |
-| Tests | **162** (domain + i18n + `xtask`) | ≥ 300 (ratchet from Phase 1) |
+| Tests | **163** (domain + i18n + `xtask`) | ≥ 300 (ratchet from Phase 1) |
 | Crates in the workspace | **3** (`xtask`, `midata-domain`, `midata-i18n`) | 11 crates + 2 apps + xtask |
 | Screens with snapshot goldens | **0 / 11** (the `REBUILD_PLAN.md` §7.1 screens) | every screen ≥ 1 golden |
 | i18n coverage (EN / FR) | **EN 100% (19 keys) · FR 19/19 (100%)** | EN 100% · FR 100% |
