@@ -5,7 +5,8 @@ coverage measurement — shared by the egui shell, the CLI and engine-side error
 
 `docs/i18n.md` is the authoring contract; this README is the API contract.
 
-**Dependencies:** none beyond the standard library. No `egui`, no filesystem access at runtime.
+**Dependencies:** `serde` (the persisted `Language`/`CatalogueName` code) and `thiserror` (the
+`CatalogueError` enum) — nothing else. No `egui`, no filesystem access at runtime.
 
 ## Catalogues
 
