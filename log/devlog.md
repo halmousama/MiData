@@ -779,7 +779,7 @@ the real catalogues (each reverted, output in PR #8): missing FR row → `FR cov
 key(s), baseline allows 0`; orphan FR key → `orphan FR key(s) …: err.orphan.row`; key removed from both →
 `EN catalogue shrank: 18 key(s), baseline records 19`.
 
-**Numbers.** Tests **43 → 163** (merged tree: domain 60, i18n 16, xtask 87); crates **1 → 3**;
+**Numbers.** Tests **77 → 163** (main scorecard measured 77; merged tree: domain 60, i18n 16, xtask 87); crates **1 → 3**;
 i18n **EN 100% (19 keys), FR 19/19**; file-budget 0 violations over 40 Rust files; gate green (fmt,
 clippy, nextest 163, check-layers, file-budget, i18n-coverage, banned-names, `xtask ci`);
 `docs/scorecard.md` regenerated and committed; `docs/i18n-coverage.baseline` carries the real
