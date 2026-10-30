@@ -340,10 +340,10 @@ the branch's entries. Each acceptance bullet was re-verified on the merged tree 
   hits) and `cargo xtask ci` all green.
 - **Windows gate fix (found by this PR's CI, same task):** after the merge, `windows-latest` failed in
   the `nextest` step with `failed to remove file target\debug\xtask.exe — Access is denied`: `cargo
-  xtask ci` *is* that executable, and clippy running before the test step dirtied the bin fingerprint
-  so `cargo test` tried to replace a locked running file. `xtask/src/ci.rs` now runs nextest before
-  clippy (the bin `cargo run` just built stays fresh), with a source-scan regression test
-  (`tests_run_before_clippy_so_the_running_binary_is_never_relinked_on_windows`). Both OS jobs green.
+  xtask ci` *is* that executable, and a workspace test build of the `xtask` package wants to write the
+  same path. `xtask/src/ci.rs` now excludes `xtask` from the workspace run and tests it in an isolated
+  `target/xtask-gate` target dir, so the running binary is never touched; a regression test
+  (`xtask_tests_never_build_over_the_running_binary`) keeps both halves. Both OS jobs green.
 - **D30 compliance:** the one branch text that printed a banned trailer literal in the devlog was
   rephrased; no baseline entry was added.
 

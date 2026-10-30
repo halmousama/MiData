@@ -789,9 +789,10 @@ clippy, nextest 163, check-layers, file-budget, i18n-coverage, banned-names, `xt
 dependencies beyond the standard library" while the crate uses `serde` and `thiserror`; the API
 contract now matches the manifest. (ii) This PR's own `windows-latest` job failed in `nextest` with
 `failed to remove file target\debug\xtask.exe — Access is denied`: `cargo xtask ci` runs that
-executable, and clippy before the test step dirtied the bin fingerprint so `cargo test` tried to
-replace a locked running file. `xtask/src/ci.rs` now runs nextest before clippy, guarded by a
-source-scan regression test; both OS jobs are green.
+executable, and a workspace test build of the `xtask` package tries to write the same path.
+`xtask/src/ci.rs` now excludes `xtask` from the workspace run and tests it in an isolated
+`target/xtask-gate` target dir, so the running binary is never touched; a regression test
+(`xtask_tests_never_build_over_the_running_binary`) keeps both halves. Both OS jobs are green.
 
 **Still open (rank order).** 1. P0-3 `midata-store` v0 + migrations (now unblocked). 2. P0-8 inventory
 reconciliation. 3. P0-10 `AGENTS.md` diet. `midata-testkit`'s `FixedClock` still arrives with P0-4.
