@@ -430,4 +430,324 @@ regenerated and committed with the change.
 **Still open (rank order).** 1. P0-3 `midata-store` v0 + migrations. 2. P0-10 `AGENTS.md` diet.
 3. D30 enforcement — the commit-msg hook and the vendor/model-name grep do not exist yet
 (`docs/gaps.md`, known shortfall 8): honour-system until then, which is why this commit carries no
-`Co-Authored-By` trailer and no model name. 4. `midata-testkit`'s `FixedClock` arrives with P0-4.
+attribution trailer and no model name. 4. `midata-testkit`'s `FixedClock` arrives with P0-4.
+
+## 2026-10-27 — P0-13 · D30 policy recorded; `main` history scrubbed
+
+**What landed.** D29 (independent reviewer loop) and D30 (attribution repeal) are now recorded in
+`REBUILD_PLAN.md` §15 and `docs/decisions.md` — D30 had been cited by `AGENTS.md`, `docs/gaps.md` and
+this log while existing in no decision table at all. The four places that still mandated the
+`Co-Authored-By` trailer (`REBUILD_PLAN.md` §13.4, `docs/contributing.md` §Git, `docs/decisions.md` D25,
+`docs/review-templates.md` A) now state the ban instead, and the example commit in `docs/contributing.md`
+no longer puts the owner's name and address on an agent-authored commit. Two defects in the in-flight D30
+edit were fixed before it landed: a stray object-id fragment inside `unrepresentable` (`REBUILD_PLAN.md`
+§5.5) and that misattributed example line.
+
+**History.** `main`'s seven commits were rewritten with `git-filter-repo` (message-only callback,
+`^Co-Authored-By:` stripped case-insensitively, trailing whitespace renormalised). Every tree stayed
+byte-identical (`b886fe2f` before and after) and the subject and order of all seven are unchanged; the
+push was `--force-with-lease` against the verified old tip `b65e614`. The squash commit of PR #2 carried
+six trailer lines on its own — a squash-merge aggregates the PR's commit trailers into one message, which
+is how the name reached `main` though no PR body mentioned it.
+
+**Repo settings.** Squash-only: `allow_merge_commit` and `allow_rebase_merge` disabled. `main` had no
+branch protection at all (the GET returned 404), so this session created it rather than restoring it:
+required status checks `ci (ubuntu-latest)` and `ci (windows-latest)`, strict up-to-date required, force
+pushes and deletions blocked, no review requirement (a solo owner cannot approve their own PR).
+
+**Not done on purpose.** The scrub scope was `main` only, by owner choice. `t/p0-1-workspace-ci` and
+`t/p0-12-owner-amendments` still carry the old commits on the remote, and `t/p0-2-domain-i18n`'s remote
+tip still has `b65e614` in its ancestry — force-push that branch before opening its PR or the trailer
+returns with the merge. D30 also stays honour-system: no `commit-msg` hook, and the banned-name gate
+still greps only the legacy product name. The formal gap entry lives in P0-2's `docs/gaps.md` §8,
+which quotes the sentence this commit replaces — reword it when that branch lands.
+
+**Numbers.** commits on `main` 7 → 7 (rewritten, none added); `Co-Authored-By` occurrences 14 → 0 across
+the rewritten local refs; tree `b886fe2f` unchanged; backup bundle `../midata-pre-scrub.bundle` (359 KB).
+
+## 2026-10-27 — D31 · Supervisor mode: delegated merge authority
+
+**What landed.** D31 is recorded as a row in `REBUILD_PLAN.md` §15 and a section in
+`docs/decisions.md`; `AGENTS.md` gains §12 as the operating procedure and `docs/review-templates.md`
+gains the SUPERVISOR template (stages 0–7). A SUPERVISOR agent may now run consecutive task cycles —
+fresh implementer, fresh reviewer, at most two review rounds — and squash-merge through `gh pr merge`
+without owner action, but only while all six conditions hold: APPROVE with 0 BLOCKER/0 MAJOR, both
+required checks green on the PR head, no escalation flag, no owner-reserved surface in the diff, a
+merge report paragraph in the devlog, and no `plan/HOLD`. Budget 3 tasks then an owner digest; a task
+that fails twice escalates instead of being retried; the owner revokes by creating `plan/HOLD` or by
+amending the row.
+
+**Why it is not a self-merging implementer.** Delegation goes to an agent that never implements and
+never reviews, and the merge itself happens on GitHub, so branch protection and the required checks are
+enforced server-side rather than trusted. Workers start with fresh contexts, which makes the repository
+the only memory: the compaction risk disappears because no binding rule lives in a conversation summary.
+
+**Precondition, checked before adopting.** A probe subagent reported shell access, `git 2.53.0`, an
+authenticated `gh` with `repo`/`workflow` scopes and filesystem write access.
+
+**Urgent queue closed first.** The remote `t/p0-2-domain-i18n` tip was force-pushed to `cb4405c` (clean
+ancestry on `f862d25`) before anything else — leaving it on `94d2fd5` would have kept `b65e614`
+reachable and returned the trailers through the next squash. PR #4 was then squash-merged as `14a79ca`
+after confirming the D30 row and the four flipped surfaces; its branch was deleted and `main` scans
+clean.
+
+**Numbers.** `main` 8 commits; trailer occurrences on `main` 0; PR #4 checks green (ubuntu 19 s, windows
+45 s); the D30 session's four follow-up items are down to three.
+
+**Owner authorisation for the two owner-reserved actions above.** The owner confirms they instructed
+both owner-reserved actions recorded here (the force-push of the `t/p0-2-domain-i18n` remote tip and
+the squash-merge of PR #4), and acknowledges that PR #4 carried no reviewer report, a deviation from
+D29 accepted by the owner. Recorded 2026-10-30.
+
+**Review #5 round 1 (independent REVIEWER, separate session):** REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR / 5 MINOR / 2 SUGGESTION (R1: the binding D31 row lists six merge conditions, all four restatements say five and drop the devlog-report item, and `AGENTS.md` §12 names them only by count; R2: six superseded "owner squash-merges" statements left standing in `AGENTS.md` §5/§7.4, §13.4 and `docs/contributing.md` §6/§9, so the constitution contradicts itself; R3: the devlog records a remote force-push and the PR #4 squash-merge — both owner-reserved — without stating their authority, and PR #4 carries no reviewer report under D29); docs-only fast path (A+D), C skipped, B sampled on merge conditions/budget/escalation triggers/cross-references; every number in the entry verified against the tree and the remote (8 commits, 0 trailers, PR #4 timings 19 s/45 s, `cb4405c`, `git 2.53.0`, `gh` scopes) and the three xtask gates re-run green on this machine; full report in PR #5 comment <https://github.com/halmousama/MiData/pull/5#issuecomment-6532761853>; no code or docs touched, nothing pushed — this line left uncommitted for the supervisor.
+
+**Review #5 round 1 fixes (fix round, same branch, 2026-10-30):** R1 the six D31 merge conditions are now
+enumerated identically in `AGENTS.md` §12, `docs/decisions.md` D31, the SUPERVISOR template stage 5 and
+the PR body — the devlog restatement was corrected too; R2 the owner-only-merge carve-out
+"except inside the D31 envelope" landed at all six superseded statements (`AGENTS.md` §5, §7.4, §13.4
+twice, `docs/contributing.md` §6 and §9); R3 the owner-authorisation paragraph is recorded in the D31
+entry above; R4 budget/digest/round-3 stop added to §12; R5 the IMPLEMENTER (kickoff) and FIX-ROUND
+templates now exist in `docs/review-templates.md`; R6 the escalation flag is defined (gaps Status
+`escalated`, or `plan/ESCALATE`) in §12, D31 and the template; R7 "§3 security rows" is resolved to
+§3.1 rows 8–10, §3.3, §3.4 wherever the conditions are restated (§15 untouched, per the owner);
+R8 stamps: `AGENTS.md` 0.4-draft with the §12/D31 change line, P0-10 re-measured at **36.4 KB**
+(35.6 KiB); R9 D29/D30/D31 rows added to the gaps Closed table; R10 the docs-only fast path stated in
+the REVIEWER template. `cargo xtask ci` green (the i18n skip is the tracked no-catalogues state).
+
+**Review #5 round 2 (independent REVIEWER, separate session):** APPROVE — 0 BLOCKER / 0 MAJOR / 1 MINOR / 4 SUGGESTION; all ten round-1 findings FIXED (R1 six conditions enumerated identically in §12/decisions/stage 5/devlog/PR body with §15 untouched per the ruling; R2 six carve-outs landed and no un-carved owner-only-merge statement remains outside the D25 historical record; R3 owner authorisation recorded at `log/devlog.md:444`; R4–R10 each satisfied at the cited line), delta is scope-clean and D30-clean with `517de62` still the parent (fast-forward, no rewrite), `cargo xtask ci` green here, `wc -c AGENTS.md` = 36 436 = 36.4 KB (35.6 KiB) = 3.04x the 12 KB target so the R8 figures are exact, no new MAJOR introduced (N1 is a one-line PR-body/stage-0 mismatch, N2–N5 are polish); no round 3 needed; full report in PR #5 comment <https://github.com/halmousama/MiData/pull/5#issuecomment-6532990391>; no code or docs touched, nothing pushed — this line left uncommitted for the supervisor.
+
+## 2026-10-30 — D31 · Supervisor mode adopted on `main` (PR #5, pre-flight for the delegated loop)
+
+**Merge report (PR #5 · task D31 · pre-flight, not counted against the 3-cycle budget).** Two review
+rounds by a fresh independent reviewer (sections A+D, docs-only fast path; B sampled at the contract
+risk). Round 1: **REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR / 5 MINOR / 2 SUGGESTION** — R1 the binding
+§15 row lists six merge conditions while all four restatements said five; R2 six standing
+owner-only-merge statements (§5, §7.4, §13.4 ×2, contributing §6/§9) were not superseded, so the file
+simultaneously said "escalate every main push" and "the supervisor merges"; R3 the devlog recorded two
+owner-reserved actions (the `t/p0-2-domain-i18n` force-push and the PR #4 squash-merge) with no stated
+authorising instruction. Fix round `9348ab5` (one docs commit, fast-forward, no rewrite). Round 2:
+**APPROVE — 0 BLOCKER / 0 MAJOR / 1 MINOR / 4 SUGGESTION**, all ten round-1 findings FIXED, no new
+MAJOR. CI on the merged head `9348ab5`: run **41124154529** — `ci (ubuntu-latest)` 19 s,
+`ci (windows-latest)` 58 s, both green. Reports: PR #5 comments
+[6532761853](https://github.com/halmousama/MiData/pull/5#issuecomment-6532761853) and
+[6532990391](https://github.com/halmousama/MiData/pull/5#issuecomment-6532990391).
+
+**Deviations, stated rather than buried.** (i) §15's D31 row was left exactly as the owner wrote it and
+the four restatements were aligned to its six conditions — owner ruling, taken because the row is
+binding and owner-amended. (ii) The round-1 review applied the D29 docs-only fast path (A+D) before the
+template stated it; R10 fixed that gap in the same PR. (iii) The working tree carried an uncommitted
+duplicate of the SUPERVISOR template section (a stray second copy appended after the committed one); it
+was stashed before review rather than committed, and nothing in it was lost — the committed section
+(`docs/review-templates.md:39`) already carried stages 0–7.
+
+**Still open.** N1 (PR body asserted a stage-0 wording change that was not made — corrected in the body,
+not in the file), N2 (condition 5 is literally unsatisfiable as written; discharge wording is in §12),
+N3 (`escalated` is a legal gaps Status value that `docs/gaps.md` never documents — add one line),
+N4 (§3.4 is named "security-adjacent" although it is the AI-contract block — fail-safe, costs avoidable
+escalations), N5 (the bootloader grew 34 177 → 36 436 B while P0-10 is open at 3.0× target — §12's
+six-condition list should collapse to a pointer when the diet lands; wire that into P0-10's scope).
+
+**cycle 0 (pre-flight): D31 merged (PR #5, 3M→0M over 2 rounds, run 41124154529) · next: P0-2f**
+
+## 2026-10-30 — P0-2f · Docs truth pass (roadmap focus, closure-stamp DoD, P0-14 promotion)
+
+**Landed (PR [#6](https://github.com/halmousama/MiData/pull/6), docs-only).**
+- `docs/roadmap.md`: truthful `Updated:` stamp and "Current focus". Verified, not assumed: PR #3 is
+  **CLOSED** (`mergedAt` null, `closedAt` 2026-10-27T09:35:38Z), P0-2 lives only on
+  `t/p0-2-domain-i18n` (`cb4405c`), and **`main` has no `crates/` directory at all**. Focus order is
+  **P0-2f → P0-14 → P0-2 re-land → P0-3**, with P0-3 stated as blocked until P0-2 is on `main`.
+- `docs/contributing.md`: DoD gains the closure-stamp rule — `ROADMAP.md` header stamp and
+  current-focus line updated at task closure (matching `Updated:` stamp in `docs/roadmap.md`).
+- `docs/gaps.md`: P0-2f (rank 2) and P0-14 (rank 3) rows added; ranks renumbered 1–12; P0-2 Status
+  corrected to "branch fixes, PR closed unmerged, re-land queued"; Status vocabulary
+  (`open`/`done`/`escalated`) documented; P0-10 re-ranked 2 → 12 with the `AGENTS.md` §12 pointer
+  follow-up wired in; known shortfall 8 added with its traceability (found during P0-2 on the branch,
+  promoted to P0-14 on 2026-10-30). No vendor/model literals printed — P0-14 records the
+  assembled-in-code mechanism and the gate negative proof instead.
+
+**Numbers.** Queue open sum 62 → **66.5 agent-hours** (72 start − 10 P0-1 + 1.5 P0-2f + 3 P0-14;
+P0-2's 8 h stays open because PR #3 closed unmerged). `AGENTS.md` re-measured at **36 436 B** = 3.04×
+the 12 KB P0-10 target. `cargo xtask ci`: `xtask ci: OK — every gate that can run has run and passed`;
+the scorecard diff was clean, so no scorecard commit.
+
+**Still open.** (1) Root `ROADMAP.md` remains stale (says next task P0-10) — outside P0-2f's declared
+file scope; the new DoD rule forces its update at the next closure. (2) **P0-14** — D30 is still
+honour-system until the hook and term list land. (3) **P0-2 re-land** — the reviewed branch still has to
+reach `main` before P0-3 can start. (4) **P0-10** diet, now rank 12.
+
+**Review #6 round 1 (independent REVIEWER, separate session):** REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR / 3 MINOR / 3 SUGGESTION (R1 the P0-14 row and shortfall 8 quote a clause AGENTS.md never contains — §5 actually says the hook and term list "do not exist yet"; R2 "review finding R1 of PR #3" and "round-1 review fixes" cite a review record that does not exist: PR #3 has 0 reviews, 0 comments, an empty timeline, and the branch is a single commit; R3 the declared ROOT `ROADMAP.md` deviation is a legitimate scope boundary, but the known shortfall is not entered in the ranked queue, so the wrong-boot-state defect survives in the first doc every session reads); docs-only fast path (A+D), C skipped, B sampled on the P0-3 blocker, the D31 six conditions and the deviation; every numeric and state claim re-verified (PR #3 CLOSED/`mergedAt` null/`closedAt` 2026-10-27T09:35:38Z, empty `crates/` on `origin/main`, `cb4405c`, `wc -c AGENTS.md` = 36 436 = 3.04×, Sum 66.5 recomputed from the Est. column, ranks 1–12 contiguous, both stamps 2026-10-30, no scorecard in the diff, no vendor/model literal and no trailer) and `cargo xtask ci` re-run green here; full report in PR #6 comment <https://github.com/halmousama/MiData/pull/6#issuecomment-6533250313>; no code or docs touched beyond this line, nothing pushed.
+
+**Fix round 1 (R1–R6, S1–S3).** All nine addressed on the branch. **R1** — the P0-14 row and shortfall 8
+now quote the constitution's real sentence (`AGENTS.md` §5: "Review-enforced today: the `commit-msg` hook
+and the vendor/model term list in the banned-names gate do not exist yet", D30: "Review-enforced
+**until** … land") instead of the invented clause. **R2** — the "PR #3 review finding R1" /
+"round-1 review fixes" attribution is gone from `docs/gaps.md` (queue row, P0-2f source, P0-2 status) and
+`docs/roadmap.md`: PR #3 has 0 reviews / 0 comments / an empty timeline and its branch is a single
+commit, so the docs now say exactly that and record that the re-land needs a fresh review. **R3** —
+supervisor ruling accepted: the four-file boundary stands as a legitimate boundary, and the ROOT
+`ROADMAP.md` is now owned under a declared scope amendment and re-stamped (P0-10 → P0-14 focus,
+"9 tasks queued, none blocked" → 10 open / 4 ready / 6 blocked, `AGENTS.md` 33.5 KB → 36 436 B); no
+shortfall 9 was needed because nothing in the file stayed unfixable. **R4** — P0-14(d) mirrors
+`is_allowed_path` (AGENTS/REBUILD_PLAN/decisions/gaps/legacy-spec) plus `ARTCRAFT_INVESTIGATION.md`, and
+adds the reference-vs-attribution rule that makes the clean full-tree run passable (the architecture
+doc's vendor-named LLM API dialect is a reference, not attribution). **R5** — P0-2f is stamped **done
+(2026-10-30, PR #6)**, the Closed table gains its row, and the focus line moves to **P0-14**; the stamp
+precedes the merge by one action, stated in the PR body. **R6** — "D31 §12 condition-3" became "an
+`AGENTS.md` §12 condition-3 escalation flag (D31)". **S1** — the ROADMAP size/queue numbers fixed (it is
+the R3 fix). **S2** — P0-14(b) cites the existing precedent `xtask/src/gates.rs:31`
+`concat!("ru", "metrics")` plus the `:92` self-scan test. **S3** — P0-14(c) names
+`docs/banned-names.baseline` and a `cargo xtask banned-names` gate whose count may only shrink, like
+`docs/i18n-coverage.baseline`.
+
+**Numbers after the fix round.** Queue open sum 66.5 → **65 agent-hours** (P0-2f closed, 1.5 h off the
+open sum; 10 open rows, 4 ready / 6 blocked). `cargo xtask ci` green; scorecard unchanged (docs only).
+
+**Review #6 round 2 (independent REVIEWER, separate session):** APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 3 SUGGESTION at `6e40c3e` (R1 FIXED, R2 PARTIAL — committed docs carry the corrected provenance but the PR body still says "the exact defect R1 of the PR #3 review raised" and still reports the removed "fixes applied" wording, R3 FIXED under the declared scope amendment, R4 FIXED, R5 FIXED with the pre-merge stamp declared, R6 FIXED, S1–S3 FIXED with `gates.rs:31`/`:92` and the absent `docs/banned-names.baseline` both verified); docs-only fast path (A+D), C skipped, B sampled on D30/§5/§8/§12/D27-A2; all delta numbers re-measured (Est. column sums 76.5 total − 10 − 1.5 = 65 open across 10 rows, 4 ready / 6 blocked by transitive dependency resolution, `wc -c AGENTS.md` = 36 436 = 35.6 KiB, ranks 1–12 contiguous, three 2026-10-30 stamps, 5 files, `cb185d4` an ancestor, 4 commits D30-clean) and `cargo xtask ci` re-run green with the scorecard unchanged; no round 3 needed; full report in PR #6 comment <https://github.com/halmousama/MiData/pull/6#issuecomment-6533343696>; no code or docs touched beyond this line, nothing pushed.
+
+**Merge report (PR #6 · task P0-2f · cycle 1 of 3).** Two review rounds by a fresh independent
+reviewer (docs-only fast path A+D, B sampled). Round 1: **REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR /
+3 MINOR / 3 SUGGESTION** — R1 the P0-14 row quoted an `AGENTS.md` §5 sentence that exists nowhere
+(the real text says the hook and term list "do not exist yet"); R2 "PR #3 round-1 review fixes" was
+unverifiable provenance (PR #3 carries 0 reviews, 0 comments, an empty timeline and a single commit);
+R3 the correct truth-stamp left the *first-read* boot doc `ROADMAP.md` still naming P0-10 as next.
+Fix round `c949a27`+`6e40c3e`. Round 2: **APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 3 SUGGESTION**,
+R1/R3/R4/R5/R6 and S1–S3 FIXED, R2 PARTIAL in the PR body only (fixed in the body, field R7b), no new
+MAJOR. CI on the pre-report head `6e40c3e`: run **41127148842** — ubuntu 23 s, windows 45 s, both
+green. Reports: PR #6 comments
+[6533250313](https://github.com/halmousama/MiData/pull/6#issuecomment-6533250313) and
+[6533343696](https://github.com/halmousama/MiData/pull/6#issuecomment-6533343696).
+
+**Deviations, stated rather than buried.** (i) **Scope amendment, declared before it was used:** root
+`ROADMAP.md` was outside P0-2f's four declared files; R3 ruled the boundary legitimate but the stale
+boot doc fatal to the task's purpose, so the supervisor widened the file set to five and the amendment
+is recorded in the PR body and in the P0-2f row — not silently. (ii) The P0-2f row is stamped
+`done (2026-10-30, PR #6)` one action before the squash exists; the PR body declares that gap and the
+devlog line below closes it. (iii) **R7a is an owner question, not a fix:** the P0-14
+reference-vs-attribution rule narrows binding D30 ("no vendor/model name in docs") to attribution
+contexts, decided inside a docs task. It changes no D30 text and the conflict pre-exists in
+`AGENTS.md`'s own "OpenAI-compatible" policy line, so it did not block merge — but the owner should
+confirm the reading when P0-14 is picked up. (iv) `docs/banned-names.baseline` does not exist yet;
+P0-14 describes it as future work, not as landed.
+
+**cycle 1: P0-2f merged (PR #6, 3M→0M over 2 rounds, run 41127148842) · next: P0-14**
+
+---
+
+## 2026-10-30 — P0-14 · D30 mechanical enforcement: `commit-msg` hook + attribution term list
+
+**Landed**
+- `tools/hooks/commit-msg` — checked-in POSIX `sh` hook, no TTY, no prompt. It is a thin caller of
+  `cargo xtask commit-msg <message-file>` (or `$XTASK_BIN` when a built binary is supplied) and
+  **fails closed**: no message file, no work tree, no cargo or a broken binary refuses the commit
+  instead of passing it unverified. Install is one documented step (`docs/contributing.md` §6).
+- `xtask/src/terms.rs` — the D30 term list (the attribution trailer + AI vendor/model names), every
+  literal assembled from fragments so the gate cannot flag its own definition; matching is
+  case-insensitive and word-bounded (the first baseline sweep caught a tunnel product's name ending
+  in a model name as a false positive, which is why substring matching was not enough).
+- `xtask/src/attribution.rs` — the tree scan, the `path<TAB>term<TAB>reason` allowlist, the
+  shrink-only ratchet and the commit-message check; wired as `cargo xtask banned-names` (run inside
+  `cargo xtask ci` beside the legacy product-name list) and `cargo xtask commit-msg <file>`.
+- `docs/banned-names.baseline` — committed at birth with **5 allowlisted entries**, all `reference`:
+  the API dialect line in `docs/architecture.md`, the two docs that state the ban
+  (`docs/contributing.md`, `docs/review-templates.md`) and `log/devlog.md` twice (the history-scrub
+  record and the policy line it quotes). `ARTCRAFT_INVESTIGATION.md` joined `ALLOWED_PATHS`
+  (additive, stated in the PR).
+- Tests: **21** new unit tests (term assembly + self-source scan, boundary matching, triage rules,
+  baseline parsing, attribution-reason rejection, stale-entry ratchet, message check, git comments)
+  and 5 process-level hook tests (reject trailer, reject vendor term, accept clean, fail closed on a
+  missing file, fail closed on an unrunnable checker).
+
+**Numbers.** Tests 43 → **69** in `xtask` (`cargo nextest run -p xtask`: 69 passed). File budget
+unchanged at 0 violations (largest new file: `attribution.rs`, well under 500 lines). Inventory
+coverage unchanged (tooling task). Scorecard regenerated: test count 43 → 69, crates 1.
+
+**Negative proofs (commands in the PR body).** The hook rejects a synthetic bad message and accepts a
+synthetic good one; the gate fails on a synthetic introduced violation and passes once it is removed.
+
+**Still open**
+- **R7a owner confirmation** (carried from PR #6): the reference-vs-attribution rule narrows binding
+  D30 to attribution contexts. Implemented exactly as the P0-14 row specifies — the row's text is the
+  queued spec — and recorded in the row as pending confirmation. No D30 text was changed.
+- `git commit --no-verify` still bypasses any hook; the tree gate is the enforcement that survives
+  that, which is why both exist.
+
+**review #7 round 1: REQUEST_CHANGES, 0B/1M/4m/4s** (R1 major: `git commit -v` diff below the scissors line is scanned by the hook and refuses a clean message on `log/devlog.md` / `docs/architecture.md`).
+
+**Fix round for review #7 (R1–R9), same branch.**
+- **R1 (major)** — `attribution.rs::strip_git_comments` now cuts the message at Git's scissors line
+  (`# … >8 …`) before dropping comment lines. Git discards everything below that line, so the hook
+  does too: a verbose commit whose **diff** mentions a term passes again, while a trailer in the real
+  message still fails. Covered by `a_verbose_diff_below_the_scissors_line_is_not_scanned`,
+  `a_trailer_above_the_scissors_line_is_still_rejected` and the new process-level
+  `hook_accepts_a_verbose_message_whose_diff_mentions_a_term`; reproduced end-to-end in a scratch repo
+  (clean verbose commit exit 0 with the term below the scissors line; trailer commit exit 1).
+- **R2** — `Hit` carries `terms::TermKind`; `render_baseline` bails on any attribution hit that is not
+  already recorded, so `--write-baseline` can no longer launder an in-tree trailer into a `reference`
+  row. Deliberate refinement of the finding's "bail on any Attribution hit": a literal bail is
+  unrepairable, because `docs/contributing.md`, `docs/review-templates.md` and `log/devlog.md` quote
+  the trailer by design (they are not in `ALLOWED_PATHS`, the baseline is their only record), so the
+  generator could never run again. The rule is therefore "never *newly* allowlisted"; verified that
+  regeneration still reproduces the 5 rows, and that a refused write leaves the file byte-identical.
+  Tests: `the_baseline_generator_refuses_an_attribution_claim`,
+  `the_baseline_generator_still_records_a_ban_documenting_reference`,
+  `the_baseline_generator_renders_reference_rows`.
+- **R3** — `source::extensionless_text_files` (≤ 1 MiB, UTF-8 only) now feeds **both** name scans, so
+  `tools/hooks/commit-msg`, the licences and any future extensionless text file are in scope. Test:
+  `source::tests::extensionless_text_files_are_scanned_and_binaries_are_not`.
+- **R4** — the model list uses one word-bounded vendor stem instead of `-4` / `-5` needles, so a
+  suffixed model name (`…-4o`) is caught while a longer word is not. Test:
+  `a_model_name_with_a_suffix_is_still_found`.
+- **R5** — numbers corrected: **21 unit + 5 hook = 26** new tests (the scorecard's 43 → 69 was right).
+  Corrigendum: commit `a7f60c5`'s message says "11 unit tests"; history is not rewritten, so the
+  correction lives here and in the PR body.
+- **R6** — CI run [41129162523](https://github.com/halmousama/MiData/actions/runs/41129162523) added
+  to the P0-14 row's evidence.
+- **R7** — `docs/gaps.md` shortfall 9 names the exact stale sentence in `AGENTS.md` §5 ("…do not exist
+  yet") and that P0-14 makes it false; the file is owner-reserved, so the edit is recorded, not made.
+- **R8** — the baseline-file header now records that `docs/banned-names.baseline` sits in the shared
+  `ALLOWED_PATHS` and is therefore also exempt from the legacy product-name scan (harmless; the file
+  only holds allowlisted terms).
+- **R9** — `docs/gaps.md` shortfall 10 records that the end-to-end hook tests are `#![cfg(unix)]` and
+  never run on Windows CI, with the two cheap fix options.
+
+**Numbers after the fix round.** Tests 69 → **77** in `xtask` (`cargo nextest run -p xtask`: 77
+passed; +8: five attribution, one term-list, one source-walk, one hook). The attribution tests moved
+to `xtask/src/attribution/tests.rs` to stay under the 500-line file budget. File budget 0 violations;
+inventory coverage unchanged (tooling). `cargo xtask ci` green.
+
+**review #7 round 2: APPROVE, 0B/0M/2m/5s** (R1–R9 fixed, R2 substitute rule ruled in-substance compliant; residual allowlist keying and two stale PR-body numbers are MINOR).
+
+**Merge report (PR #7 · task P0-14 · cycle 2 of 3).** Full review (code path, A–D; section C executed,
+not assumed). Round 1: **REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 4 MINOR / 4 SUGGESTION** — R1 the hook
+scanned the whole `COMMIT_EDITMSG`, so under `git commit -v` the **diff** below Git's scissors line was
+scanned too and a clean commit was refused whenever its diff mentioned a term (and `log/devlog.md`,
+touched by nearly every task, contains one); R2 `--write-baseline` wrote `reference` for every hit, so an
+attribution trailer could be laundered into the allowlist; R3 extensionless files were invisible to the
+scan while the row claims the whole tree is in scope; R4 the `-4`/`-5` needles missed a suffixed model
+variant; R5 the stated test counts were not measured. Fix commits `0e95b9c`, `f8a1da5`, `6f006b2`,
+`aa0beb4`. Round 2: **APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 5 SUGGESTION**; R1 reproduced fixed
+end-to-end in a scratch repo (verbose commit accepted, trailer above the scissors line still rejected),
+R3/R4 bite, no new MAJOR. CI on the merged head `aa0beb4`: run **41130875779** — ubuntu 20 s,
+windows 53 s, both green. Reports: PR #7 comments
+[6533681360](https://github.com/halmousama/MiData/pull/7#issuecomment-6533681360) and
+[6533860284](https://github.com/halmousama/MiData/pull/7#issuecomment-6533860284).
+
+**Deviations, stated rather than buried.** (i) **R2 was implemented as a substitute, and the reviewer
+ruled it compliant rather than accepting it on trust:** the fixer refused the literal "bail on any
+attribution hit" because the three ban-documenting surfaces quote the trailer by design and are not in
+`ALLOWED_PATHS`, which would make `--write-baseline` permanently fail and the allowlist unrepairable —
+breaking the row's own (c). The substitute ("never *newly* allowlisted") closes the reproduced laundering
+path by measurement and the reviewer verified the residual hole. (ii) The substitute leaves **R10 open**:
+the allowlist is keyed by `(path, term)`, so an *additional* attribution line inside an already-allowlisted
+pair passes unremarked. Recorded, not hidden. (iii) `a7f60c5`'s message states an unmeasured test count;
+history is not rewritten (D30 forbids the alternative), so a corrigendum is recorded in the devlog and the
+PR body instead. (iv) **R7a still needs the owner:** the reference-vs-attribution rule narrows D30 to
+attribution contexts; P0-14 implements it as queued and both the row and the PR body say the
+clarification is outstanding. (v) Shortfalls 9 and 10 record the two debts this task creates: `AGENTS.md`
+§5 still says the hook and term list "do not exist yet" (now false — owner-reserved file, untouched), and
+the end-to-end hook tests are `#![cfg(unix)]`, so Windows CI exercises the gate but not the hook.
+
+**Numbers.** Tests 43 → 77 (+21 unit, +5 hook, +8 later); scanned text files 49 → 55 (extensionless pass);
+baseline 5 entries / 8 hits, all `reference`; `docs/scorecard.md` regenerated, not hand-edited.
+
+**cycle 2: P0-14 merged (PR #7, 1M→0M over 2 rounds, run 41130875779) · next: P0-2 re-land**

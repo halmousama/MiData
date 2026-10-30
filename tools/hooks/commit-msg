@@ -1,0 +1,50 @@
+#!/bin/sh
+# MiData `commit-msg` hook — mechanical enforcement of D30 (AGENTS.md §5, REBUILD_PLAN.md §15,
+# docs/contributing.md §6).
+#
+# It rejects a commit message that carries an attribution trailer or a banned AI vendor/model name.
+# The term list is NOT duplicated here: it lives in `xtask` (`xtask/src/terms.rs`), assembled from
+# fragments so the gate cannot flag its own definition. This script is a thin, non-interactive caller.
+#
+# Install once per clone (documented in docs/contributing.md §6 — `.git/hooks/` is never committed):
+#   ln -sf ../../tools/hooks/commit-msg .git/hooks/commit-msg
+# or copy this file to `.git/hooks/commit-msg` and `chmod +x` it.
+#
+# Fails closed: if the check cannot run, the commit is refused rather than passed unverified.
+# `XTASK_BIN` lets the hook use an already-built xtask binary (the test harness sets it).
+
+set -u
+
+message_file="${1:-}"
+if [ -z "$message_file" ] || [ ! -f "$message_file" ]; then
+  echo "commit-msg: no readable message file was given — refusing the commit (fail closed)." >&2
+  exit 1
+fi
+
+root=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$root" ]; then
+  echo "commit-msg: not inside a git work tree — refusing the commit (fail closed)." >&2
+  exit 1
+fi
+
+if [ -n "${XTASK_BIN:-}" ]; then
+  if [ ! -x "$XTASK_BIN" ]; then
+    echo "commit-msg: XTASK_BIN=$XTASK_BIN is not executable — refusing the commit (fail closed)." >&2
+    exit 1
+  fi
+  exec "$XTASK_BIN" commit-msg "$message_file"
+fi
+
+if ! command -v cargo >/dev/null 2>&1; then
+  echo "commit-msg: cargo was not found, so the message cannot be checked — refusing the commit (fail closed)." >&2
+  echo "  install a Rust toolchain, or commit with --no-verify at your own risk." >&2
+  exit 1
+fi
+
+cd "$root" || {
+  echo "commit-msg: cannot enter the work tree root — refusing the commit (fail closed)." >&2
+  exit 1
+}
+
+# Quiet on success; the gate's own stderr explains a rejection.
+exec cargo run --quiet --package xtask -- commit-msg "$message_file"

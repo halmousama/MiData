@@ -712,7 +712,8 @@ Phase 7 writes `docs/mobile-access-strategy.md` as a **contract for the future**
 
 **Remote:** private GitHub repository (owner creates it; going public is an owner decision at
 release time — publishing is an escalation item). Default branch `main`, protected: **no direct
-pushes** — agents push task branches and open PRs; the owner reviews and merges.
+pushes** — agents push task branches and open PRs; the owner reviews and merges, except inside the
+D31 envelope (`AGENTS.md` §12).
 
 **Branch model (task-centric):**
 - One short-lived branch per `docs/gaps.md` task: `t/<task-id>-<slug>` (e.g. `t/p0-1-workspace-ci`,
@@ -723,6 +724,9 @@ pushes** — agents push task branches and open PRs; the owner reviews and merge
 - Merge policy: **squash-merge by the owner** → `main` holds exactly one green commit per closed
   task; the branch is deleted after merge and the PR page preserves the detail. Use `--no-ff`
   merge instead only when a task's intermediate commits have archaeology worth keeping (owner's call).
+  **D31 supersedes the owner-only actor here:** inside the D31 envelope (`AGENTS.md` §12) the
+  SUPERVISOR performs the same `gh pr merge --squash --delete-branch` under its six conditions; the
+  owner remains the merger everywhere else.
 
 **Commit convention** (branch commits and main squash commits alike):
 
@@ -732,15 +736,14 @@ pushes** — agents push task branches and open PRs; the owner reviews and merge
 <body: what & why; numbers when perf-relevant; any deviation noted>
 
 Refs: gaps <task-id> · inventory <row-ids>
-Co-Authored-By: <agent/model identity> <noreply@…>
 ```
 
 - `type` ∈ feat · fix · refactor · perf · test · docs · chore · ci · build · bootstrap · integration · revert.
   `area` = crate or surface (engine, store, app, ops, analytics, docs, ci…).
 - The task id in the subject makes `git log --grep '\[P1-3\]'` a full task archaeology tool.
-- **AI attribution is mandatory:** every agent-authored commit carries the `Co-Authored-By:` trailer
-  naming the agent/model; owner commits are optionally GPG/SSH-signed. The devlog entry records
-  anything the trailer cannot (session notes, model switches, retries).
+- **No attribution trailer (D30):** no `Co-Authored-By:` line and no AI-vendor/model name in any commit
+  message, code, doc, devlog or gap entry. Owner commits are optionally GPG/SSH-signed. Session and
+  model notes, if the owner wants them, live only in the gitignored `plan/` kit.
 
 **Gitignore (never committed):** `target/` · `plan/` · `*.db` · `midata_data/` · logs · secrets/tokens ·
 large real-file corpora (pinned & fetched per `docs/testing.md`, if any).
@@ -843,8 +846,13 @@ Every artifact links back to its origin; every task is reconstructable from git 
 | D26 | 2026-10-27 | **Schema is birth-gated:** each table is created by the migration of the phase that first uses it. Phase 0: species…audit_log **except** `widgets`; P3: `widgets` (+ default-widget seeding); P5: `conversations`, `messages`, `pending_changes`; P6: pack-provenance columns (`origin`/`pack_id` on `field_definitions`/`modes`/`widgets`) via an owner-approved migration. The "no dead schema" rule (§5.1.5) outranks "full v1 schema at once" | owner rulings on bootstrap ambiguities |
 | D27 | 2026-10-27 | **Bootstrap rulings batch:** `docs/roadmap.md` mirror stamp (A2 ratified) · A4 root commit on `main` ratified, task branches from P0-1 · `P0-n` task-id scheme canonical · P0-8 inventory reconciliation rescoped · i18n location = D24 (`midata-i18n`) · `AGENTS.md` slimmed as a lean bootloader (rules not procedures, one authoritative home per topic, target ≤ ~12 KB) · licence holder "MiData contributors" stays provisional, O1 open · new Git rule: no session ends with uncommitted work | owner rulings on bootstrap ambiguities |
 | D28 | 2026-10-27 | **§3 anti-pattern register extended by 37 owner-approved rows from the oracle extraction (M7 review)** — grouped thematically (analytics results · query safety · AI contract · data I/O & onboarding · pedigree · storage & settings · test integrity) with stable slug keys instead of review numbers; findings already covered are folded into rows 1–15 as provenance clauses, never duplicated. Sub-decisions: **(a)** single query language — the legacy DSL is dropped, SQL through `midata-queryguard` only (`query.single-language`); **(b)** the public/agent contract carries stable machine keys only — no storage row ids or table names (`contract.stable-keys`); **(c)** settings are exposed as a typed serde facade over the K/V table (`settings.typed-facade`) | owner review of the M7 proposal |
+| D29 | 2026-10-27 | Independent reviewer loop adopted: a fresh reviewer session audits every code PR against the fixed checklist (`docs/review-templates.md`); severity-gated verdicts (APPROVE = 0 BLOCKER + 0 MAJOR); findings are cite-or-suggestion; the implementer may contest with a counter-citation (owner arbitrates); max two rounds then owner arbitration; docs-only PRs take the fast path (A+D); the reviewer never modifies code and never merges — owner merges after APPROVE | owner consultation (review loop) |
 
-*Plan-document decisions (this file):* v0.1 initial draft — 2026-10-27 · v0.2 crate-architecture revision (D24) — 2026-10-27 · v0.3 git workflow (D25) — 2026-10-27 · v0.4 owner rulings on bootstrap ambiguities (D26–D27) — 2026-10-27 · v0.5 anti-pattern register extension (D28) — 2026-10-27.
+| D30 | 2026-10-27 | **Attribution repealed and history scrubbed:** no `Co-Authored-By` trailer and no AI-vendor/model name in commit messages, code, docs, devlog or gaps (supersedes D25's trailer clause); session/model traceability only in the gitignored `plan/` kit. Review-enforced until the `commit-msg` hook and the vendor term list in `xtask`'s banned-names gate land. On 2026-10-27 `main`'s history was rewritten with `git-filter-repo` to strip every trailer (trees byte-identical, all 7 commits preserved in order, pushed `--force-with-lease`); pre-scrub SHAs `8979bc0`/`123ffb2`/`bf9813d`/`b65e614` survive only as closed-PR archive; backup bundle at `../midata-pre-scrub.bundle` | owner ruling (attribution policy) |
+
+| D31 | 2026-10-27 | Delegated merge authority & autonomous cycle: a SUPERVISOR agent may run consecutive task cycles — spawning fresh-context implementer/reviewer/fix subagents — and squash-merge via `gh pr merge` without owner action, strictly under: reviewer APPROVE (0 BLOCKER/0 MAJOR) · required CI checks green on the PR head · no escalation flag on the task · diff touches no owner-reserved surface (schema migrations, dependency set, deletion of committed data, §3 security rows, branding) · merge report paragraph in devlog · no `plan/HOLD` file. Cycle budget default 3 tasks then an owner digest; a task failing twice escalates instead of retrying; owner may revoke at any time via `plan/HOLD` or by amending this row. Owner retains merge authority on escalations, phase gates and releases | owner consultation (autonomous loop) |
+
+*Plan-document decisions (this file):* v0.1 initial draft — 2026-10-27 · v0.2 crate-architecture revision (D24) — 2026-10-27 · v0.3 git workflow (D25) — 2026-10-27 · v0.4 owner rulings on bootstrap ambiguities (D26–D27) — 2026-10-27 · v0.5 anti-pattern register extension (D28) — 2026-10-27 · v0.6 reviewer loop + attribution repeal (D29–D30) — 2026-10-27 · v0.7 supervisor mode (D31) — 2026-10-27.
 
 ## 16. Open items (non-blocking; defaults apply until owner rules)
 

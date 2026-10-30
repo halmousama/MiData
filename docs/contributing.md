@@ -22,7 +22,8 @@
 **Definition of done:** behaviour exists as a registered, documented command (when user-visible) ·
 tests including graceful-failure and the **test-integrity checklist (§3)** · wired into the UI (and CLI
 where relevant) · snapshots viewed for UI work · full gate green on ubuntu **and** windows ·
-inventory/gaps/scorecard/devlog updated.
+inventory/gaps/scorecard/devlog updated · **`ROADMAP.md` header stamp and current-focus line updated at
+task closure** (and the matching `Updated:` stamp in `docs/roadmap.md`).
 
 ## 2. The gate
 
@@ -33,6 +34,7 @@ cargo nextest run -p <touched crates>            # full: cargo nextest run --wor
 cargo xtask check-layers
 cargo xtask file-budget
 cargo xtask i18n-coverage                        # no regression
+cargo xtask banned-names                         # legacy name + D30 attribution terms, ratcheted
 cargo test -p midata-app -- snapshot             # UI tasks: goldens updated AND viewed
 cargo test -p midata-engine --test command_hunt -- --ignored   # command changes
 cargo xtask bench --quick                        # hot paths (flatten, dashboard, import)
@@ -113,7 +115,8 @@ proven"*.
 
 **Branches.** One short-lived branch per task: `t/<task-id>-<slug>` (`t/p0-1-workspace-ci`,
 `t/p1-3-animal-create`). Parallel agents use one worktree each and one task branch each. **Never push to
-`main`.** Push the task branch, open a PR; the **owner squash-merges** → `main` holds exactly one green
+`main`.** Push the task branch, open a PR; the **owner squash-merges** — or, inside the D31 envelope
+(`AGENTS.md` §12), the SUPERVISOR does — → `main` holds exactly one green
 commit per closed task. The branch is deleted after merge; the PR page keeps the detail. `--no-ff` is an
 owner call, only when intermediate commits have archaeology worth keeping.
 
@@ -125,16 +128,37 @@ owner call, only when intermediate commits have archaeology worth keeping.
 <body: what & why; numbers when perf-relevant; any deviation noted>
 
 Refs: gaps <task-id> · inventory <row-ids>
-Co-Authored-By: <agent/model identity> <noreply@…>
 ```
 
 - `type` ∈ `feat · fix · refactor · perf · test · docs · chore · ci · build · bootstrap · integration ·
   revert`; `area` = crate or surface (`engine`, `store`, `app`, `ops`, `analytics`, `docs`, `ci`…).
 - The `[task-id]` in the subject makes `git log --grep '\[P1-3\]'` a complete task archaeology tool.
-- **AI attribution is mandatory:** every agent-authored commit carries a `Co-Authored-By:` trailer
-  naming the agent/model. The owner's commits may be signed. Anything the trailer cannot express
-  (session notes, model switches, retries) goes in the devlog.
+- **No attribution trailer (D30):** no `Co-Authored-By:` line and no AI-vendor/model name in a commit
+  message, in code, or in any doc, devlog or gap entry. Owner commits may be signed. Session and model
+  notes live only in the gitignored `plan/` kit.
 - **Green commits only.** Mid-task commits are checkpoints; a red commit is never pushed.
+
+**Commit-message hook (D30).** `.git/hooks/` is never committed, so installing the hook is one
+documented step per clone:
+
+```sh
+ln -sf ../../tools/hooks/commit-msg .git/hooks/commit-msg     # or copy it there, then chmod +x
+```
+
+`tools/hooks/commit-msg` runs `cargo xtask commit-msg <message-file>`, which rejects a message carrying
+an attribution trailer or a banned AI vendor/model name (the term list lives in `xtask/src/terms.rs`,
+assembled from fragments so the gate never flags its own definition). The hook **fails closed**: if the
+checker cannot run (no `cargo`, a broken symlink, no message file), the commit is refused rather than
+passed unverified. It needs no TTY and never prompts. `git commit --no-verify` still bypasses any hook,
+which is why the same rule is enforced by `cargo xtask banned-names` over the tree in CI: the hook is
+the fast local guard, the gate is the fact.
+
+The in-tree half of the rule is the same command: `cargo xtask banned-names` runs both term lists and
+fails on a new hit. Pre-existing hits are triaged in `docs/banned-names.baseline`
+(`path<TAB>term<TAB>reason`); `reason` is `reference` (an integration/compatibility target, or a
+document describing the ban) and `attribution` is never allowlisted. The allowlist is a ratchet — it
+may only shrink, and a stale entry (no matching hit) fails until the baseline is regenerated with
+`cargo xtask banned-names --write-baseline`.
 
 Example:
 
@@ -145,7 +169,6 @@ One window-function statement replaces per-entity lookups; brute-force
 cross-check test on the 2k fixture; flatten of 10k animals measured at 41 ms.
 
 Refs: gaps P0-3 · inventory DE-7, HM-3
-Co-Authored-By: MiData Agent (DeepSeek V4.1 Flash Free) <noreply@opencode.ai>
 ```
 
 **What travels with what.** `Cargo.lock`, snapshot goldens and generated docs (`docs/scorecard.md`) are
@@ -188,3 +211,23 @@ migration list, workspace `Cargo.toml`) get small surgical edits — **re-read b
 commands and screens go in new modules. Write `Cargo.toml` changes atomically (temp file outside
 `crates/`, then `mv`). If another agent's in-progress edit breaks the build, wait and retry — never fix
 their files. Delete a finished agent's `target/agent-*` directory.
+
+## 9. Review loop (independent reviewer per PR)
+
+- Every PR that touches `crates/`, `apps/` or `xtask/` receives one independent REVIEWER session
+  before owner merge. Docs-only PRs (< 50 changed lines, no code) get the fast path: checklist
+  sections A + D only.
+- The reviewer is a fresh session with no memory of the implementing session. It audits the diff
+  against the contract (AGENTS.md, §3 slugs, D-numbers, the task row's acceptance criteria, DoD)
+  using the fixed template in `docs/review-templates.md` (REVIEWER).
+- Findings carry severities: BLOCKER · MAJOR · MINOR · SUGGESTION. A finding that cites no binding
+  clause or oracle id is a SUGGESTION by definition. Verdict: APPROVE iff zero BLOCKER + zero MAJOR.
+- The implementing agent receives the report (FIX-ROUND template) and either fixes each
+  BLOCKER/MAJOR (new commits on the task branch — never history rewriting) or contests it with a
+  counter-citation; contests are owner-arbitrated.
+- Maximum two review rounds per PR; a third round means the dispute is architectural — owner
+  arbitrates directly. MINOR/SUGGESTION never block; cheap ones are fixed, the rest become gaps.md
+  follow-ups.
+- The reviewer never modifies code, never merges. The owner merges after APPROVE (D25); inside the
+  D31 envelope the SUPERVISOR merges under the six D31 conditions (`AGENTS.md` §12).
+- Reports live as PR comments (canonical) + one devlog line each round.

@@ -48,7 +48,7 @@ pub fn run(root: &Path) -> Result<()> {
     section("i18n-coverage");
     i18n::check(root)?;
 
-    section("banned-name grep");
+    section("banned-names");
     gates::banned_names(root)?;
 
     section("stats");

@@ -1,6 +1,6 @@
 # AGENTS.md: guide for AI agents and contributors
 
-> **Version:** 0.3-draft · **Last updated:** 2026-10-27 — seed artifact for the MiData Native repository (Phase 0); lives at the repo root once initialized. Change: git workflow & traceability (REBUILD_PLAN §13.4/D25).
+> **Version:** 0.4-draft · **Last updated:** 2026-10-30 — seed artifact for the MiData Native repository (Phase 0); lives at the repo root once initialized. Change: §12 autonomous cycle / delegated merge authority (REBUILD_PLAN §15 D31, superseding the owner-only merge in §13.4/D25).
 > **Provenance:** structure and several rules adapted from storytold/photocraft's `AGENTS.md` (MIT OR Apache-2.0). The study behind this adaptation: `ARTCRAFT_INVESTIGATION.md`.
 > **Companions:** `REBUILD_PLAN.md` (master plan — its §15 Decision Log is **binding**) · `docs/legacy-spec/PROJECT_REPORT.md` (legacy behaviour specification, reference only).
 
@@ -139,12 +139,17 @@ Every task runs the five-step loop:
 **Definition of done:** behaviour exists as a registered, documented command (if user-visible) · tests including graceful-failure · wired into the UI (and CLI where relevant) · snapshots viewed for UI work · full gate green (CI on both OSes) · inventory/gaps/scorecard/devlog updated.
 
 **Git discipline** (full workflow: `REBUILD_PLAN.md` §13.4 / `docs/contributing.md`):
-- One branch per task: `t/<task-id>-<slug>`. **Never push to `main`** — push your task branch, open the PR; the owner squash-merges (one green commit per closed task).
-- Commit subject: `<type>(<area>): <subject> [<task-id>]`, body with what & why, `Refs:` line, and the **mandatory `Co-Authored-By:` trailer** naming the agent/model.
+- One branch per task: `t/<task-id>-<slug>`. **Never push to `main`** — push your task branch, open the PR; the owner squash-merges (one green commit per closed task) — except inside the D31 envelope (`AGENTS.md` §12), where the SUPERVISOR merges under its six conditions.
+- Commit message: `<type>(<area>): <subject> [<task-id>]`, body with what & why, `Refs:` line.
+  **No Co-Authored-By trailers and no AI-vendor/model names anywhere** — not in commit messages,
+  code, docs, devlog or gaps (D30, supersedes D25's trailer clause). Session/model traceability,
+  if the owner wants it, lives only in the gitignored `plan/` kit. Review-enforced today: the
+  `commit-msg` hook and the vendor/model term list in the banned-names gate do not exist yet.
 - **Never commit red:** every commit keeps the workspace building and touched-crate gates green. Mid-task commits are your session checkpoints — commit early, commit often (a crashed session is recovered from the branch + devlog).
 - Snapshot goldens, generated docs and `Cargo.lock` travel **in the same commit** as their motivating change — an artifact never drifts from its code.
 - Tagging, force-push, history rewriting, pushing to main: escalation items (§7).
 - **No session ends with uncommitted work** — commit the checkpoint before stopping; always verify repo state with `git status` before asserting it.
+- Code-bearing PRs are audited by an independent reviewer session before owner merge (`docs/contributing.md` §9); APPROVE requires zero BLOCKER/MAJOR findings; contests go to the owner.
 
 ```sh
 cargo fmt --check
@@ -182,7 +187,7 @@ Then append the terse entry to `log/devlog.md` (what landed, numbers, what's sti
 1. Any DB **schema change** (new table/column/index/migration) — migrations are owner-approved, never smuggled into a feature task.
 2. Deleting or overwriting data beyond your own test fixtures (user data, the seeded demo baseline, mass golden regeneration).
 3. Adding, removing or upgrading a **dependency** (licence allowlist + maintenance review).
-4. Publishing, pushing to main, or tagging releases.
+4. Publishing, pushing to main, or tagging releases — except the supervisor's squash-merges inside the D31 envelope (`AGENTS.md` §12).
 5. Spending money or committing to external services.
 6. Anything involving real personal data.
 7. Destructive git operations (force-push, history rewrite).
@@ -233,8 +238,36 @@ Then append the terse entry to `log/devlog.md` (what landed, numbers, what's sti
 6. Snapshot goldens (light + dark where layout-relevant; EN, FR spot) — **look at the PNG**.
 7. Update inventory + devlog.
 
+## 12. Autonomous cycle (supervisor mode, per D31)
+
+- The SUPERVISOR never implements and never reviews: it picks the top gaps task, spawns a fresh
+  IMPLEMENTER subagent (kickoff template, `docs/review-templates.md`), then a fresh REVIEWER
+  subagent (REVIEWER template, parameters only — no summaries, no opinions), arbitrates rounds
+  (max 2), and merges only when **all six** D31 conditions hold, via
+  `gh pr merge --squash --delete-branch`:
+  (1) reviewer APPROVE with **0 BLOCKER / 0 MAJOR**;
+  (2) both required CI checks **green on the PR head**;
+  (3) **no escalation flag on the task** — the `docs/gaps.md` row's Status reads `escalated`, or a
+      local `plan/ESCALATE` marker exists alongside `plan/HOLD`;
+  (4) the diff touches **no owner-reserved surface** — schema migrations, the dependency set,
+      deletion of committed data, the security-adjacent §3 rows (§3.1 rows 8–10, §3.3, §3.4),
+      branding;
+  (5) a **merge report paragraph in the devlog** — owed by stage 6 of the same cycle, so the cycle
+      is not complete until it exists; a cycle that merged without one is an escalation;
+  (6) no `plan/HOLD` file.
+- **Budget:** 3 tasks per run, then stop and hand the owner a digest (tasks merged, verdicts, open
+  escalations, the next three gaps entries in rank order). A **round-3 review** or **two failures
+  of the same task** stops the loop immediately with an escalation — never a silent retry.
+- Every worker is a fresh context; binding constraints are re-read from this file each cycle,
+  never carried in conversation memory. Compaction between cycles is safe precisely because the
+  docs are the source of truth — but no binding rule may exist only in a compacted summary.
+- `plan/HOLD` (gitignored) stops the loop at the next cycle boundary; any unmet merge condition
+  stops it immediately with an escalation.
+- Each cycle ends with: merge report paragraph + one supervisor devlog line (task, verdicts,
+  CI run ids, deviations, next task).
+
 ---
 
 **If you remember nothing else:** never crash · everything is a command · acceptance test first · the gate is non-negotiable · look at the PNG · update docs and devlog before committing · **when in doubt, leave it out.**
 
-*Version 0.3-draft · 2026-10-27 · Structure and several rules adapted from storytold/photocraft's `AGENTS.md` (MIT OR Apache-2.0); see `ARTCRAFT_INVESTIGATION.md` for the study behind this adaptation.*
+*Version 0.4-draft · 2026-10-30 · Structure and several rules adapted from storytold/photocraft's `AGENTS.md` (MIT OR Apache-2.0); see `ARTCRAFT_INVESTIGATION.md` for the study behind this adaptation.*
