@@ -22,7 +22,8 @@
 **Definition of done:** behaviour exists as a registered, documented command (when user-visible) ·
 tests including graceful-failure and the **test-integrity checklist (§3)** · wired into the UI (and CLI
 where relevant) · snapshots viewed for UI work · full gate green on ubuntu **and** windows ·
-inventory/gaps/scorecard/devlog updated.
+inventory/gaps/scorecard/devlog updated · **`ROADMAP.md` header stamp and current-focus line updated at
+task closure** (and the matching `Updated:` stamp in `docs/roadmap.md`).
 
 ## 2. The gate
 
