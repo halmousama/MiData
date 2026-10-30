@@ -628,9 +628,15 @@ synthetic good one; the gate fails on a synthetic introduced violation and passe
   `a_trailer_above_the_scissors_line_is_still_rejected` and the new process-level
   `hook_accepts_a_verbose_message_whose_diff_mentions_a_term`; reproduced end-to-end in a scratch repo
   (clean verbose commit exit 0 with the term below the scissors line; trailer commit exit 1).
-- **R2** — `Hit` carries `terms::TermKind`; `render_baseline` bails on any attribution hit, so
-  `--write-baseline` can no longer launder an in-tree trailer into a `reference` row (the generator
-  used to write `reference` for every hit). Tests: `the_baseline_generator_refuses_an_attribution_claim`,
+- **R2** — `Hit` carries `terms::TermKind`; `render_baseline` bails on any attribution hit that is not
+  already recorded, so `--write-baseline` can no longer launder an in-tree trailer into a `reference`
+  row. Deliberate refinement of the finding's "bail on any Attribution hit": a literal bail is
+  unrepairable, because `docs/contributing.md`, `docs/review-templates.md` and `log/devlog.md` quote
+  the trailer by design (they are not in `ALLOWED_PATHS`, the baseline is their only record), so the
+  generator could never run again. The rule is therefore "never *newly* allowlisted"; verified that
+  regeneration still reproduces the 5 rows, and that a refused write leaves the file byte-identical.
+  Tests: `the_baseline_generator_refuses_an_attribution_claim`,
+  `the_baseline_generator_still_records_a_ban_documenting_reference`,
   `the_baseline_generator_renders_reference_rows`.
 - **R3** — `source::extensionless_text_files` (≤ 1 MiB, UTF-8 only) now feeds **both** name scans, so
   `tools/hooks/commit-msg`, the licences and any future extensionless text file are in scope. Test:
@@ -651,6 +657,7 @@ synthetic good one; the gate fails on a synthetic introduced violation and passe
 - **R9** — `docs/gaps.md` shortfall 10 records that the end-to-end hook tests are `#![cfg(unix)]` and
   never run on Windows CI, with the two cheap fix options.
 
-**Numbers after the fix round.** Tests 69 → **76** in `xtask` (`cargo nextest run -p xtask`: 76
-passed; +7: four attribution, one term-list, one source-walk, one hook). File budget unchanged at 0
-violations; inventory coverage unchanged (tooling). `cargo xtask ci` green.
+**Numbers after the fix round.** Tests 69 → **77** in `xtask` (`cargo nextest run -p xtask`: 77
+passed; +8: five attribution, one term-list, one source-walk, one hook). The attribution tests moved
+to `xtask/src/attribution/tests.rs` to stay under the 500-line file budget. File budget 0 violations;
+inventory coverage unchanged (tooling). `cargo xtask ci` green.
