@@ -577,3 +577,43 @@ confirm the reading when P0-14 is picked up. (iv) `docs/banned-names.baseline` d
 P0-14 describes it as future work, not as landed.
 
 **cycle 1: P0-2f merged (PR #6, 3M→0M over 2 rounds, run 41127148842) · next: P0-14**
+
+---
+
+## 2026-10-30 — P0-14 · D30 mechanical enforcement: `commit-msg` hook + attribution term list
+
+**Landed**
+- `tools/hooks/commit-msg` — checked-in POSIX `sh` hook, no TTY, no prompt. It is a thin caller of
+  `cargo xtask commit-msg <message-file>` (or `$XTASK_BIN` when a built binary is supplied) and
+  **fails closed**: no message file, no work tree, no cargo or a broken binary refuses the commit
+  instead of passing it unverified. Install is one documented step (`docs/contributing.md` §6).
+- `xtask/src/terms.rs` — the D30 term list (the attribution trailer + AI vendor/model names), every
+  literal assembled from fragments so the gate cannot flag its own definition; matching is
+  case-insensitive and word-bounded (the first baseline sweep caught a tunnel product's name ending
+  in a model name as a false positive, which is why substring matching was not enough).
+- `xtask/src/attribution.rs` — the tree scan, the `path<TAB>term<TAB>reason` allowlist, the
+  shrink-only ratchet and the commit-message check; wired as `cargo xtask banned-names` (run inside
+  `cargo xtask ci` beside the legacy product-name list) and `cargo xtask commit-msg <file>`.
+- `docs/banned-names.baseline` — committed at birth with **5 allowlisted entries**, all `reference`:
+  the API dialect line in `docs/architecture.md`, the two docs that state the ban
+  (`docs/contributing.md`, `docs/review-templates.md`) and `log/devlog.md` twice (the history-scrub
+  record and the policy line it quotes). `ARTCRAFT_INVESTIGATION.md` joined `ALLOWED_PATHS`
+  (additive, stated in the PR).
+- Tests: 11 new unit tests (term assembly + self-source scan, boundary matching, triage rules,
+  baseline parsing, attribution-reason rejection, stale-entry ratchet, message check, git comments)
+  and 5 process-level hook tests (reject trailer, reject vendor term, accept clean, fail closed on a
+  missing file, fail closed on an unrunnable checker).
+
+**Numbers.** Tests 43 → **69** in `xtask` (`cargo nextest run -p xtask`: 69 passed). File budget
+unchanged at 0 violations (largest new file: `attribution.rs`, well under 500 lines). Inventory
+coverage unchanged (tooling task). Scorecard regenerated: test count 43 → 69, crates 1.
+
+**Negative proofs (commands in the PR body).** The hook rejects a synthetic bad message and accepts a
+synthetic good one; the gate fails on a synthetic introduced violation and passes once it is removed.
+
+**Still open**
+- **R7a owner confirmation** (carried from PR #6): the reference-vs-attribution rule narrows binding
+  D30 to attribution contexts. Implemented exactly as the P0-14 row specifies — the row's text is the
+  queued spec — and recorded in the row as pending confirmation. No D30 text was changed.
+- `git commit --no-verify` still bypasses any hook; the tree gate is the enforcement that survives
+  that, which is why both exist.
