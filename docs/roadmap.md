@@ -4,23 +4,22 @@
 > scope/exit-criteria here.** It exists because the orientation table points here for "scope, exit
 > criteria, current focus"; it adds no scope of its own. A phase-scope change is an amendment to the
 > plan, then a re-sync here — never the reverse (D27/A2).
-> **Updated:** 2026-10-30 (P0-2f docs truth pass closed) · **Current focus:** **Phase 0 — Foundations —
-> P0-14 → P0-2 re-land → P0-3**
+> **Updated:** 2026-10-30 (P0-2 re-land closed) · **Current focus:** **Phase 0 — Foundations —
+> P0-3 (`midata-store`)**
 
 ## Current focus
 
-**Phase 0 — Foundations.** P0-1 (workspace + `xtask` + CI) is closed on `main`, so the gate exists on
-ubuntu and windows and the scorecard is generated. But **`main` contains no `crates/` directory at
-all**: P0-2's implementation exists only on branch `t/p0-2-domain-i18n` (remote tip `cb4405c`, a single
-commit), and **PR #3 was closed without being merged on 2026-10-27T09:35:38Z**
-(`mergedAt` is null). Phase 0 has therefore shipped infrastructure, not one line of product code.
-P0-2f (the docs truth pass) is **closed (2026-10-30, PR #6)** — it corrected this header, which had
-been stale since PR #3 was closed. Next, in order: **P0-14** (D30 mechanical enforcement: `commit-msg`
-hook + vendor/model term list) → **P0-2 re-land** (put the domain + i18n branch on
-`main` as a fresh PR — PR #3 has no review record, so the re-land needs a fresh review) → **P0-3**
-(`midata-store`). **P0-3 is blocked until P0-2 is on `main`**, because P0-3 depends on it. The
-`AGENTS.md` diet (P0-10) moved down the queue: P0-2f removes the acute wrong-focus tax, and the
-unblocking chain now outranks the diet (still open, still owner-reviewed).
+**Phase 0 — Foundations.** The two L0 product crates are now on `main`: `midata-domain` (identity and
+value vocabulary, typed errors, age/money/pedigree rules) and `midata-i18n` (EN+FR catalogues with a
+fatal coverage gate) landed with **P0-2 (re-land, 2026-10-30, PR #8)**, which merged the original work
+(`cb4405c`, PR #3 closed unmerged) forward onto current `main` rather than rewriting it. The gate is
+unchanged and green, and the scorecard now measures 3 crates and 162 tests.
+
+The next task is **P0-3 — `midata-store` v0**: the SQLite engine, the forward-only migrations and the
+canonical latest-value queries that turn the domain vocabulary into a data foundation. P0-3 was blocked
+only on P0-2 being on `main`, so it is ready now. After it, the chain is P0-4 (`midata-engine`) → P0-5
+(`midata-app` shell) → P0-6 (onboarding + demo seed), with P0-7/P0-9 behind them. The `AGENTS.md` diet
+(P0-10) stays queued: the unblocking chain outranks it (still open, still owner-reviewed).
 
 Phase 0 closes only when its exit criteria below are met **and** the owner signs off; Phase 1 tasks
 are then populated in `docs/gaps.md`.

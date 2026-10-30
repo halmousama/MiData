@@ -751,3 +751,41 @@ the end-to-end hook tests are `#![cfg(unix)]`, so Windows CI exercises the gate 
 baseline 5 entries / 8 hits, all `reference`; `docs/scorecard.md` regenerated, not hand-edited.
 
 **cycle 2: P0-14 merged (PR #7, 1M→0M over 2 rounds, run 41130875779) · next: P0-2 re-land**
+
+---
+
+## 2026-10-30 — P0-2 · Re-land: `midata-domain` + `midata-i18n` now on `main`
+
+**What landed.** The P0-2 implementation (`cb4405c`, reviewed on branch `t/p0-2-domain-i18n`) was
+re-landed as a fresh PR (**#8**) rather than rewritten: `git merge origin/main` brought D31, the P0-2f
+docs truth pass and P0-14's D30 enforcement forward, so `cb4405c` stays an ancestor and the original
+implementation is reviewable separately from the integration. `main` now has the two L0 crates:
+`midata-domain` (species-as-data `SpeciesKey`, `Sex`, `Status` + exit invariants, `DataType`,
+`Cardinality`, `Value`/`EncodedValue` exactly-one-column, `latest_value`, `Age`, `Money`, `PedigreeBounds`,
+`CommandError`, the `Clock` seam) and `midata-i18n` (EN+FR TSV catalogues embedded with `include_str!`,
+`t!`/`tf!`, `Catalogue::coverage`, `Language`), plus the **fatal** i18n gate (`xtask/src/i18n/gate.rs`):
+orphan FR key, unused EN key, `en_total` decrease and FR-gap growth are each a build break.
+
+**Merge conflicts resolved (both intents kept).** `xtask/src/ci.rs` runs both `i18n-coverage` and
+`banned-names`; `docs/gaps.md`, `docs/scorecard.md` and `log/devlog.md` take main's newer content plus the
+branch's entries (both devlog entries kept). One branch line printed a banned trailer literal; it was
+rephrased — **no** `docs/banned-names.baseline` entry was added.
+
+**Acceptance re-verified on the merged tree, not assumed.** Species is a shape-only newtype (an enum of
+presets fails `any_species_key_is_accepted_as_data`); value rules, age leap-day clamp, integer-only money,
+pedigree bounds and typed errors each have a non-vacuous test; key naming/coverage is tested against the
+real catalogues; the orphan-FR rule is fatal (`an_orphan_fr_key_fails_the_gate`). Three negative proofs on
+the real catalogues (each reverted, output in PR #8): missing FR row → `FR coverage regressed: 1 missing
+key(s), baseline allows 0`; orphan FR key → `orphan FR key(s) …: err.orphan.row`; key removed from both →
+`EN catalogue shrank: 18 key(s), baseline records 19`.
+
+**Numbers.** Tests **43 → 162** (merged tree: domain 60, i18n 16, xtask 52 unit + hook); crates **1 → 3**;
+i18n **EN 100% (19 keys), FR 19/19**; file-budget 0 violations over 40 Rust files; gate green (fmt,
+clippy, nextest 162, check-layers, file-budget, i18n-coverage, banned-names, `xtask ci`);
+`docs/scorecard.md` regenerated and committed; `docs/i18n-coverage.baseline` carries the real
+`en_total: 19`.
+
+**Still open (rank order).** 1. P0-3 `midata-store` v0 + migrations (now unblocked). 2. P0-8 inventory
+reconciliation. 3. P0-10 `AGENTS.md` diet. `midata-testkit`'s `FixedClock` still arrives with P0-4.
+
+**cycle 3: P0-2 re-land (PR #8) · next: P0-3**

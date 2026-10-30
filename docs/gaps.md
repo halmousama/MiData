@@ -1,6 +1,6 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-30 (P0-14 closed: D30 `commit-msg` hook + attribution term list + committed allowlist; P0-2f docs truth pass closed earlier the same day) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-30 (P0-2 re-land closed: `midata-domain` + `midata-i18n` are on `main`, the i18n gate is fatal; P0-14 and the P0-2f docs truth pass closed earlier the same day) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -18,8 +18,8 @@
 | 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
 | 2 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | docs | Every session boots from a stale "current focus" | 1.5 | — (D31 merged) | **done** (2026-10-30, PR #6) |
 | 3 | P0-14 | D30 mechanical enforcement: `commit-msg` hook + vendor/model term list | tooling | D30 is honour-system until the hook and the second term list exist | 3 | — (D30 adopted 2026-10-27) | **done** (2026-10-30, PR #7) |
-| 4 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open — implementation on `t/p0-2-domain-i18n` (`cb4405c`); PR #3 **closed unmerged** 2026-10-27; re-land queued |
-| 5 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 (blocked until P0-2 is on `main`) | open |
+| 4 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | **done** (2026-10-30, PR #8) |
+| 5 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 | open |
 | 6 | P0-4 | `midata-engine` skeleton | feature | Command registry + audit hook — the agent-first seam | 8 | P0-2, P0-3 | open |
 | 7 | P0-5 | `midata-app` shell + theme | feature | First pixels: window, router, tokens, settings persistence | 12 | P0-2, P0-4 | open |
 | 8 | P0-6 | Onboarding + demo seed | feature | Makes the app usable on first run; exit-gate dependency | 8 | P0-3, P0-4, P0-5 | open |
@@ -32,12 +32,12 @@
 carrying an `AGENTS.md` §12 condition-3 escalation flag (D31): this row's Status reads `escalated`, or a
 local `plan/ESCALATE` marker exists alongside `plan/HOLD`).
 
-**Sum:** 62 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h added and closed
-2026-10-30; P0-14 3 h added and closed 2026-10-30; **P0-2's 8 h stays open — PR #3 closed unmerged**,
-so it is queued for re-land, not closed). Of the nine open rows, three are ready (`P0-2` re-land,
-`P0-8`, `P0-10`) and six are blocked behind the re-land chain. Phase 0 closes when every open row is
-`done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on 2026-10-26,
-P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27, P0-2f and P0-14 on 2026-10-30 — see §Closed.
+**Sum:** 54 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h and P0-14 3 h added and
+closed 2026-10-30; **P0-2 re-landed and closed 8 h**, 2026-10-30). Of the eight open rows, three are
+ready (`P0-3`, `P0-8`, `P0-10`) and five are blocked behind the store → engine → app chain. Phase 0
+closes when every open row is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle
+extraction, 3 h) closed on 2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27,
+P0-2f and P0-14 and P0-2 on 2026-10-30 — see §Closed.
 
 ---
 
@@ -268,7 +268,7 @@ note).
 
 ---
 
-## P0-2 — `midata-domain` + `midata-i18n` (re-land)  ·  8 h  ·  rank 4  ·  **open — PR #3 closed unmerged 2026-10-27**
+## P0-2 — `midata-domain` + `midata-i18n` (re-land)  ·  8 h  ·  rank 4  ·  **done 2026-10-30 (PR #8)**
 
 **Kind:** feature (L0) · **Source:** `REBUILD_PLAN.md` §4.1, §5.3, §5.5, §7.4; Appendix C bullets 5–7.
 
@@ -308,6 +308,38 @@ reviewed on that branch.
 **Evidence.** Unit test names in the crate; `cargo xtask i18n-coverage` reporting a real number;
 per-crate README public-API sections filled in; `docs/i18n.md` updated with the convention actually
 enforced.
+
+**Delivered — re-land (2026-10-30, PR #8).** The original implementation (`cb4405c`) was merged
+forward, not rewritten: `git merge origin/main` brought D31, the P0-2f docs truth pass and P0-14's D30
+enforcement onto the branch, and the fresh PR is the re-land. Conflicts were resolved keeping both
+intents — `xtask/src/ci.rs` runs **both** P0-2's fatal `i18n-coverage` step and P0-14's
+`banned-names` step; `docs/gaps.md`/`docs/scorecard.md`/`log/devlog.md` took main's newer content plus
+the branch's entries. Each acceptance bullet was re-verified on the merged tree (not assumed):
+- **Domain:** `SpeciesKey` is a shape-only newtype (`any_species_key_is_accepted_as_data` parses
+  `camel`/`horse`/`yak-2`, so an enum of presets would fail the test); `Sex` (nullable at the schema
+  level), `Status` + `validate_exit_date` (both directions), `DataType`, `Cardinality`;
+  `Value`/`EncodedValue` exactly-one-column with type matching (`value_rules.rs`, 17 tests incl.
+  hostile `multi_select` payloads that must not panic); `CommandError` reason + i18n key + params
+  (`seams_and_errors.rs`); `Age::between` leap-day clamp (`time_money_pedigree.rs`); `Money` integer
+  minor units, checked add/sub, currency conflict (`money_is_integer_minor_units`,
+  `money_rejects_mixed_currencies_and_overflow`); `PedigreeBounds` 1–10 / 500 constants.
+- **i18n:** `en.tsv` + `fr.tsv` embedded; a miss returns the key itself; `Catalogue::coverage()`
+  exposed; `every_en_key_has_a_fr_row`, `neither_catalogue_has_orphan_or_duplicate_rows`,
+  `keys_follow_the_documented_prefixes` (the naming-convention test).
+- **Fatal gate (round-1 S2):** `xtask/src/i18n/gate.rs` makes an orphan FR key, an unused EN key, an
+  `en_total` decrease and a growing FR gap each a **build break**; 11 unit tests, including
+  `an_orphan_fr_key_fails_the_gate` and `an_orphan_fails_even_when_fr_coverage_is_complete`.
+  `docs/i18n-coverage.baseline` records the real `state: catalogues / en_total: 19 / fr_missing: 0`,
+  so the R4 non-decrease ratchet was live from the day the catalogues appeared.
+- **Three negative proofs on the merged tree** (temporary catalogue edits, each reverted): missing FR
+  row → `FR coverage regressed: 1 missing key(s), baseline allows 0`; orphan FR key → `orphan FR
+  key(s) …: err.orphan.row`; key removed from both → `EN catalogue shrank: 18 key(s), baseline
+  records 19`.
+- **Gate:** `cargo fmt --check`, `clippy -D warnings`, `nextest` (162 tests), `check-layers`,
+  `file-budget` (40 files, 0 over cap), `i18n-coverage` (EN 19, FR 19/19), `banned-names` (0 new
+  hits) and `cargo xtask ci` all green.
+- **D30 compliance:** the one branch text that printed a banned trailer literal in the devlog was
+  rephrased; no baseline entry was added.
 
 ---
 
@@ -576,6 +608,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
 | P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (43 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | 2026-10-30 | `docs/roadmap.md` (focus + `Updated:`), `docs/contributing.md` (closure-stamp DoD), `docs/gaps.md` (P0-14 promoted, vocabulary, shortfall 8), root `ROADMAP.md` re-stamp under the declared round-1 scope amendment; PR #6; `log/devlog.md` |
+| P0-2 | `midata-domain` + `midata-i18n` (re-land) | 2026-10-30 | `crates/midata-domain/` (identity/value rules/age/money/pedigree/errors/clock + tests), `crates/midata-i18n/` (EN+FR catalogues, `t!`/`tf!`, coverage), `xtask/src/i18n/` (fatal gate, 11 tests), `docs/i18n-coverage.baseline` (`en_total: 19`), `docs/i18n.md` §1/§5/§6, `docs/architecture.md` §9 seams, `xtask/src/layers/rules.rs`; PR #8 (re-lands `cb4405c`; predecessor PR #3 closed unmerged); `log/devlog.md` |
 | D29 | Independent reviewer loop per PR | 2026-10-27 | `REBUILD_PLAN.md` §15 D29; `docs/decisions.md` D29; `docs/review-templates.md` (REVIEWER, FIX-ROUND); `docs/contributing.md` §9 |
 | D30 | Attribution repealed + `main` history scrubbed | 2026-10-27 | `REBUILD_PLAN.md` §15 D30; `docs/decisions.md` D30; `docs/contributing.md` §6; `log/devlog.md` |
 | D31 | Delegated merge authority and the autonomous cycle | 2026-10-27 | `REBUILD_PLAN.md` §15 D31; `AGENTS.md` §12; `docs/decisions.md` D31; `docs/review-templates.md` (SUPERVISOR, IMPLEMENTER kickoff); `log/devlog.md` |

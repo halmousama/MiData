@@ -1,10 +1,10 @@
 # MiData Native — roadmap
 
 > **Stage:** Phase 0 in progress — workspace + `xtask` gate + ubuntu/windows CI landed (P0-1); the docs
-> truth pass is closed (P0-2f, PR #6); no product crates yet
-> **Last reviewed:** 2026-10-30 · **Last updated:** 2026-10-30 · **Change:** P0-2f closure — boot state
-> re-stamped (next task, open-row counts, `AGENTS.md` size), headline numbers re-read from the scorecard
-> **Current focus:** **Phase 0 — Foundations** (`docs/roadmap.md`, next task **P0-14**)
+> truth pass is closed (P0-2f, PR #6); the two L0 product crates are on `main` (P0-2 re-land, PR #8)
+> **Last reviewed:** 2026-10-30 · **Last updated:** 2026-10-30 · **Change:** P0-2 re-land closure — boot
+> state re-stamped (next task P0-3, open-row counts, headline numbers re-read from the scorecard)
+> **Current focus:** **Phase 0 — Foundations** (`docs/roadmap.md`, next task **P0-3**)
 
 MiData is a local-first livestock management and analysis desktop application — native Rust + egui, one
 SQLite file, offline, account-free, English + French, TND default. This page is the one-screen status
@@ -16,11 +16,11 @@ report; the binding detail lives in `REBUILD_PLAN.md` (§15 Decision Log wins an
 | Metric | Now | Target (v1.0 gate) |
 |---|---|---|
 | Inventory coverage (done rows with evidence) | **0 / 222 rows — 0%** | ≥ 90% of the KEEP list |
-| Tests | **43** (xtask gate unit tests) | ≥ 300 (ratchet from Phase 1) |
-| Crates in the workspace | **1** (`xtask`; product crates birth from P0-2) | 11 crates + 2 apps + xtask |
+| Tests | **162** (domain + i18n + `xtask`) | ≥ 300 (ratchet from Phase 1) |
+| Crates in the workspace | **3** (`xtask`, `midata-domain`, `midata-i18n`) | 11 crates + 2 apps + xtask |
 | Screens with snapshot goldens | **0 / 11** (the `REBUILD_PLAN.md` §7.1 screens) | every screen ≥ 1 golden |
-| i18n coverage (EN / FR) | **n/a** (catalogues arrive in P0-2) | EN 100% · FR 100% |
-| File-budget violations | **0** (12 files scanned) | 0 |
+| i18n coverage (EN / FR) | **EN 100% (19 keys) · FR 19/19 (100%)** | EN 100% · FR 100% |
+| File-budget violations | **0** (40 files scanned) | 0 |
 | Clippy warnings · `unsafe` | **0 · 0** | 0 · 0 |
 | Perf budgets met | **0 / 4** | 4 / 4 enforced |
 
@@ -31,7 +31,7 @@ Numbers are measured, never estimated: they come from `docs/scorecard.md`, gener
 
 | Phase | State |
 |---|---|
-| 0 — Foundations | **in progress** — bootstrap (B0), extraction (P0-11), owner rulings (P0-12), workspace/CI (P0-1) and the docs truth pass (P0-2f) done; 10 tasks open — 4 ready (P0-2 re-land, P0-8, P0-10, P0-14), 6 blocked behind the P0-2 re-land |
+| 0 — Foundations | **in progress** — bootstrap (B0), extraction (P0-11), owner rulings (P0-12), workspace/CI (P0-1), the docs truth pass (P0-2f), D30 enforcement (P0-14) and the L0 product crates (P0-2) done; 8 tasks open — 3 ready (P0-3, P0-8, P0-10), 5 blocked behind the store → engine → app chain |
 | 1 — Core herd | not started |
 | 2 — Organization & rules | not started |
 | 3 — Analytics, dashboard, data I/O | not started |
@@ -44,10 +44,10 @@ Numbers are measured, never estimated: they come from `docs/scorecard.md`, gener
 
 Honest list, in the order it hurts:
 
-1. **There is no application yet.** The workspace, the gate suite and CI now exist, but the only crate
-   is `xtask`: no domain types, no store, no engine, no window. Every capability in
-   `docs/inventory.md` is still `planned` — by design (product crates are birth-gated, D26), but it
-   means there is nothing to install or try.
+1. **There is no application yet.** The workspace, the gate suite, CI, the domain vocabulary and the
+   string layer now exist, but there is no store, engine or window: no animal can be created and nothing
+   renders. Every capability in `docs/inventory.md` is still `planned` — by design (product crates are
+   birth-gated, D26), but it means there is nothing to install or try.
 2. **The gate exists but does not yet guard a product.** `cargo xtask ci` is green on ubuntu and
    windows, and every gate was shown to fail on an intentional violation (P0-1). What it guards today
    is `xtask` itself plus the workspace policy; the layer DAG, file budget, i18n ratchet and scorecard
