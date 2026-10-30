@@ -318,7 +318,7 @@ the branch's entries. Each acceptance bullet was re-verified on the merged tree 
 - **Domain:** `SpeciesKey` is a shape-only newtype (`any_species_key_is_accepted_as_data` parses
   `camel`/`horse`/`yak-2`, so an enum of presets would fail the test); `Sex` (nullable at the schema
   level), `Status` + `validate_exit_date` (both directions), `DataType`, `Cardinality`;
-  `Value`/`EncodedValue` exactly-one-column with type matching (`value_rules.rs`, 17 tests incl.
+  `Value`/`EncodedValue` exactly-one-column with type matching (`value_rules.rs`, 15 tests incl.
   hostile `multi_select` payloads that must not panic); `CommandError` reason + i18n key + params
   (`seams_and_errors.rs`); `Age::between` leap-day clamp (`time_money_pedigree.rs`); `Money` integer
   minor units, checked add/sub, currency conflict (`money_is_integer_minor_units`,
@@ -327,7 +327,7 @@ the branch's entries. Each acceptance bullet was re-verified on the merged tree 
   exposed; `every_en_key_has_a_fr_row`, `neither_catalogue_has_orphan_or_duplicate_rows`,
   `keys_follow_the_documented_prefixes` (the naming-convention test).
 - **Fatal gate (round-1 S2):** `xtask/src/i18n/gate.rs` makes an orphan FR key, an unused EN key, an
-  `en_total` decrease and a growing FR gap each a **build break**; 11 unit tests, including
+  `en_total` decrease and a growing FR gap each a **build break**; 10 unit tests, including
   `an_orphan_fr_key_fails_the_gate` and `an_orphan_fails_even_when_fr_coverage_is_complete`.
   `docs/i18n-coverage.baseline` records the real `state: catalogues / en_total: 19 / fr_missing: 0`,
   so the R4 non-decrease ratchet was live from the day the catalogues appeared.

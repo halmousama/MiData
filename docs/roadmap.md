@@ -13,7 +13,7 @@
 value vocabulary, typed errors, age/money/pedigree rules) and `midata-i18n` (EN+FR catalogues with a
 fatal coverage gate) landed with **P0-2 (re-land, 2026-10-30, PR #8)**, which merged the original work
 (`cb4405c`, PR #3 closed unmerged) forward onto current `main` rather than rewriting it. The gate is
-unchanged and green, and the scorecard now measures 3 crates and 162 tests.
+unchanged and green, and the scorecard now measures 3 crates and 163 tests.
 
 The next task is **P0-3 — `midata-store` v0**: the SQLite engine, the forward-only migrations and the
 canonical latest-value queries that turn the domain vocabulary into a data foundation. P0-3 was blocked

@@ -427,6 +427,9 @@ fr_missing: 0`; file-budget 0 violations over 36 Rust files; `check-layers` gree
 planned); inventory 0/222 unchanged (no inventory row is claimed by a crate birth). `docs/scorecard.md`
 regenerated and committed with the change.
 
+*(The 128 / `xtask` 52 figures above are this entry's own snapshot; superseded by the P0-2 re-land
+on the merged tree: measured 87 xtask / 163 total.)*
+
 **Still open (rank order).** 1. P0-3 `midata-store` v0 + migrations. 2. P0-10 `AGENTS.md` diet.
 3. D30 enforcement — the commit-msg hook and the vendor/model-name grep do not exist yet
 (`docs/gaps.md`, known shortfall 8): honour-system until then, which is why this commit carries no
@@ -798,3 +801,5 @@ executable, and a workspace test build of the `xtask` package tries to write the
 reconciliation. 3. P0-10 `AGENTS.md` diet. `midata-testkit`'s `FixedClock` still arrives with P0-4.
 
 **cycle 3: P0-2 re-land (PR #8) · next: P0-3**
+
+**review #8 round 1 (independent REVIEWER):** APPROVE — 0 BLOCKER / 0 MAJOR / 7 MINOR / 4 SUGGESTION; full A+B+C+D audit (no sampling): gate re-run green here (fmt, clippy, nextest 163, check-layers, file-budget 40/0, i18n-coverage EN 19 FR 19/19, banned-names, `xtask ci` incl. deny+machete), three i18n negative proofs reproduced (exit 1 each) and reverted byte-identically (`sha256sum -c`, clean `git status`), `cb4405c` confirmed an ancestor with an append-only reflog and A6 confirmed pre-existing in it; MINORs are stale numbers/README wording (roadmap 162 vs 163, per-file test counts 17/11 vs 15/10, PR-body 162 + previous-head run id, i18n README `CatalogueError` row, domain README `Status` "/ …", `docs/i18n.md` §5 mid-phase bullet vs the 0-gap gate, stale `ci.yml` gate-order comment); report: <https://github.com/halmousama/MiData/pull/8#issuecomment-6534474866>; no code touched, nothing pushed — this line left uncommitted.

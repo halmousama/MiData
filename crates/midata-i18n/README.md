@@ -35,7 +35,7 @@ keys with `format!` is unsupported by design, because it makes the usage scan an
 | | `Catalogue::from_tsv_pair(en: &str, fr: &str)` | The same parse from arbitrary text — how tests build a catalogue. |
 | | `Catalogue::get(language, key) -> Option<&str>` | One lookup, no fallback chain. |
 | | `Catalogue::en_keys()`, `coverage() -> Coverage` | Source keys and the measured gap, in-process (cheap; no file scan). |
-| `CatalogueError` | enum | Malformed line, duplicate key, empty key, missing FR text. Never panics. |
+| `CatalogueError` | enum | `MalformedRow` (a row with no tab, or an empty key) / `DuplicateKey` (the same key twice in one catalogue). A missing FR row is coverage data, never a parse error. Never panics. |
 | `CatalogueName` | enum | `En` / `Fr` — which file a parse problem came from. |
 | `Coverage` | `translated_fr()`, `fr_percent()` | `fr_percent` divides by the **EN total**, so an orphan row cannot make the fraction and the percentage disagree. |
 | `Language` | `ALL`, `code()`, `from_code()`, `next()` | Closed set of two (`en`, `fr`), default `En`; persisted as the lowercase code. |

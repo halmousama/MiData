@@ -26,7 +26,7 @@ returns a `CommandError` whose message is an i18n key plus machine-readable para
 | `pedigree` | `PedigreeBounds`, `MIN_GENERATIONS`, `DEFAULT_GENERATIONS`, `MAX_GENERATIONS`, `MAX_NODES` | The bounds every pedigree traversal must carry: depth 1–10, 500-node global cap (rule: bound recursion). |
 | `sex` | `Sex` | `Male` / `Female`. Sire must be male, dam female — enforced by the commands, expressed here. |
 | `species` | `SpeciesKey` | An **open registry key**, not an enum: `parse` accepts lowercase letters, digits, `_`, `-`, ≤ 32 bytes. Adding a species is data, never a code change (rule 4). |
-| `status` | `Status`, `validate_exit_date` | `Alive` / `Sold` / `Dead` / … plus the exit-date rule: an animal that left needs a date, an animal still in the herd must not have one. |
+| `status` | `Status`, `validate_exit_date` | A closed three-state set — exactly `Alive`, `Sold`, `Dead` — plus the exit-date rule: an animal that left needs a date, an animal still in the herd must not have one. |
 | `value` | `Value`, `EncodedValue`, `MAX_MULTI_SELECT_ITEMS` | Typed value ↔ stored columns. `Value::encode(data_type)` and `Value::decode(data_type, encoded)` uphold **exactly one non-NULL column**, finite numbers only, no empty or duplicate choices, ≤ 256 choices, ISO dates. |
 
 `json_array` is private: a strict, bounded codec for the `multi_select` JSON array, because persisting
