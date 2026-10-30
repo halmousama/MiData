@@ -212,16 +212,23 @@ pub fn check(root: &Path) -> Result<()> {
 
 /// Render the allowlist from measured hits.
 ///
-/// An attribution hit is a gate error, never a row: the generator used to flatten every hit to
-/// `reference`, which let `--write-baseline` launder a real trailer into the allowlist (P0-14 review
-/// R2). Nothing is written when this fails.
-fn render_baseline(hits: &[Hit]) -> Result<String> {
-    if let Some(claim) = hits
+/// An attribution hit is a gate error, never a **new** row: the generator used to flatten every hit to
+/// `reference`, which let `--write-baseline` launder an in-tree trailer into the allowlist (P0-14
+/// review R2). A hit that is already recorded is kept — the ban-documenting surfaces
+/// (`docs/contributing.md`, `docs/review-templates.md`, `log/devlog.md`) quote the trailer by design,
+/// and refusing them would make `--write-baseline` permanently unusable, so the allowlist could never
+/// be repaired. Nothing is written when a *new* claim fails here.
+fn render_baseline(hits: &[Hit], allowlist: &[AllowlistEntry]) -> Result<String> {
+    let recorded: BTreeSet<(&str, &str)> = allowlist
         .iter()
-        .find(|hit| hit.kind == terms::TermKind::Attribution)
-    {
+        .map(|entry| (entry.path.as_str(), entry.term.as_str()))
+        .collect();
+    if let Some(claim) = hits.iter().find(|hit| {
+        hit.kind == terms::TermKind::Attribution
+            && !recorded.contains(&(hit.path.as_str(), hit.term.as_str()))
+    }) {
         bail!(
-            "{}:{}: `{}` is an attribution claim — never allowlisted; remove the claim instead of regenerating {BASELINE}",
+            "{}:{}: `{}` is an attribution claim — never newly allowlisted; remove the claim instead of regenerating {BASELINE}",
             claim.path,
             claim.line,
             claim.term
@@ -245,7 +252,14 @@ fn render_baseline(hits: &[Hit]) -> Result<String> {
 
 pub fn write_baseline(root: &Path) -> Result<()> {
     let hits = scan(root)?;
-    let content = render_baseline(&hits)?;
+    // The previous allowlist is the record of what was already reviewed; when it is absent (first
+    // generation) nothing is recorded, so any attribution hit refuses the write.
+    let allowlist = if root.join(BASELINE).is_file() {
+        read_baseline(root)?
+    } else {
+        Vec::new()
+    };
+    let content = render_baseline(&hits, &allowlist)?;
     let entries = entries_in(&content);
 
     let path = root.join(BASELINE);

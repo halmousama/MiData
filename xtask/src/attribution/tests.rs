@@ -177,19 +177,38 @@ fn a_trailer_above_the_scissors_line_is_still_rejected() {
 fn the_baseline_generator_refuses_an_attribution_claim() {
     let trailer = first(terms::TermKind::Attribution);
     let hits = vec![Hit {
-        path: "docs/example.md".to_string(),
+        path: "xtask/src/example.rs".to_string(),
         term: trailer,
         kind: terms::TermKind::Attribution,
         line: 4,
     }];
-    let error = render_baseline(&hits).expect_err("an attribution claim must not be allowlisted");
-    assert!(error.to_string().contains("never allowlisted"));
+    let error =
+        render_baseline(&hits, &[]).expect_err("an attribution claim must not be allowlisted");
+    assert!(error.to_string().contains("never newly allowlisted"));
+}
+
+/// The other direction: a document whose job is to state the ban quotes the trailer by design, so the
+/// generator must still be able to record it — otherwise `--write-baseline` could never repair the
+/// allowlist it is told to regenerate.
+#[test]
+fn the_baseline_generator_still_records_a_ban_documenting_reference() {
+    let trailer = first(terms::TermKind::Attribution);
+    let hits = vec![Hit {
+        path: "docs/contributing.md".to_string(),
+        term: trailer.clone(),
+        kind: terms::TermKind::Attribution,
+        line: 136,
+    }];
+    let allowlist = vec![entry("docs/contributing.md", &trailer)];
+    let content =
+        render_baseline(&hits, &allowlist).expect("an already-reviewed row stays allowlistable");
+    assert!(content.contains("docs/contributing.md\t"));
 }
 
 #[test]
 fn the_baseline_generator_renders_reference_rows() {
     let vendor = first(terms::TermKind::Vendor);
-    let content = render_baseline(&[hit("docs/architecture.md", &vendor, 15)])
+    let content = render_baseline(&[hit("docs/architecture.md", &vendor, 15)], &[])
         .expect("a reference hit is allowlistable");
     assert!(content.starts_with(BASELINE_HEADER));
     let rows: Vec<&str> = content
