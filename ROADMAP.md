@@ -1,9 +1,11 @@
 # MiData Native — roadmap
 
 > **Stage:** Phase 0 in progress — workspace + `xtask` gate + ubuntu/windows CI landed (P0-1); the docs
-> truth pass is closed (P0-2f, PR #6); the two L0 product crates are on `main` (P0-2 re-land, PR #8)
-> **Last reviewed:** 2026-10-30 · **Last updated:** 2026-10-30 · **Change:** P0-2 re-land closure — boot
-> state re-stamped (next task P0-3, open-row counts, headline numbers re-read from the scorecard)
+> truth pass is closed (P0-2f, PR #6); the two L0 product crates are on `main` (P0-2 re-land, PR #8);
+> CI is now **manual-dispatch only** (P0-15, D32)
+> **Last reviewed:** 2026-10-30 · **Last updated:** 2026-10-30 · **Change:** P0-15 — CI triggers reduced to
+> `workflow_dispatch` by owner ruling D32; phase-exit wording re-stamped (a dispatch, not an automatic run,
+> proves the both-OS gate)
 > **Current focus:** **Phase 0 — Foundations** (`docs/roadmap.md`, next task **P0-3**)
 
 MiData is a local-first livestock management and analysis desktop application — native Rust + egui, one
@@ -31,7 +33,7 @@ Numbers are measured, never estimated: they come from `docs/scorecard.md`, gener
 
 | Phase | State |
 |---|---|
-| 0 — Foundations | **in progress** — bootstrap (B0), extraction (P0-11), owner rulings (P0-12), workspace/CI (P0-1), the docs truth pass (P0-2f), D30 enforcement (P0-14) and the L0 product crates (P0-2) done; 8 tasks open — 3 ready (P0-3, P0-8, P0-10), 5 blocked behind the store → engine → app chain |
+| 0 — Foundations | **in progress** — bootstrap (B0), extraction (P0-11), owner rulings (P0-12), workspace/CI (P0-1), CI manual-dispatch (P0-15), the docs truth pass (P0-2f), D30 enforcement (P0-14) and the L0 product crates (P0-2) done; 8 tasks open — 3 ready (P0-3, P0-8, P0-10), 5 blocked behind the store → engine → app chain |
 | 1 — Core herd | not started |
 | 2 — Organization & rules | not started |
 | 3 — Analytics, dashboard, data I/O | not started |
@@ -63,7 +65,8 @@ Honest list, in the order it hurts:
 
 ## What "done" looks like at the next checkpoint
 
-Phase 0 exit (`REBUILD_PLAN.md` §14): `xtask ci` green on ubuntu **and** windows · the app boots to a
+Phase 0 exit (`REBUILD_PLAN.md` §14): `cargo xtask ci` green locally **and a manual both-OS dispatch on
+record** (ubuntu + windows — by D32 CI runs only on `workflow_dispatch`) · the app boots to a
 dashboard with demo data · onboarding is idempotent · migrations are idempotency-tested · `AGENTS.md`
 is a lean bootloader ≤ ~12 KB · 0 file-budget violations · shell + onboarding snapshots viewed ·
 devlog active — then owner UAT

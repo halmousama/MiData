@@ -244,16 +244,26 @@ outside the repo at `../midata-pre-scrub.bundle` and is never committed.
 action. It never implements and never reviews: it picks the top `docs/gaps.md` entry, spawns a
 fresh-context IMPLEMENTER, then a fresh-context REVIEWER that receives parameters only (no summaries, no
 opinions, no implementer devlog claims), arbitrates at most two review rounds, and squash-merges with
-`gh pr merge --squash --delete-branch` — GitHub-side, so branch protection and the required checks are
-enforced server-side rather than trusted.
+`gh pr merge --squash --delete-branch` — GitHub-side. Since D32 the *proof* behind that merge is the
+self-reported local gate plus, where §3 rule 9 requires it, a cited manual dispatch; the required-check
+gate cannot be satisfied by a dispatch, so it is being removed from `main`'s protection (supervisor, after
+this PR merges) and the supervisor cites evidence rather than relying on the merge button.
 **Merge conditions (all six required; any failure = stop and escalate):** (1) reviewer APPROVE with
-0 BLOCKER/0 MAJOR · (2) both required checks green on the PR head · (3) **no escalation flag on the
+0 BLOCKER/0 MAJOR · (2) **CI proof in two parts — see D32**: (2a) the local gate (`cargo xtask ci`) green
+on the reviewed head, its final line quoted in the PR and the reviewer's re-run on that head; (2b) a
+manual both-OS dispatch green on that head for any change in the platform-sensitive class of §3 rule 9 ·
+(3) **no escalation flag on the
 task** — the `docs/gaps.md` row's Status reads `escalated`, or a local `plan/ESCALATE` marker exists
 alongside `plan/HOLD` · (4) the diff touches no owner-reserved surface (schema migrations, the
 dependency set, deletion of committed data, the security-adjacent §3 rows — §3.1 rows 8–10, §3.3,
 §3.4 — branding) · (5) a **merge report paragraph in the devlog** — owed by stage 6 of the same
 cycle; the cycle is not complete until that paragraph exists and its absence is an escalation, which
 is how the condition is checked · (6) no `plan/HOLD` file.
+**Superseded (CI clause): D32, 2026-10-30.** The original condition 2 ("both required checks green on the
+PR head") and the "required checks are enforced server-side" guarantee above no longer hold; D32 replaced
+them with (2a)/(2b) and removes the required-status-checks rule from `main`'s protection (supervisor,
+after this PR merges). The rest of D31 —
+the six conditions, the budget, the revocation path and the fresh-context rationale — stands unchanged.
 **Limits:** default budget of 3 tasks then an owner digest; a task failing twice escalates instead of
 being retried; a round-3 review escalates; the owner revokes at any time by creating `plan/HOLD` or by
 amending this row. The owner keeps merge authority on escalations, phase gates and releases.
@@ -269,6 +279,39 @@ the cycles by hand.
 **Consequence:** D25's "the owner squash-merges every PR" becomes "the owner squash-merges every PR
 outside the D31 envelope"; `AGENTS.md` §12 is the operating procedure, `docs/review-templates.md` gains
 the SUPERVISOR template, and every delegated merge leaves a report paragraph in the devlog.
+
+### D32 — CI is manual-dispatch only
+**2026-10-30 (owner ruling).** The owner's instruction: *"disable it without removing, i want to run it
+only manually."* `.github/workflows/ci.yml` therefore loses its `push` and `pull_request` triggers and
+keeps `workflow_dispatch`; the `ubuntu-latest` + `windows-latest` matrix, both jobs and every step stay
+byte-identical. A run is started with `gh workflow run ci.yml --ref <branch>`, inspected with
+`gh run list --workflow ci.yml --branch <branch>`, and awaited with `gh run watch <run-id>`. The
+`concurrency` group stays as it was — `group: ci-${{ github.workflow }}-${{ github.ref }}`,
+`cancel-in-progress: true` — so a manual run on a branch cancels only that branch's earlier run.
+**Why.** Wall-clock: the gate already exists as a single local definition (`cargo xtask ci`) that runs the
+same block on the same code, so an automatic run on every push and every PR bought latency at the cost of
+runner minutes. The trigger is the only thing removed — revocation is one diff away.
+**Supersession.** This amends D31's condition (2) and `AGENTS.md` §12: "both required CI checks green on
+the PR head" is no longer satisfiable. The replacement is checkable in two parts — **(2a)** the local gate
+ran green on the reviewed head, its final line is quoted in the PR description, and the reviewer re-ran
+it (the self-reported half); **(2b)** a manual both-OS dispatch is green on that head for any change in
+the platform-sensitive class of §3 rule 9 (Windows path handling, file locks, process spawning,
+case-insensitive filesystems). **Accepted risk:** because (2a) is self-reported, a Windows-specific defect
+can reach `main` with nothing server-side having seen it — run `41133273505`'s `failed to remove …
+target\debug\xtask.exe … Access is denied (os error 5)` is exactly the class of failure only the Windows
+job could catch, and it did once already. **Mitigations:** dispatch before any phase gate, release tag,
+or merge touching a platform-sensitive surface; a release tag requires a green both-OS dispatch on record.
+**Branch protection (post-merge, supervisor).** A `workflow_dispatch` run is **not** a PR check: the
+dispatched checks are green on the exact PR head while `gh pr checks` still reports "no checks reported"
+and the merge state reads `BLOCKED`. With `ci (ubuntu-latest)` / `ci (windows-latest)` required on `main`,
+every merge would therefore need the admin bypass (`enforce_admins: false`) — security theatre, not a
+control. **Ruling:** the required-status-checks requirement is removed from `main`'s protection (the
+force-push and deletion blocks stay), and the supervisor verifies condition (2b) by running and citing the
+dispatch instead of letting GitHub gate the merge button. The supervisor performs that settings change
+**after** this PR merges, so the documentation and the setting change meet.
+**Consequence:** the honest posture changes from "CI verifies every PR" to "CI verifies what we ask it
+to"; the local gate is now load-bearing for every merge, and its output must be quoted rather than
+assumed. `docs/contributing.md` §2 carries the contributor-facing command.
 
 ## 2. Open items with defaults (REBUILD_PLAN §16)
 

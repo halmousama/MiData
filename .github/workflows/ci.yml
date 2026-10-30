@@ -11,10 +11,17 @@ name: CI
 # Every action is pinned to a commit SHA (with the release tag in a trailing comment): the only
 # supply-chain surface of an offline-first app is CI, so a mutable tag is a needless risk.
 
+# Manual dispatch only (owner ruling D32, 2026-10-30): no `push` or `pull_request` trigger, so a
+# branch push and a PR open cost no runner minutes. The workflow, matrix and steps are unchanged —
+# the gate is still the same `cargo xtask ci` on ubuntu-latest and windows-latest (D12). Run it on a
+# branch with:
+#   gh workflow run ci.yml --ref <branch>
+# then `gh run list --workflow ci.yml --branch <branch>` and `gh run watch <run-id>`. A dispatch is
+# required before any phase gate, release tag, or merge touching a platform-sensitive surface
+# (Windows path handling, file locks, process spawning, case-insensitive filesystems) — see
+# AGENTS.md §3 rule 9 and docs/contributing.md §2. This is accepted risk, not a free pass: without a
+# dispatch nothing server-side proves Windows.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:

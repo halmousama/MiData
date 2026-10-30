@@ -839,3 +839,108 @@ fixed** — it is a code-design change, recorded here as follow-up rather than s
 **cycle 3: P0-2 re-land merged (PR #8, 0M at round 1, runs 41134549806 / 41135799752) · next: P0-3**
 
 **BUDGET EXHAUSTED — 3 tasks merged (P0-2f, P0-14, P0-2). Owner digest follows.**
+
+---
+
+## 2026-10-30 — P0-15 · CI manual-dispatch only (owner ruling D32)
+
+**Landed**
+- `.github/workflows/ci.yml`: `push`/`pull_request` triggers removed, `workflow_dispatch` is the only
+  trigger. **Nothing else changed** — ubuntu-latest + windows-latest matrix, both jobs, every step and
+  the `group: ci-${{ github.workflow }}-${{ github.ref }}` / `cancel-in-progress: true` concurrency block
+  are byte-identical. Header comment names D32, the reason and the run command.
+- `AGENTS.md` §3 rule 9 now says the matrix is binding *when it runs*, runs are manual, the local gate is
+  the always-on proof, and a both-OS dispatch is required before phase gates / release tags / merges
+  touching a platform-sensitive surface — with the `41133273505` Windows failure cited so it is not read
+  as a free pass, and the negative stated explicitly (nothing auto-runs; a green Linux run proves nothing
+  about Windows). §12 condition (2) splits into **(2a)** local gate green on the reviewed head, quoted in
+  the PR and re-run by the reviewer (self-reported), and **(2b)** a manual both-OS dispatch for the
+  platform-sensitive class (the only server-side proof left). §5 DoD now says the local gate is the
+  always-on requirement.
+- `REBUILD_PLAN.md` §15: D31's condition (2) amended to (2a)/(2b); **D32 added** (date · ruling · matrix
+  retained · wall-clock rationale · accepted risk · mitigations · branch protection · revocation via
+  `plan/HOLD` or amendment).
+- `docs/decisions.md` D32 (ADR-lite) + a "Superseded (CI clause): D32" note inside D31, whose condition 2
+  now reads as the (2a)/(2b) pair — the dead "enforced server-side" claim is marked dead, not deleted;
+  `docs/review-templates.md` stage 5/6 carry the same wording; `docs/contributing.md` §2 (commands, when
+  a dispatch is required, and that a dispatch is evidence rather than a merge-button gate);
+  `docs/gaps.md` (P0-15 row, closed section, arithmetic); `docs/roadmap.md` + `ROADMAP.md` exit-criterion
+  truth-stamp; this entry.
+
+**Numbers**
+- Triggers: 2 automatic (push, pull_request) → **0**; `workflow_dispatch` remains **1**. **1 job, 2 OS
+  legs (`ubuntu-latest`, `windows-latest`), 5 steps** (unchanged). Open queue unchanged at **54 h**
+  (P0-15 added 2 h, closed 2 h); cumulative queue **78.5 h** (= 72 + 1.5 + 3 + 2, re-derived from the
+  table); open tasks **8**.
+
+**Accepted risk**
+- Server-side verification is **gone** for ordinary pushes. The local gate is self-reported, so a
+  Windows-only defect can reach `main` without a dispatch. Mitigation: dispatch before phase gates,
+  release tags and platform-sensitive merges; a weekly `schedule:` trigger is the cheap option if the
+  owner wants a standing signal.
+- **Branch protection cannot be satisfied by a dispatch** (it is not a PR check: checks green on the head,
+  `gh pr checks` "no checks reported", merge state `BLOCKED`). The supervisor removes the
+  required-status-checks rule from `main` **after** this PR merges (force-push and deletion blocks stay)
+  and verifies (2b) by citing the dispatch — merging via the admin bypass would be security theatre.
+  Documented in `REBUILD_PLAN.md` D32, `docs/decisions.md` D32, `docs/contributing.md` §2 and P0-15.
+
+**Still open**
+- Round-2 head must have a green both-OS dispatch, cited in the PR body; the mechanism-proof dispatch is
+  **run `41136964128` @ `12d7ed2` (ubuntu ✅ / windows ✅)**.
+- P0-3 is next (`midata-store`); P0-10 (`AGENTS.md` diet) stays queued.
+
+**review #9 round 1: REQUEST_CHANGES — 0 BLOCKER / 4 MAJOR / 4 MINOR / 3 SUGGESTION** (P0-15: stale condition-2 homes in review-templates, AGENTS §5 DoD, decisions D31; branch protection unsatisfiable by a dispatch).
+
+**review #9 round 2 (fix round) — dispositions.** R1: `docs/review-templates.md` stage 5 now carries the
+(2a)/(2b) pair verbatim and stage 6 notes that a dispatched run id is the only kind that exists. R2:
+`AGENTS.md` §5 DoD now says "local gate green on the reviewed head (and a both-OS dispatch where §3 rule 9
+requires one)". R3: `docs/decisions.md` D31 keeps its history, gains a "Superseded (CI clause): D32,
+2026-10-30" note, its condition 2 reads "(2) CI proof in two parts — see D32", and the "enforced
+server-side rather than trusted" claim is replaced with what actually holds. R4: the supervisor removes
+`main`'s required-status-checks rule after merge (a dispatch is not a PR check: green checks, "no checks
+reported", `BLOCKED`); recorded in `REBUILD_PLAN.md` D32, `docs/decisions.md` D32, `docs/contributing.md`
+§2 and the P0-15 row. R5: cumulative queue re-derived from the table → **78.5 h**. R6: mechanism-proof
+dispatch **run `41136964128` @ `12d7ed2` (ubuntu ✅ / windows ✅)** recorded here and in the Closed row; the
+final head's dispatch is cited in the PR body. R7/R8: the P0-1 owner TODO is marked done-then-superseded
+by D32, and "on every PR" → "on every dispatch". S1: the real concurrency expression is quoted. S2: rule 9
+states the negative (nothing auto-runs; a green Linux run proves nothing about Windows). S3: numbers say
+"1 job, 2 OS legs, 5 steps".
+
+**review #9 round 2: APPROVE — 0 BLOCKER / 0 MAJOR / 1 MINOR / 3 SUGGESTION** (P0-15: four condition-2 homes agree; gate + dispatch green on 6533c4b; residual = D12/A4 ADR markers).
+
+### 2026-10-30 · P0-15 merged — CI is manual-dispatch only (owner ruling D32)
+
+**Merge report (D31 condition 5).** PR #9 `t/p0-15-manual-dispatch-ci` squash-merged as one commit.
+Task: **P0-15**, owner-directed process task outside the D31 cycle budget (the budget of 3 was consumed
+by P0-2f, P0-14 and P0-2; this change was the owner's own instruction and was recorded before the digest).
+
+**Verdicts.** Round 1 REQUEST_CHANGES — 0 BLOCKER / 4 MAJOR / 4 MINOR / 3 SUGGESTION (stale condition-2
+homes in `docs/review-templates.md`, `AGENTS.md` §5 DoD and `docs/decisions.md` D31; branch protection
+unsatisfiable by a dispatch). Round 2 **APPROVE — 0 BLOCKER / 0 MAJOR / 1 MINOR / 3 SUGGESTION** (residual:
+D12/A4 ADR supersession markers, non-operative). Two rounds, no round 3, no contested finding.
+
+**CI proof (condition 2, in its new two-part form).** (2a) `cargo xtask ci` green on the reviewed head
+`6533c4b` — `xtask ci: OK — every gate that can run has run and passed` (163 tests, file-budget 40/0,
+i18n EN 19 / FR 19, banned-names 0 new, deny + machete OK), re-run independently by the reviewer.
+(2b) dispatched runs `41136964128` @ `12d7ed2` and `41138289419` @ `6533c4b`, both `workflow_dispatch`,
+both green on `ubuntu-latest` and `windows-latest`. A pre-dispatch `gh run list --branch` returned nothing,
+which is the proof the automatic triggers are gone.
+
+**Deviations.** None. The merge-report commit is itself docs-only and moved the head past the reviewed
+`6533c4b`; a third dispatch was run on that head instead of declaring a deviation, so every condition
+holds literally on the merged content.
+
+**What changed.** `.github/workflows/ci.yml` loses `push`/`pull_request` and keeps `workflow_dispatch`;
+the 1 job × 2 OS legs × 5 steps and every command are byte-identical. `AGENTS.md` §3 rule 9 and §5 DoD,
+`REBUILD_PLAN.md` §15 D31 + new D32, `docs/decisions.md` D31 (supersession note) + D32,
+`docs/review-templates.md` stage 5, `docs/contributing.md` §2, both roadmaps and the gaps row now describe
+the manual-dispatch world, and the accepted risk is stated in four places rather than implied nowhere.
+
+**Supervisor action after this merge (owed, not done):** remove the required-status-checks rule from
+`main`'s branch protection (force-push and deletion blocks stay); verify and report. Until then a merge
+needs the admin bypass, which is exactly why the rule goes.
+
+**Next task:** **P0-3 — `midata-store`** (rank 1, 12 h, unblocked now that P0-2 is on `main`).
+**Still open:** R10 from PR #7 (allowlist keyed `(path, term)`), S1 from PR #8 (`EncodedValue` variants
+public → `Num(NAN)` constructible), R7a from PR #6 (D30 reference-vs-attribution narrowing awaits an owner
+clarification), and the D12/A4 ADR markers from PR #9 round 2.

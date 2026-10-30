@@ -21,7 +21,8 @@
 
 **Definition of done:** behaviour exists as a registered, documented command (when user-visible) ·
 tests including graceful-failure and the **test-integrity checklist (§3)** · wired into the UI (and CLI
-where relevant) · snapshots viewed for UI work · full gate green on ubuntu **and** windows ·
+where relevant) · snapshots viewed for UI work · local gate (`cargo xtask ci`) green on the reviewed head ·
+a manual both-OS dispatch green for platform-sensitive changes, phase gates and releases (D32, §2) ·
 inventory/gaps/scorecard/devlog updated · **`ROADMAP.md` header stamp and current-focus line updated at
 task closure** (and the matching `Updated:` stamp in `docs/roadmap.md`).
 
@@ -43,6 +44,31 @@ cargo xtask stats                                # regenerate scorecard and comm
 
 `cargo xtask ci` runs the block. **Never commit red.** Every commit keeps the workspace building and the
 touched crates' gates green. Mid-task commits are session checkpoints, not releases.
+
+**CI still exists — but only when asked (D32).** Since the owner's 2026-10-30 ruling the GitHub workflow
+has **no `push` or `pull_request` trigger**: it is `workflow_dispatch` only, and the ubuntu + windows
+matrix, jobs and steps are unchanged. So a green local gate is the only thing that verifies your branch
+unless you dispatch it. To run the both-OS matrix on your branch:
+
+```sh
+gh workflow run ci.yml --ref <your-branch>
+gh run list --workflow ci.yml --branch <your-branch> --limit 5
+gh run watch <run-id>          # wait for the ubuntu and windows jobs
+```
+
+**Dispatch is required** for (a) any change to a **platform-sensitive surface** — Windows path handling,
+file locks, process spawning, case-insensitive filesystems; (b) every **phase gate**; (c) every **release
+tag**; and (d) any change to `.github/` itself (a change to CI must be observed running). For an ordinary
+platform-neutral change the local gate is the proof, but say so explicitly in the PR: "local gate green on
+head `<sha>`" with the final line quoted. If you quote a dispatch, paste the run URL and both job
+conclusions.
+
+**A dispatched run is evidence, not a merge gate (D32).** GitHub does not attach a `workflow_dispatch`
+run to the PR: the checks can be green on the exact head while `gh pr checks` reports "no checks reported"
+and the merge state reads `BLOCKED`. That is why the required-status-checks rule is being removed from
+`main`'s protection (force-push and deletion blocks stay) once this task merges. A **red** dispatch is
+therefore the supervisor's stop signal — noticed, reviewed and cited — not a merge-button block; a green
+one is cited as the (2b) proof. Nothing about this weakens the local gate: it stays the always-on proof.
 
 ## 3. Test-integrity checklist (`REBUILD_PLAN.md` §3.8)
 
