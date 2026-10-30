@@ -495,3 +495,85 @@ escalations), N5 (the bootloader grew 34 177 → 36 436 B while P0-10 is open at
 six-condition list should collapse to a pointer when the diet lands; wire that into P0-10's scope).
 
 **cycle 0 (pre-flight): D31 merged (PR #5, 3M→0M over 2 rounds, run 41124154529) · next: P0-2f**
+
+## 2026-10-30 — P0-2f · Docs truth pass (roadmap focus, closure-stamp DoD, P0-14 promotion)
+
+**Landed (PR [#6](https://github.com/halmousama/MiData/pull/6), docs-only).**
+- `docs/roadmap.md`: truthful `Updated:` stamp and "Current focus". Verified, not assumed: PR #3 is
+  **CLOSED** (`mergedAt` null, `closedAt` 2026-10-27T09:35:38Z), P0-2 lives only on
+  `t/p0-2-domain-i18n` (`cb4405c`), and **`main` has no `crates/` directory at all**. Focus order is
+  **P0-2f → P0-14 → P0-2 re-land → P0-3**, with P0-3 stated as blocked until P0-2 is on `main`.
+- `docs/contributing.md`: DoD gains the closure-stamp rule — `ROADMAP.md` header stamp and
+  current-focus line updated at task closure (matching `Updated:` stamp in `docs/roadmap.md`).
+- `docs/gaps.md`: P0-2f (rank 2) and P0-14 (rank 3) rows added; ranks renumbered 1–12; P0-2 Status
+  corrected to "branch fixes, PR closed unmerged, re-land queued"; Status vocabulary
+  (`open`/`done`/`escalated`) documented; P0-10 re-ranked 2 → 12 with the `AGENTS.md` §12 pointer
+  follow-up wired in; known shortfall 8 added with its traceability (found during P0-2 on the branch,
+  promoted to P0-14 on 2026-10-30). No vendor/model literals printed — P0-14 records the
+  assembled-in-code mechanism and the gate negative proof instead.
+
+**Numbers.** Queue open sum 62 → **66.5 agent-hours** (72 start − 10 P0-1 + 1.5 P0-2f + 3 P0-14;
+P0-2's 8 h stays open because PR #3 closed unmerged). `AGENTS.md` re-measured at **36 436 B** = 3.04×
+the 12 KB P0-10 target. `cargo xtask ci`: `xtask ci: OK — every gate that can run has run and passed`;
+the scorecard diff was clean, so no scorecard commit.
+
+**Still open.** (1) Root `ROADMAP.md` remains stale (says next task P0-10) — outside P0-2f's declared
+file scope; the new DoD rule forces its update at the next closure. (2) **P0-14** — D30 is still
+honour-system until the hook and term list land. (3) **P0-2 re-land** — the reviewed branch still has to
+reach `main` before P0-3 can start. (4) **P0-10** diet, now rank 12.
+
+**Review #6 round 1 (independent REVIEWER, separate session):** REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR / 3 MINOR / 3 SUGGESTION (R1 the P0-14 row and shortfall 8 quote a clause AGENTS.md never contains — §5 actually says the hook and term list "do not exist yet"; R2 "review finding R1 of PR #3" and "round-1 review fixes" cite a review record that does not exist: PR #3 has 0 reviews, 0 comments, an empty timeline, and the branch is a single commit; R3 the declared ROOT `ROADMAP.md` deviation is a legitimate scope boundary, but the known shortfall is not entered in the ranked queue, so the wrong-boot-state defect survives in the first doc every session reads); docs-only fast path (A+D), C skipped, B sampled on the P0-3 blocker, the D31 six conditions and the deviation; every numeric and state claim re-verified (PR #3 CLOSED/`mergedAt` null/`closedAt` 2026-10-27T09:35:38Z, empty `crates/` on `origin/main`, `cb4405c`, `wc -c AGENTS.md` = 36 436 = 3.04×, Sum 66.5 recomputed from the Est. column, ranks 1–12 contiguous, both stamps 2026-10-30, no scorecard in the diff, no vendor/model literal and no trailer) and `cargo xtask ci` re-run green here; full report in PR #6 comment <https://github.com/halmousama/MiData/pull/6#issuecomment-6533250313>; no code or docs touched beyond this line, nothing pushed.
+
+**Fix round 1 (R1–R6, S1–S3).** All nine addressed on the branch. **R1** — the P0-14 row and shortfall 8
+now quote the constitution's real sentence (`AGENTS.md` §5: "Review-enforced today: the `commit-msg` hook
+and the vendor/model term list in the banned-names gate do not exist yet", D30: "Review-enforced
+**until** … land") instead of the invented clause. **R2** — the "PR #3 review finding R1" /
+"round-1 review fixes" attribution is gone from `docs/gaps.md` (queue row, P0-2f source, P0-2 status) and
+`docs/roadmap.md`: PR #3 has 0 reviews / 0 comments / an empty timeline and its branch is a single
+commit, so the docs now say exactly that and record that the re-land needs a fresh review. **R3** —
+supervisor ruling accepted: the four-file boundary stands as a legitimate boundary, and the ROOT
+`ROADMAP.md` is now owned under a declared scope amendment and re-stamped (P0-10 → P0-14 focus,
+"9 tasks queued, none blocked" → 10 open / 4 ready / 6 blocked, `AGENTS.md` 33.5 KB → 36 436 B); no
+shortfall 9 was needed because nothing in the file stayed unfixable. **R4** — P0-14(d) mirrors
+`is_allowed_path` (AGENTS/REBUILD_PLAN/decisions/gaps/legacy-spec) plus `ARTCRAFT_INVESTIGATION.md`, and
+adds the reference-vs-attribution rule that makes the clean full-tree run passable (the architecture
+doc's vendor-named LLM API dialect is a reference, not attribution). **R5** — P0-2f is stamped **done
+(2026-10-30, PR #6)**, the Closed table gains its row, and the focus line moves to **P0-14**; the stamp
+precedes the merge by one action, stated in the PR body. **R6** — "D31 §12 condition-3" became "an
+`AGENTS.md` §12 condition-3 escalation flag (D31)". **S1** — the ROADMAP size/queue numbers fixed (it is
+the R3 fix). **S2** — P0-14(b) cites the existing precedent `xtask/src/gates.rs:31`
+`concat!("ru", "metrics")` plus the `:92` self-scan test. **S3** — P0-14(c) names
+`docs/banned-names.baseline` and a `cargo xtask banned-names` gate whose count may only shrink, like
+`docs/i18n-coverage.baseline`.
+
+**Numbers after the fix round.** Queue open sum 66.5 → **65 agent-hours** (P0-2f closed, 1.5 h off the
+open sum; 10 open rows, 4 ready / 6 blocked). `cargo xtask ci` green; scorecard unchanged (docs only).
+
+**Review #6 round 2 (independent REVIEWER, separate session):** APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 3 SUGGESTION at `6e40c3e` (R1 FIXED, R2 PARTIAL — committed docs carry the corrected provenance but the PR body still says "the exact defect R1 of the PR #3 review raised" and still reports the removed "fixes applied" wording, R3 FIXED under the declared scope amendment, R4 FIXED, R5 FIXED with the pre-merge stamp declared, R6 FIXED, S1–S3 FIXED with `gates.rs:31`/`:92` and the absent `docs/banned-names.baseline` both verified); docs-only fast path (A+D), C skipped, B sampled on D30/§5/§8/§12/D27-A2; all delta numbers re-measured (Est. column sums 76.5 total − 10 − 1.5 = 65 open across 10 rows, 4 ready / 6 blocked by transitive dependency resolution, `wc -c AGENTS.md` = 36 436 = 35.6 KiB, ranks 1–12 contiguous, three 2026-10-30 stamps, 5 files, `cb185d4` an ancestor, 4 commits D30-clean) and `cargo xtask ci` re-run green with the scorecard unchanged; no round 3 needed; full report in PR #6 comment <https://github.com/halmousama/MiData/pull/6#issuecomment-6533343696>; no code or docs touched beyond this line, nothing pushed.
+
+**Merge report (PR #6 · task P0-2f · cycle 1 of 3).** Two review rounds by a fresh independent
+reviewer (docs-only fast path A+D, B sampled). Round 1: **REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR /
+3 MINOR / 3 SUGGESTION** — R1 the P0-14 row quoted an `AGENTS.md` §5 sentence that exists nowhere
+(the real text says the hook and term list "do not exist yet"); R2 "PR #3 round-1 review fixes" was
+unverifiable provenance (PR #3 carries 0 reviews, 0 comments, an empty timeline and a single commit);
+R3 the correct truth-stamp left the *first-read* boot doc `ROADMAP.md` still naming P0-10 as next.
+Fix round `c949a27`+`6e40c3e`. Round 2: **APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 3 SUGGESTION**,
+R1/R3/R4/R5/R6 and S1–S3 FIXED, R2 PARTIAL in the PR body only (fixed in the body, field R7b), no new
+MAJOR. CI on the pre-report head `6e40c3e`: run **41127148842** — ubuntu 23 s, windows 45 s, both
+green. Reports: PR #6 comments
+[6533250313](https://github.com/halmousama/MiData/pull/6#issuecomment-6533250313) and
+[6533343696](https://github.com/halmousama/MiData/pull/6#issuecomment-6533343696).
+
+**Deviations, stated rather than buried.** (i) **Scope amendment, declared before it was used:** root
+`ROADMAP.md` was outside P0-2f's four declared files; R3 ruled the boundary legitimate but the stale
+boot doc fatal to the task's purpose, so the supervisor widened the file set to five and the amendment
+is recorded in the PR body and in the P0-2f row — not silently. (ii) The P0-2f row is stamped
+`done (2026-10-30, PR #6)` one action before the squash exists; the PR body declares that gap and the
+devlog line below closes it. (iii) **R7a is an owner question, not a fix:** the P0-14
+reference-vs-attribution rule narrows binding D30 ("no vendor/model name in docs") to attribution
+contexts, decided inside a docs task. It changes no D30 text and the conflict pre-exists in
+`AGENTS.md`'s own "OpenAI-compatible" policy line, so it did not block merge — but the owner should
+confirm the reading when P0-14 is picked up. (iv) `docs/banned-names.baseline` does not exist yet;
+P0-14 describes it as future work, not as landed.
+
+**cycle 1: P0-2f merged (PR #6, 3M→0M over 2 rounds, run 41127148842) · next: P0-14**

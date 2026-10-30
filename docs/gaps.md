@@ -1,6 +1,6 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-30 (D31 review round 1: P0-10 byte figure, D29–D31 closed rows) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-30 (P0-2f docs truth pass closed: queue re-ranked, P0-14 promoted, roadmap focus corrected; review #6 round-1 fixes R1–R6/S1–S3 and the `ROADMAP.md` scope amendment applied) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -16,19 +16,28 @@
 | Rank | id | Task | Kind | Impact | Est. (h) | Depends on | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
-| 2 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 36.4 KB (35.6 KiB) against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
-| 3 | P0-2 | `midata-domain` + `midata-i18n` | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open |
-| 4 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 | open |
-| 5 | P0-4 | `midata-engine` skeleton | feature | Command registry + audit hook — the agent-first seam | 8 | P0-2, P0-3 | open |
-| 6 | P0-5 | `midata-app` shell + theme | feature | First pixels: window, router, tokens, settings persistence | 12 | P0-2, P0-4 | open |
-| 7 | P0-6 | Onboarding + demo seed | feature | Makes the app usable on first run; exit-gate dependency | 8 | P0-3, P0-4, P0-5 | open |
-| 8 | P0-7 | `midata-cli` skeleton | feature | `commands` / `run` / `seed` — agent drivability from a terminal | 3 | P0-4, P0-6 | open |
-| 9 | P0-8 | Inventory v0 reconciliation (re-scoped) | docs | Turns the hand-written checklist into a machine-checkable contract | 2 | — | open |
-| 10 | P0-9 | Snapshots + gates polish | quality | Locks the Phase-0 exit criteria and the ratchets in place | 6 | P0-5, P0-6 | open |
+| 2 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | docs | Every session boots from a stale "current focus" | 1.5 | — (D31 merged) | **done** (2026-10-30, PR #6) |
+| 3 | P0-14 | D30 mechanical enforcement: `commit-msg` hook + vendor/model term list | tooling | D30 is honour-system until the hook and the second term list exist | 3 | — (D30 adopted 2026-10-27) | open |
+| 4 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open — implementation on `t/p0-2-domain-i18n` (`cb4405c`); PR #3 **closed unmerged** 2026-10-27; re-land queued |
+| 5 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 (blocked until P0-2 is on `main`) | open |
+| 6 | P0-4 | `midata-engine` skeleton | feature | Command registry + audit hook — the agent-first seam | 8 | P0-2, P0-3 | open |
+| 7 | P0-5 | `midata-app` shell + theme | feature | First pixels: window, router, tokens, settings persistence | 12 | P0-2, P0-4 | open |
+| 8 | P0-6 | Onboarding + demo seed | feature | Makes the app usable on first run; exit-gate dependency | 8 | P0-3, P0-4, P0-5 | open |
+| 9 | P0-7 | `midata-cli` skeleton | feature | `commands` / `run` / `seed` — agent drivability from a terminal | 3 | P0-4, P0-6 | open |
+| 10 | P0-8 | Inventory v0 reconciliation (re-scoped) | docs | Turns the hand-written checklist into a machine-checkable contract | 2 | — | open |
+| 11 | P0-9 | Snapshots + gates polish | quality | Locks the Phase-0 exit criteria and the ratchets in place | 6 | P0-5, P0-6 | open |
+| 12 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 36.4 KB (35.6 KiB) against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
 
-**Sum:** 62 agent-hours open (72 at queue start; P0-1 closed 10 h). Phase 0 closes when every open row
-is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on
-2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27 and P0-1 on 2026-10-27 — see §Closed.
+**Status vocabulary:** `open` · `done` (always with its closure date and evidence) · `escalated` (a task
+carrying an `AGENTS.md` §12 condition-3 escalation flag (D31): this row's Status reads `escalated`, or a
+local `plan/ESCALATE` marker exists alongside `plan/HOLD`).
+
+**Sum:** 65 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h added and closed
+2026-10-30; P0-14 3 h added 2026-10-30; **P0-2's 8 h stays open — PR #3 closed unmerged**, so it is
+queued for re-land, not closed). Of the ten open rows, four are ready (`P0-14`, `P0-2` re-land, `P0-8`,
+`P0-10`) and six are blocked behind the re-land chain. Phase 0 closes when every open row is `done` and
+the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on 2026-10-26,
+P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27 and P0-2f on 2026-10-30 — see §Closed.
 
 ---
 
@@ -129,44 +138,112 @@ claimed here.
 
 ---
 
-## P0-10 — `AGENTS.md` diet to a lean bootloader  ·  3 h  ·  rank 2
+## P0-2f — Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion  ·  1.5 h  ·  rank 2  ·  **done 2026-10-30 (PR #6)**
 
-**Kind:** docs · **Source:** `REBUILD_PLAN.md` §1.3 bullet 7, §11.1, Appendix C bullet 2; amended policy
-`REBUILD_PLAN.md` §15 **D27** (owner ruling 2026-10-27).
+**Kind:** docs · **Source:** measured defect found while bootstrapping the D31 cycle — the roadmap header
+had been stale since PR #3 was closed unmerged. (PR #3 carries **no review record at all**: 0 reviews,
+0 review comments, 0 issue comments, and its timeline holds only commits plus `closed` — so no review
+finding is cited here, and the re-land needs a fresh review.)
 
-**Policy (amended, owner-approved).** `AGENTS.md` is a **lean bootloader**: iron rules + orientation
-only — **rules not procedures; one authoritative home per topic**; target **≤ ~12 KB** (raised from the
-original 8 KB). `AGENTS.md` may summarize and point at a doc; it must never duplicate that doc's
-content. Every rule keeps exactly one authoritative home — usually `docs/contributing.md`,
-`docs/development.md` or `docs/architecture.md`, which already carry most of the mechanical detail, so
-this stays mostly deletion.
+**Why now.** Every session reads `docs/roadmap.md` first to learn the current focus. Since PR #3 was
+closed unmerged, that line named P0-10 then P0-2 as "next" while `main` contained no product crates at
+all, so each session booted from a false picture of the repository. A wrong boot state costs every
+future task; it is cheap to correct and it is the precondition for the re-land chain.
 
-**Evidence of the gap.** Measured 2026-10-30: `AGENTS.md` is **36.4 KB** (35.6 KiB), ~3.0× the amended
-target. Every session pays that cost before doing any work — the exact failure mode §1.3 bullet 7 was
-written to prevent.
+**Scope.**
+- `docs/roadmap.md`: truthful `Updated:` stamp and "Current focus" — `main` has **no `crates/`
+  directory**, P0-2 lives on `t/p0-2-domain-i18n` (remote tip `cb4405c`), PR #3 was **closed unmerged on
+  2026-10-27T09:35:38Z**; focus order P0-2f → P0-14 → P0-2 re-land → P0-3, with P0-3's block on P0-2
+  stated.
+- `docs/contributing.md`: the DoD gains the closure-stamp rule (header stamp + current-focus line are
+  updated at task closure).
+- `docs/gaps.md`: P0-14 promoted from known-shortfall 8; ranks renumbered; P0-2's Status corrected;
+  Status vocabulary documented; the P0-10/§12 pointer follow-up wired in; shortfall 8 traced to its
+  discovery on the P0-2 branch.
 
-**Scope.** Keep: the non-negotiable owner policies, the never-crash rules, the command/EAV/latest-value/
-identity rules, the escalation list, the Git discipline block, the orientation table. Move out (with a
-pointer left behind): the workspace map, the add-a-command / add-a-screen checklists, the gate command
-block, the parallel-agent rules, the record-keeping prose. Where a doc lacks the authoritative text,
-move it there *first* (one home), then collapse AGENTS.md to a reference.
+**Non-goals.** No product code, no schema, no dependency change. The task record declared four docs
+(`docs/roadmap.md`, `docs/contributing.md`, `docs/gaps.md`, `log/devlog.md`); the **scope amendment
+declared by the supervisor in review round 1** adds root `ROADMAP.md`, because it is the first doc every
+session reads (AGENTS.md §4 point 0) and it still carried a wrong boot state ("next task **P0-10**",
+"9 tasks queued, none blocked"). `ROADMAP.md` is therefore re-stamped in the same task, not left as
+debt; the amendment is stated in the PR body and is not silent creep.
 
-**Constraint.** AGENTS.md is the constitution; the owner approves the final shape (owner-review diff
-before commit, not a §7 escalation item).
-
-**Acceptance criteria.** `wc -c AGENTS.md` ≤ ~12 288 bytes · **every rule survives** (rule-by-rule
-traceability table in the PR body, each row naming its new authoritative home) · no topic has two
-homes (grep for the moved headings) · orientation table still points at every doc · before/after byte
-counts in the devlog.
-
-**Evidence.** `wc -c AGENTS.md`; traceability table in the PR body; devlog entry with the two byte
-counts.
+**Evidence.** The three state facts re-verified at write time with `gh pr view 3 --json
+state,mergedAt,closedAt`, `git ls-tree --name-only origin/main crates/` (empty) and `git ls-remote
+origin refs/heads/t/p0-2-domain-i18n` (`cb4405c`); `cargo xtask ci` green; devlog entry 2026-10-30.
 
 ---
 
-## P0-2 — `midata-domain` + `midata-i18n`  ·  8 h  ·  rank 3
+## P0-14 — D30 mechanical enforcement: `commit-msg` hook + vendor/model term list  ·  3 h  ·  rank 3
+
+**Kind:** tooling · **Source:** measured shortfall 8 (found 2026-10-27 during P0-2 on branch
+`t/p0-2-domain-i18n`, promoted here 2026-10-30); `REBUILD_PLAN.md` §15 **D30**; `AGENTS.md` §5.
+
+**Evidence of the gap.** `AGENTS.md` §5 forbids attribution trailers and AI-vendor/model names anywhere,
+and then states plainly: "Review-enforced today: the `commit-msg` hook and the vendor/model term list in
+the banned-names gate **do not exist yet**" (D30: "Review-enforced **until** … land"). Neither exists:
+`.git/hooks/` holds no `commit-msg` hook, and `xtask/src/gates.rs::banned_names` greps only the legacy
+product name, not trailers or vendor/model names. The rule is honour-system today (it holds only because
+reviewers apply it by hand).
+
+**Scope.**
+- (a) **Checked-in hook + documented install.** A `commit-msg` hook template under `tools/hooks/` that
+  rejects a message containing an attribution trailer or a banned vendor/model name. `.git/hooks/` is
+  never committed, so the same change adds the activation step to the contributor docs (copy/symlink the
+  template and make it executable) — documented, not assumed.
+- (b) **Second term list in the banned-names gate.** `xtask/src/gates.rs` grows a list covering
+  (i) `Co-Authored-By` trailers in commit messages and (ii) AI vendor/model names in operational docs.
+  **D30 self-reference trap:** the gate scans the tree, so the literal terms must not appear in a file
+  the gate scans. The literals are assembled/split in code (e.g. `xtask/src/terms.rs`, built from
+  fragments) so the source that defines them cannot trip the gate itself; the docs describe the
+  mechanism only and never print the names. This is an acceptance test, not a comment. **Precedent in
+  the tree:** the legacy-name gate already does exactly this — `xtask/src/gates.rs:31`
+  `concat!("ru", "metrics")` assembles the term, and `xtask/src/gates.rs:92`
+  `gate_source_does_not_contain_its_own_pattern` is the test that keeps it true. The new list follows
+  that pattern rather than inventing one.
+- (c) **Baseline sweep + committed allowlist.** Run the new list over the whole tree once, commit the
+  pre-existing violations in a named baseline file — `docs/banned-names.baseline`, mirroring
+  `docs/i18n-coverage.baseline` and `docs/file-budget.baseline` — and make the gate fatal from day one.
+  The gate prints a count of allowlisted entries; that count may only shrink (a `cargo xtask
+  banned-names` step inside `xtask ci`, with a unit test that fails if the stored count exceeds the
+  measured one, exactly as the i18n and file-budget ratchets do), and every new violation fails.
+- (d) **Exemptions.** The path allowlist **mirrors the existing gate's own allowlist** —
+  `xtask/src/gates.rs::is_allowed_path` / `ALLOWED_PATHS`: `AGENTS.md`, `REBUILD_PLAN.md`,
+  `docs/decisions.md`, `docs/gaps.md`, all of `docs/legacy-spec/` — **plus `ARTCRAFT_INVESTIGATION.md`**
+  (which legitimately quotes external projects but is not in today's list, so adding it is an additive
+  change to `ALLOWED_PATHS`, stated in the P0-14 PR). Everything else in the tree is in scope.
+  **Reference-vs-attribution rule:** the term list targets *attribution* — trailers and claims of
+  authorship/provenance — not *reference*. A vendor name naming an integration target is a reference:
+  `docs/architecture.md:15` names an LLM vendor only to define the API dialect the app speaks, which is
+  a compatibility target, not an authorship claim, and it must not fail the gate. New hits are triaged
+  into the baseline with the reason recorded: `reference` entries are allowed with that stated reason,
+  attribution entries fail outright. Without this rule the "clean full-tree run" criterion is unpassable
+  as scoped — it would fail on day one at that line.
+
+**Acceptance criteria.**
+- The hook rejects a synthetic bad message (attribution trailer, or a banned vendor/model term) and
+  accepts a synthetic good one; the negative proof is in the PR body.
+- The gate fails on a synthetic introduced violation and passes clean once it is removed.
+- The allowlist file is committed; the gate reports its count, and a test asserts the count only shrinks.
+- The term literals live where they cannot trip the gate (assembled/split in code), proven by the clean
+  full-tree run.
+
+**Evidence.** Hook tests, gate negative proof, allowlist file + count, `cargo xtask ci` green, install
+paragraph in the contributor docs.
+
+---
+
+## P0-2 — `midata-domain` + `midata-i18n` (re-land)  ·  8 h  ·  rank 4  ·  **open — PR #3 closed unmerged 2026-10-27**
 
 **Kind:** feature (L0) · **Source:** `REBUILD_PLAN.md` §4.1, §5.3, §5.5, §7.4; Appendix C bullets 5–7.
+
+**Status (measured 2026-10-30).** The implementation exists on branch
+`t/p0-2-domain-i18n` (remote tip `cb4405c`, a single commit — the remote branch carries no separable
+"review fix" commits), but PR #3 was **closed without being merged**
+(`closedAt` 2026-10-27T09:35:38Z, `mergedAt` null), so **`main` has no `crates/` directory** and none of
+this work is on `main`. The 8 h stays on the open sum; the task is queued for **re-land as a fresh PR**
+(this entry is the queue record, not a new scope). Everything in the scope below was implemented and
+reviewed on that branch.
 
 **Scope — domain (pure, zero I/O).**
 - Species (`SpeciesKey` as data, never an enum of known species — D8), `Sex` (Male/Female, nullable),
@@ -199,7 +276,7 @@ enforced.
 
 ---
 
-## P0-3 — `midata-store` v0: engine, migrations, latest-value queries  ·  12 h  ·  rank 4
+## P0-3 — `midata-store` v0: engine, migrations, latest-value queries  ·  12 h  ·  rank 5
 
 **Kind:** feature (L1) · **Source:** `REBUILD_PLAN.md` §5.2–§5.5, §9 ("keeping the data & schema
 complete"), Appendix C bullet 7; `test_database` oracle (pending extraction).
@@ -229,7 +306,7 @@ panic).
 
 ---
 
-## P0-4 — `midata-engine` skeleton: registry, session, audit  ·  8 h  ·  rank 5
+## P0-4 — `midata-engine` skeleton: registry, session, audit  ·  8 h  ·  rank 6
 
 **Kind:** feature (L3) · **Source:** `REBUILD_PLAN.md` §4.3, §11.2 rule 3; Appendix C bullet 8.
 
@@ -251,7 +328,7 @@ commands` readiness); per-command happy path + graceful-failure tests; audit-row
 
 ---
 
-## P0-5 — `midata-app` shell: window, router, theme, settings  ·  12 h  ·  rank 6
+## P0-5 — `midata-app` shell: window, router, theme, settings  ·  12 h  ·  rank 7
 
 **Kind:** feature (L5 + `apps/midata`) · **Source:** `REBUILD_PLAN.md` §7.1–§7.5, Appendix C bullet 9.
 
@@ -271,7 +348,7 @@ across restart; a screenshot of the DB-open error state; crate README public API
 
 ---
 
-## P0-6 — One-step onboarding + deterministic demo seed  ·  8 h  ·  rank 7
+## P0-6 — One-step onboarding + deterministic demo seed  ·  8 h  ·  rank 8
 
 **Kind:** feature (L2 ops + L5 screen) · **Source:** `REBUILD_PLAN.md` §5.6, §5.7, §7.1 (D21),
 Appendix C bullets 9–10; `test_onboarding` oracle (pending extraction).
@@ -299,7 +376,7 @@ Appendix C bullets 9–10; `test_onboarding` oracle (pending extraction).
 
 ---
 
-## P0-7 — `midata-cli` skeleton  ·  3 h  ·  rank 8
+## P0-7 — `midata-cli` skeleton  ·  3 h  ·  rank 9
 
 **Kind:** feature (`apps/midata-cli`) · **Source:** `REBUILD_PLAN.md` §10, Appendix C bullet 11.
 
@@ -313,7 +390,7 @@ commands` output snapshot; audit rows show actor `cli`; README with the verb lis
 
 ---
 
-## P0-8 — Inventory v0 reconciliation (re-scoped)  ·  2 h  ·  rank 9
+## P0-8 — Inventory v0 reconciliation (re-scoped)  ·  2 h  ·  rank 10
 
 **Kind:** docs · **Source:** `REBUILD_PLAN.md` §6.1, Appendix C bullet 3; measured: B0/P0-11 already
 transcribed §3 into **222** rows.
@@ -334,7 +411,7 @@ every block; phase column consistent with D26 (no widget/conversation table cred
 
 ---
 
-## P0-9 — Snapshots + gates polish  ·  6 h  ·  rank 10
+## P0-9 — Snapshots + gates polish  ·  6 h  ·  rank 11
 
 **Kind:** quality · **Source:** `REBUILD_PLAN.md` §7.5, §11.4, §12, Phase 0 exit criteria.
 
@@ -347,6 +424,47 @@ ratchet baselines recorded (test count, coverage, file-budget violations = 0).
 
 **Evidence.** Goldens committed and visually reviewed (devlog notes "viewed"); `cargo xtask ci` green on
 both OSes; baseline numbers in `docs/scorecard.md`.
+
+---
+
+## P0-10 — `AGENTS.md` diet to a lean bootloader  ·  3 h  ·  rank 12
+
+**Kind:** docs · **Source:** `REBUILD_PLAN.md` §1.3 bullet 7, §11.1, Appendix C bullet 2; amended policy
+`REBUILD_PLAN.md` §15 **D27** (owner ruling 2026-10-27).
+
+**Why rank 12 (re-ranked 2026-10-30).** P0-2f removes the acute wrong-focus tax, and the unblocking
+chain (P0-14 → P0-2 re-land → P0-3 → …) now outranks the diet; this stays queued, not dropped.
+
+**Policy (amended, owner-approved).** `AGENTS.md` is a **lean bootloader**: iron rules + orientation
+only — **rules not procedures; one authoritative home per topic**; target **≤ ~12 KB** (raised from the
+original 8 KB). `AGENTS.md` may summarize and point at a doc; it must never duplicate that doc's
+content. Every rule keeps exactly one authoritative home — usually `docs/contributing.md`,
+`docs/development.md` or `docs/architecture.md`, which already carry most of the mechanical detail, so
+this stays mostly deletion.
+
+**Evidence of the gap.** Measured 2026-10-30: `AGENTS.md` is **36.4 KB** (35.6 KiB), ~3.0× the amended
+target. Every session pays that cost before doing any work — the exact failure mode §1.3 bullet 7 was
+written to prevent.
+
+**Scope.** Keep: the non-negotiable owner policies, the never-crash rules, the command/EAV/latest-value/
+identity rules, the escalation list, the Git discipline block, the orientation table. Move out (with a
+pointer left behind): the workspace map, the add-a-command / add-a-screen checklists, the gate command
+block, the parallel-agent rules, the record-keeping prose. Where a doc lacks the authoritative text,
+move it there *first* (one home), then collapse AGENTS.md to a reference. One further move belongs in
+this diet: §12's six-condition merge list should collapse to a pointer at `docs/review-templates.md`
+(the bootloader is now **36 436 B** = 3.0× P0-10's target, and the conditions already have an
+authoritative home in the template).
+
+**Constraint.** AGENTS.md is the constitution; the owner approves the final shape (owner-review diff
+before commit, not a §7 escalation item).
+
+**Acceptance criteria.** `wc -c AGENTS.md` ≤ ~12 288 bytes · **every rule survives** (rule-by-rule
+traceability table in the PR body, each row naming its new authoritative home) · no topic has two
+homes (grep for the moved headings) · orientation table still points at every doc · before/after byte
+counts in the devlog.
+
+**Evidence.** `wc -c AGENTS.md`; traceability table in the PR body; devlog entry with the two byte
+counts.
 
 ---
 
@@ -422,6 +540,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
 | P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
 | P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (43 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
+| P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | 2026-10-30 | `docs/roadmap.md` (focus + `Updated:`), `docs/contributing.md` (closure-stamp DoD), `docs/gaps.md` (P0-14 promoted, vocabulary, shortfall 8), root `ROADMAP.md` re-stamp under the declared round-1 scope amendment; PR #6; `log/devlog.md` |
 | D29 | Independent reviewer loop per PR | 2026-10-27 | `REBUILD_PLAN.md` §15 D29; `docs/decisions.md` D29; `docs/review-templates.md` (REVIEWER, FIX-ROUND); `docs/contributing.md` §9 |
 | D30 | Attribution repealed + `main` history scrubbed | 2026-10-27 | `REBUILD_PLAN.md` §15 D30; `docs/decisions.md` D30; `docs/contributing.md` §6; `log/devlog.md` |
 | D31 | Delegated merge authority and the autonomous cycle | 2026-10-27 | `REBUILD_PLAN.md` §15 D31; `AGENTS.md` §12; `docs/decisions.md` D31; `docs/review-templates.md` (SUPERVISOR, IMPLEMENTER kickoff); `log/devlog.md` |
@@ -459,3 +578,14 @@ entry when they grow.
    prose and a YAML comment, which is where deviations go to die. *Target:* **P0-9** (snapshot harness
    goldens + a Linux-only CI step). *Evidence:* `.github/workflows/ci.yml` (no snapshot step),
    `xtask/src/ci.rs` (no snapshot section), P0-9 scope in this file.
+8. **D30 is not enforced mechanically yet** (found 2026-10-27 during P0-2 on branch
+   `t/p0-2-domain-i18n`; **promoted to P0-14 on 2026-10-30** — it was never on `main` before this
+   promotion). `AGENTS.md` §5 forbids attribution trailers and AI vendor/model names in operational
+   docs, and says of the enforcement: "Review-enforced today: the `commit-msg` hook and the vendor/model
+   term list in the banned-names gate **do not exist yet**". Neither does: `.git/hooks/` holds no
+   `commit-msg` hook and `xtask/src/gates.rs::banned_names` still greps only the legacy product name.
+   The rule is honour-system until P0-14 lands: a checked-in hook template plus a
+   second term list, with the term literals assembled in code so the gate cannot trip on its own
+   definition and a committed allowlist (`docs/banned-names.baseline`) of pre-existing hits so it can be
+   fatal from day one. *Evidence:*
+   `ls .git/hooks/`, `xtask/src/gates.rs`, `AGENTS.md` §5, P0-14 scope in this file.
