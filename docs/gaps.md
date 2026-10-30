@@ -1,7 +1,8 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-30 (P0-15 closed: CI is manual-dispatch only by owner ruling D32;
-> matrix and steps unchanged; P0-2 re-land, P0-14 and the P0-2f docs truth pass closed earlier the same day) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-31 (D33: the four items from run 1 ruled — R7a accepted with the
+> absolute-ban carve-out, R10 → P0-16, S1 → P0-17, the D12/A4 ADR spans folded into P0-8; P0-3 moved to
+> its schema-approval halt) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -29,17 +30,21 @@
 | 11 | P0-9 | Snapshots + gates polish | quality | Locks the Phase-0 exit criteria and the ratchets in place | 6 | P0-5, P0-6 | open |
 | 12 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 36.4 KB (35.6 KiB) against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
 | 13 | P0-15 | CI manual-dispatch only (owner ruling D32) | infra/docs | Automatic CI on every push/PR costs wall-clock; the owner wants runs on demand only | 2 | — (owner ruling 2026-10-30) | **done** (2026-10-30, this PR) |
+| 14 | P0-16 | D30 term-list hardening: allowlist hit counts + absolute-ban carve-out (D33) | tooling | The allowlist is keyed `(path, term)`, so a second attribution line in an allowlisted file passes | 1.5 | P0-14 | open |
+| 15 | P0-17 | `EncodedValue`: private variants + smart constructors (D33) | quality | Public variants let `Num(NAN)` be built outside `encode`; the invariant belongs in the type | 1.5 | P0-2 | open |
 
 **Status vocabulary:** `open` · `done` (always with its closure date and evidence) · `escalated` (a task
 carrying an `AGENTS.md` §12 condition-3 escalation flag (D31): this row's Status reads `escalated`, or a
 local `plan/ESCALATE` marker exists alongside `plan/HOLD`).
 
-**Sum:** 54 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h and P0-14 3 h added and
+**Sum:** 57 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h and P0-14 3 h added and
 closed 2026-10-30; **P0-2 re-landed and closed 8 h**, 2026-10-30; **P0-15 added 2 h and closed 2 h in the
-same PR**, 2026-10-30 — so the open sum is unchanged at 54 while the cumulative queue is now **78.5 h**
-= 72 + 1.5 + 3 + 2, re-derived from the table).
-Of the eight open rows, three are
-ready (`P0-3`, `P0-8`, `P0-10`) and five are blocked behind the store → engine → app chain. Phase 0
+same PR**, 2026-10-30; **P0-16 (1.5 h) and P0-17 (1.5 h) added 2026-10-31** by D33, both open — so the open
+sum is 54 + 3 = 57 and the cumulative queue is now **81.5 h** = 78.5 + 1.5 + 1.5, re-derived from the
+table).
+Of the ten open rows, five are
+ready (`P0-3`, `P0-8`, `P0-10`, `P0-16`, `P0-17`) and five are blocked behind the store → engine → app
+chain. Phase 0
 closes when every open row is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle
 extraction, 3 h) closed on 2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27,
 P0-2f and P0-14 and P0-2 on 2026-10-30 — see §Closed.
@@ -490,6 +495,13 @@ wiring — those land with `xtask stats` (P0-1) and P0-9.
 **Evidence.** Row count before/after with a justification per change; oracle-link column populated for
 every block; phase column consistent with D26 (no widget/conversation table credited to P0).
 
+**Acceptance additions (D33 ruling 4, owner 2026-10-31).** The row-level pass also closes the two **stale
+ADR spans** left by the D32 work (PR #10/#11 round 2): the ADR sentences that still describe the
+pre-manual-dispatch world ("both required checks green on the PR head", "Windows parity guaranteed by CI
+from day one") are reconciled to the current record or explicitly stamped as superseded. They were folded
+here instead of becoming a row of their own because this task already owns "every inventory/ADR claim
+checked against the code", and an unowned remark is how they survived two reviews.
+
 ---
 
 ## P0-9 — Snapshots + gates polish  ·  6 h  ·  rank 11
@@ -607,6 +619,51 @@ required "before any phase gate, release tag, or merge touching a platform-sensi
 pre-amendment scope. It was left alone deliberately: editing the workflow would make that PR non-docs-only
 and pull a both-OS dispatch behind a docs edit. Correct it in the next change that touches `.github/`
 (P0-15 remains open on this one line).
+**Deferred to P0-16 (D33 ruling 2).** The allowlist key weakness (R10) and the D33 absolute-ban carve-out
+both change the same triage surface, so they are executed together in P0-16 rather than as two micro PRs.
+
+---
+
+## P0-16 — D30 term-list hardening: allowlist hit counts + the absolute-ban carve-out  ·  1.5 h  ·  rank 14
+
+**Kind:** tooling · **Source:** PR #7 review R10 (the `(path, term)` allowlist key) + **D33 ruling 1** and
+**ruling 2** (owner, 2026-10-31). Owner-scheduled ahead of rank order as gate-wait work while P0-3 sits at
+the schema-approval halt.
+
+**Scope.**
+- A `docs/banned-names.baseline` row carries its **exact hit count**, so a *second* attribution line inside
+  an already-allowlisted file is a new violation instead of free passage. `--write-baseline` writes the
+  count it observed; the gate compares observed count to the recorded one and fails when observed is
+  greater. **The list stays a ratchet:** it may only shrink, and a count may never be raised to buy a new
+  hit — the "never *newly* allowlisted" rule from PR #7 R2 is preserved and must keep its test.
+- **Absolute-ban carve-out (D33):** `DeepSeek` and `opencode` are banned with **no reference exemption and
+  no allowlist path**. `deepseek` is already a `Vendor` term with zero in-tree hits; `opencode` is new and
+  has one pre-existing hit at `log/devlog.md:355`, which is **rephrased** — a baseline entry may not buy it
+  under an absolute ban. Terms stay fragment-assembled in `xtask/src/terms.rs` (the self-reference trap),
+  and `term_literals_never_appear_in_their_own_source` must keep passing.
+- The three reasons a hit can be allowlisted today stay: a reference, a documentation of the ban, an
+  integration target. An absolute term rejects all three.
+
+**Evidence.** Tests: a new hit in an allowlisted file fails (the R10 defect reproduced, then fixed); an
+allowlisted count that shrinks passes and the ratchet records the shrink; an absolute term inside a file
+that *documents* the ban still fails; `--write-baseline` cannot emit a row for an absolute term; the
+`opencode` rephrase leaves the full-tree scan at zero hits for both absolute terms.
+
+---
+
+## P0-17 — `EncodedValue`: private variants + smart constructors  ·  1.5 h  ·  rank 15
+
+**Kind:** quality · **Source:** PR #8 review S1; **D33 ruling 3** (owner, 2026-10-31). Owner-scheduled ahead
+of rank order as gate-wait work while P0-3 sits at the schema-approval halt.
+
+**Scope.** `midata-domain`'s `EncodedValue` exposes public variants, so `Num(NAN)` is constructible outside
+`encode` even though `decode` rejects it. Make the variants private, expose smart constructors that reject
+NaN/infinity at construction, and keep exactly one non-NULL column per `data_type` as an invariant of the
+type rather than of the caller. Update every in-tree call site and the `midata-domain` README contract.
+
+**Evidence.** Negative proof that `Num(NAN)` and infinities are unconstructible from outside the crate (a
+`compile_fail` doctest or an equivalent documented device); round-trip tests unchanged and passing; README
+public-API section updated in the same commit.
 
 ---
 
