@@ -661,3 +661,40 @@ synthetic good one; the gate fails on a synthetic introduced violation and passe
 passed; +8: five attribution, one term-list, one source-walk, one hook). The attribution tests moved
 to `xtask/src/attribution/tests.rs` to stay under the 500-line file budget. File budget 0 violations;
 inventory coverage unchanged (tooling). `cargo xtask ci` green.
+
+**review #7 round 2: APPROVE, 0B/0M/2m/5s** (R1–R9 fixed, R2 substitute rule ruled in-substance compliant; residual allowlist keying and two stale PR-body numbers are MINOR).
+
+**Merge report (PR #7 · task P0-14 · cycle 2 of 3).** Full review (code path, A–D; section C executed,
+not assumed). Round 1: **REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 4 MINOR / 4 SUGGESTION** — R1 the hook
+scanned the whole `COMMIT_EDITMSG`, so under `git commit -v` the **diff** below Git's scissors line was
+scanned too and a clean commit was refused whenever its diff mentioned a term (and `log/devlog.md`,
+touched by nearly every task, contains one); R2 `--write-baseline` wrote `reference` for every hit, so an
+attribution trailer could be laundered into the allowlist; R3 extensionless files were invisible to the
+scan while the row claims the whole tree is in scope; R4 the `-4`/`-5` needles missed a suffixed model
+variant; R5 the stated test counts were not measured. Fix commits `0e95b9c`, `f8a1da5`, `6f006b2`,
+`aa0beb4`. Round 2: **APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 5 SUGGESTION**; R1 reproduced fixed
+end-to-end in a scratch repo (verbose commit accepted, trailer above the scissors line still rejected),
+R3/R4 bite, no new MAJOR. CI on the merged head `aa0beb4`: run **41130875779** — ubuntu 20 s,
+windows 53 s, both green. Reports: PR #7 comments
+[6533681360](https://github.com/halmousama/MiData/pull/7#issuecomment-6533681360) and
+[6533860284](https://github.com/halmousama/MiData/pull/7#issuecomment-6533860284).
+
+**Deviations, stated rather than buried.** (i) **R2 was implemented as a substitute, and the reviewer
+ruled it compliant rather than accepting it on trust:** the fixer refused the literal "bail on any
+attribution hit" because the three ban-documenting surfaces quote the trailer by design and are not in
+`ALLOWED_PATHS`, which would make `--write-baseline` permanently fail and the allowlist unrepairable —
+breaking the row's own (c). The substitute ("never *newly* allowlisted") closes the reproduced laundering
+path by measurement and the reviewer verified the residual hole. (ii) The substitute leaves **R10 open**:
+the allowlist is keyed by `(path, term)`, so an *additional* attribution line inside an already-allowlisted
+pair passes unremarked. Recorded, not hidden. (iii) `a7f60c5`'s message states an unmeasured test count;
+history is not rewritten (D30 forbids the alternative), so a corrigendum is recorded in the devlog and the
+PR body instead. (iv) **R7a still needs the owner:** the reference-vs-attribution rule narrows D30 to
+attribution contexts; P0-14 implements it as queued and both the row and the PR body say the
+clarification is outstanding. (v) Shortfalls 9 and 10 record the two debts this task creates: `AGENTS.md`
+§5 still says the hook and term list "do not exist yet" (now false — owner-reserved file, untouched), and
+the end-to-end hook tests are `#![cfg(unix)]`, so Windows CI exercises the gate but not the hook.
+
+**Numbers.** Tests 43 → 77 (+21 unit, +5 hook, +8 later); scanned text files 49 → 55 (extensionless pass);
+baseline 5 entries / 8 hits, all `reference`; `docs/scorecard.md` regenerated, not hand-edited.
+
+**cycle 2: P0-14 merged (PR #7, 1M→0M over 2 rounds, run 41130875779) · next: P0-2 re-land**
