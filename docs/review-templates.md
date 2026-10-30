@@ -19,6 +19,9 @@ B. CONTRACT — no DAG edge outside the registered layers; nothing below app imp
    behaviour = registered command (stable id, params_doc, one audit row) staying thin dispatch;
    test-integrity checklist (§3.8): no vacuous assertions, atomicity injects failure and asserts
    zero partial state, tests dispatch the command surface, fixtures only from testkit.
+   Every binding citation — in implementer claims and in your own report — is verified verbatim
+   against the cited file (grep the exact sentence). A misquoted or fabricated citation is a
+   MAJOR (trust defect), regardless of the underlying code's correctness.
 C. EXECUTION (run, don't assume) — checkout the branch; `cargo xtask ci` green on this machine;
    gate-bite negative proofs present in the PR description for every gate the task touched;
    for UI: goldens updated and PNG-view evidence present.
@@ -62,9 +65,10 @@ Cycle `<k>` of `<budget>`:
 5. MERGE — only if ALL **six** hold: (1) APPROVE with 0 BLOCKER/0 MAJOR · (2) **CI proof, in two
    parts** — (2a) the local gate (`cargo xtask ci`) ran green on the **reviewed head**, its final line
    is quoted in the PR description, and the reviewer re-ran it on that head (self-reported; the
-   reviewer's re-run is the only check on it); (2b) a **manual both-OS dispatch** is green on that head
-   for any change in the platform-sensitive class of `AGENTS.md` §3 rule 9 (the only server-side proof
-   since D32) · (3) no escalation flag on the task — the gaps row's Status reads `escalated`
+   reviewer's re-run is the only check on it); (2b) a **manual both-OS dispatch** is green on **the exact
+   head being merged** — required for **every non-docs-only merge** and cited by run id in the merge
+   report; docs-only/fast-path merges cite the local gate only (D32 owner amendment 2026-10-30; a merge
+   without its cited run id is a record defect) · (3) no escalation flag on the task — the gaps row's Status reads `escalated`
    or `plan/ESCALATE` exists · (4) the diff touches no owner-reserved surface (schema migrations, the
    dependency set, deletion of committed data, the security-adjacent §3 rows — §3.1 rows 8–10, §3.3,
    §3.4 — branding) · (5) a merge report paragraph is owed by stage 6 below; it must exist before this

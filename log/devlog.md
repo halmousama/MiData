@@ -953,3 +953,26 @@ clarification), and the D12/A4 ADR markers from PR #9 round 2.
 **review #10 round 1: REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 1 MINOR / 3 SUGGESTION** (P0-15 protection order: 5 residual "after merge" claims in decisions.md x2, gaps P0-1 TODO, contributing §2, devlog accepted-risk).
 
 **review #10 round 2: APPROVE — 0 BLOCKER / 0 MAJOR / 0 MINOR / 3 SUGGESTION** (P0-15 protection order: all 5 residual "after merge" claims now present-perfect; class sweep clean bar dated records; gate green on 232a4b6).
+
+### 2026-10-30 · D32 owner amendment — merge reports must cite a both-OS dispatch
+
+**What landed.** Two owner-authored additions. (1) `docs/decisions.md` D32 gains an **Amendment (owner,
+2026-10-30)**: every non-docs-only merge cites, in its merge report, a both-OS `workflow_dispatch` run
+executed on the exact head being merged; docs-only/fast-path merges cite the local gate only; a merge
+without its cited run id is a **record defect**. (2) `docs/review-templates.md` section B gains a
+citation-integrity rule: every binding citation — in implementer claims and in the reviewer's own report —
+is verified verbatim against the cited file, and a misquoted or fabricated citation is a **MAJOR (trust
+defect)** regardless of the underlying code's correctness.
+
+**Consistency propagation (supervisor, required).** The amendment is stricter than what condition (2b)
+said ("platform-sensitive class only"), so leaving it in one home would have recreated the exact
+contradiction class PR #5 R1 and PR #9 R1 were about. Aligned in the same commit: `AGENTS.md` §12
+condition (2b) and §3 rule 9, `REBUILD_PLAN.md` §15 D31 (2b) and D32 (mitigations), and
+`docs/review-templates.md` SUPERVISOR stage 5. All five now say: dispatch on the exact head, for every
+non-docs-only merge, run id cited in the merge report, docs-only cites the local gate only.
+
+**Numbers.** No code, no test, no gate change; 163 tests unchanged; docs-only, so condition (2a) applies
+and (2b) does not (as the amendment itself states).
+
+**Still open.** R7a (PR #6, D30 reference-vs-attribution narrowing), R10 (PR #7, `(path, term)` allowlist
+key), S1 (PR #8, `EncodedValue` public variants), D12/A4 ADR markers (PR #10 round 2).

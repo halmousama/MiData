@@ -314,6 +314,9 @@ documented order was impossible and the record states what actually happened.
 **Consequence:** the honest posture changes from "CI verifies every PR" to "CI verifies what we ask it
 to"; the local gate is now load-bearing for every merge, and its output must be quoted rather than
 assumed. `docs/contributing.md` §2 carries the contributor-facing command.
+**Amendment (owner, 2026-10-30):** every non-docs-only merge cites, in its merge report, a both-OS
+`workflow_dispatch` run executed on the exact head being merged; docs-only/fast-path merges cite the
+local gate only. A merge without its cited run id is a record defect.
 
 ## 2. Open items with defaults (REBUILD_PLAN §16)
 
