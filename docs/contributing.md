@@ -22,7 +22,8 @@
 **Definition of done:** behaviour exists as a registered, documented command (when user-visible) ·
 tests including graceful-failure and the **test-integrity checklist (§3)** · wired into the UI (and CLI
 where relevant) · snapshots viewed for UI work · local gate (`cargo xtask ci`) green on the reviewed head ·
-a manual both-OS dispatch green for platform-sensitive changes, phase gates and releases (D32, §2) ·
+a both-OS dispatch on the exact head being merged for **every non-docs-only change**, cited by run id in
+the merge report (docs-only changes cite the local gate only — D32 owner amendment, §2) ·
 inventory/gaps/scorecard/devlog updated · **`ROADMAP.md` header stamp and current-focus line updated at
 task closure** (and the matching `Updated:` stamp in `docs/roadmap.md`).
 
@@ -56,12 +57,14 @@ gh run list --workflow ci.yml --branch <your-branch> --limit 5
 gh run watch <run-id>          # wait for the ubuntu and windows jobs
 ```
 
-**Dispatch is required** for (a) any change to a **platform-sensitive surface** — Windows path handling,
-file locks, process spawning, case-insensitive filesystems; (b) every **phase gate**; (c) every **release
-tag**; and (d) any change to `.github/` itself (a change to CI must be observed running). For an ordinary
-platform-neutral change the local gate is the proof, but say so explicitly in the PR: "local gate green on
-head `<sha>`" with the final line quoted. If you quote a dispatch, paste the run URL and both job
-conclusions.
+**Dispatch is required** for (a) **every non-docs-only change** — it is cited by run id in the merge report
+on the exact head being merged (D32 owner amendment, 2026-10-30); (b) any change to a **platform-sensitive
+surface** — Windows path handling, file locks, process spawning, case-insensitive filesystems — which is a
+subset of (a); (c) every **phase gate**; (d) every
+**release tag**; and (e) any change to `.github/` itself (a change to CI must be observed running). For an
+ordinary **docs-only** change the local gate is the proof, but say so explicitly in the PR: "docs-only,
+local gate green on head `<sha>`" with the final line quoted. If you quote a dispatch, paste the run URL
+and both job conclusions.
 
 **A dispatched run is evidence, not a merge gate (D32).** GitHub does not attach a `workflow_dispatch`
 run to the PR: the checks can be green on the exact head while `gh pr checks` reports "no checks reported"

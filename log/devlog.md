@@ -953,3 +953,72 @@ clarification), and the D12/A4 ADR markers from PR #9 round 2.
 **review #10 round 1: REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 1 MINOR / 3 SUGGESTION** (P0-15 protection order: 5 residual "after merge" claims in decisions.md x2, gaps P0-1 TODO, contributing §2, devlog accepted-risk).
 
 **review #10 round 2: APPROVE — 0 BLOCKER / 0 MAJOR / 0 MINOR / 3 SUGGESTION** (P0-15 protection order: all 5 residual "after merge" claims now present-perfect; class sweep clean bar dated records; gate green on 232a4b6).
+
+### 2026-10-30 · D32 owner amendment — merge reports must cite a both-OS dispatch
+
+**What landed.** Two owner-authored additions. (1) `docs/decisions.md` D32 gains an **Amendment (owner,
+2026-10-30)**: every non-docs-only merge cites, in its merge report, a both-OS `workflow_dispatch` run
+executed on the exact head being merged; docs-only/fast-path merges cite the local gate only; a merge
+without its cited run id is a **record defect**. (2) `docs/review-templates.md` section B gains a
+citation-integrity rule: every binding citation — in implementer claims and in the reviewer's own report —
+is verified verbatim against the cited file, and a misquoted or fabricated citation is a **MAJOR (trust
+defect)** regardless of the underlying code's correctness.
+
+**Consistency propagation (supervisor, required).** The amendment is stricter than what condition (2b)
+said ("platform-sensitive class only"), so leaving it in one home would have recreated the exact
+contradiction class PR #5 R1 and PR #9 R1 were about. Aligned in the same commit: `AGENTS.md` §12
+condition (2b) and §3 rule 9, `REBUILD_PLAN.md` §15 D31 (2b) and D32 (mitigations), and
+`docs/review-templates.md` SUPERVISOR stage 5. All five now say: dispatch on the exact head, for every
+non-docs-only merge, run id cited in the merge report, docs-only cites the local gate only.
+
+**Numbers.** No code, no test, no gate change; 163 tests unchanged; docs-only, so condition (2a) applies
+and (2b) does not (as the amendment itself states).
+
+**Still open.** R7a (PR #6, D30 reference-vs-attribution narrowing), R10 (PR #7, `(path, term)` allowlist
+key), S1 (PR #8, `EncodedValue` public variants), D12/A4 ADR markers (PR #10 round 2).
+
+**review #11 round 1: REQUEST_CHANGES — 0 BLOCKER / 2 MAJOR / 5 MINOR / 2 SUGGESTION** (both owner texts landed verbatim; the amendment was propagated to five homes but two live instructions stayed on the old platform-sensitive scope, and one of them is the D31 merge-conditions paragraph in the same file).
+
+**review #11 round 1 (fix round) — dispositions.** R1: `docs/decisions.md` D31 merge-conditions (2b) now
+reads "exact head being merged, every non-docs-only merge, run id cited, docs-only cites the local gate".
+R2: `docs/contributing.md` DoD and §2's *dispatch is required* list rewritten — (a) is now every
+non-docs-only change cited by run id, with the platform-sensitive surface kept as a subset that also binds
+a direct push; docs-only changes say "docs-only, local gate green on head <sha>". m1: `AGENTS.md` §3 rule 9
+gains "on the exact head being merged". m2: the pre-amendment mitigation sentence in D32 now carries an
+inline "widened by the amendment below". m3: `REBUILD_PLAN.md` §13.1 line annotated. m4: the P0-15 scope
+record drops its platform-sensitive phrasing. m5: the `ci.yml` header comment is **knowingly left stale** —
+editing the workflow would make a docs PR non-docs-only and drag a both-OS dispatch behind a wording fix;
+recorded as known debt in the P0-15 row. S1: accepted, "binding-vs-derivative" is the precise term for
+PR #5 R1. S2: a `platform-sensitive` grep gate is not taken here (it needs `xtask` code, which is not
+docs-only); noted in P0-15.
+
+**review #11 round 2: APPROVE — 0 BLOCKER / 0 MAJOR / 3 MINOR / 3 SUGGESTION** (all seven homes now widen (2b) to every non-docs-only merge on the exact head; class sweep clean bar annotated/deliberately-deferred ci.yml header; MINORs = contributing §2 invents a "direct push" obligation, devlog S2 pointer "noted in P0-15" has no such note, round-1 devlog line duplicated; gate green on f54118d, 163 tests).
+
+### 2026-10-31 · D32 amendment merged — merge reports must cite a both-OS dispatch (PR #11)
+
+**Merge report (D31 condition 5).** PR #11 squash-merged. Task: owner-authored amendment to D32 plus a
+reviewer-template rule; docs-only, so condition (2a) applies and (2b) does not — exactly as the amendment
+itself prescribes.
+
+**Verdicts.** Round 1 REQUEST_CHANGES — 0 BLOCKER / 2 MAJOR / 5 MINOR / 2 SUGGESTION (both owner texts
+landed verbatim, but two live instructions — the D31 merge-conditions paragraph and the contributor
+dispatch list — still described the pre-amendment platform-sensitive scope). Round 2 **APPROVE — 0
+BLOCKER / 0 MAJOR / 3 MINOR / 3 SUGGESTION**. Two rounds; the reviewers applied the new citation-integrity
+rule to their own reports from the first round it existed.
+
+**CI proof.** (2a) `cargo xtask ci` green on `f54118d` and again on the merge head — `xtask ci: OK — every
+gate that can run has run and passed`; 163 tests unchanged. (2b) not applicable (docs-only), and no both-OS
+dispatch is cited for that reason.
+
+**What the owner added.** (1) Every **non-docs-only** merge must cite, in its merge report, a both-OS
+`workflow_dispatch` run executed on **the exact head being merged**; docs-only/fast-path merges cite the
+local gate only; a merge without its cited run id is a **record defect**. (2) A reviewer must verify every
+binding citation verbatim against the cited file; a fabricated or misquoted citation is a **MAJOR (trust
+defect)** regardless of the code's correctness.
+
+**Deviations.** None in scope. Round-2 minors m1–m3 were fixed before merge: an over-wide "direct push"
+obligation the supervisor had invented was removed, the devlog's claim about a S2 note in P0-15 was made
+true by adding the note, and a duplicated round-1 line was deduped.
+
+**Consequence for the next cycle.** P0-3 (`midata-store`) is non-docs-only, so its merge report **owes a
+both-OS dispatch run id on its head**. Plan for one dispatch after the final fix round, before merging.
