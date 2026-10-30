@@ -29,13 +29,18 @@ const BASELINE_HEADER: &str = "\
 # Pre-existing D30 hits, triaged: path<TAB>term<TAB>reason.\n\
 # reason `reference`: the term names an integration/compatibility target or documents the ban itself.\n\
 # reason `attribution` is never allowed — an attribution claim is fixed, not allowlisted.\n\
-# The list is a ratchet: it may only shrink. A new hit fails.\n";
+# The list is a ratchet: it may only shrink. A new hit fails.\n\
+# Note: this file is itself in `xtask/src/gates.rs::ALLOWED_PATHS` (it must name the terms it\n\
+# allows), so it is exempt from the legacy product-name scan too — a shared-list side effect of\n\
+# P0-14, recorded in the PR and harmless because the file only ever holds the allowlisted terms.\n";
 
 /// One in-tree hit: a term on a line (1-based) of a scanned file.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Hit {
     pub path: String,
     pub term: String,
+    /// What the term means — the baseline generator may not flatten every hit to `reference` (R2).
+    pub kind: terms::TermKind,
     pub line: usize,
 }
 
@@ -53,6 +58,7 @@ pub fn scan_text(relative: &str, content: &str) -> Vec<Hit> {
         .map(|hit| Hit {
             path: relative.to_string(),
             term: hit.term_id.to_string(),
+            kind: hit.kind,
             line: hit.line,
         })
         .collect()
@@ -60,7 +66,9 @@ pub fn scan_text(relative: &str, content: &str) -> Vec<Hit> {
 
 /// Every hit in the repository, excluding the documented allowlist paths.
 ///
-/// The extension list is the legacy gate's, deliberately: the same files are the same surfaces.
+/// Two passes: the extension list (the legacy gate's, deliberately — the same files are the same
+/// surfaces) and the bounded extensionless text files, so a hook script or a licence cannot escape
+/// the gate (P0-14 review R3).
 pub fn scan(root: &Path) -> Result<Vec<Hit>> {
     let mut hits = Vec::new();
     for extension in gates::TEXT_EXTENSIONS {
@@ -72,6 +80,14 @@ pub fn scan(root: &Path) -> Result<Vec<Hit>> {
                 .with_context(|| format!("reading {}", file.relative))?;
             hits.extend(scan_text(&file.relative, &content));
         }
+    }
+    for file in source::extensionless_text_files(root)? {
+        if gates::is_allowed_path(&file.relative) {
+            continue;
+        }
+        let content = std::fs::read_to_string(&file.absolute)
+            .with_context(|| format!("reading {}", file.relative))?;
+        hits.extend(scan_text(&file.relative, &content));
     }
     hits.sort();
     hits.dedup();
@@ -194,8 +210,24 @@ pub fn check(root: &Path) -> Result<()> {
     bail!("D30 attribution gate failed")
 }
 
-pub fn write_baseline(root: &Path) -> Result<()> {
-    let hits = scan(root)?;
+/// Render the allowlist from measured hits.
+///
+/// An attribution hit is a gate error, never a row: the generator used to flatten every hit to
+/// `reference`, which let `--write-baseline` launder a real trailer into the allowlist (P0-14 review
+/// R2). Nothing is written when this fails.
+fn render_baseline(hits: &[Hit]) -> Result<String> {
+    if let Some(claim) = hits
+        .iter()
+        .find(|hit| hit.kind == terms::TermKind::Attribution)
+    {
+        bail!(
+            "{}:{}: `{}` is an attribution claim — never allowlisted; remove the claim instead of regenerating {BASELINE}",
+            claim.path,
+            claim.line,
+            claim.term
+        );
+    }
+
     let unique: BTreeSet<(&str, &str)> = hits
         .iter()
         .map(|hit| (hit.path.as_str(), hit.term.as_str()))
@@ -208,26 +240,53 @@ pub fn write_baseline(root: &Path) -> Result<()> {
         content.push_str(term);
         content.push_str("\treference\n");
     }
+    Ok(content)
+}
+
+pub fn write_baseline(root: &Path) -> Result<()> {
+    let hits = scan(root)?;
+    let content = render_baseline(&hits)?;
+    let entries = entries_in(&content);
 
     let path = root.join(BASELINE);
     std::fs::write(&path, content).with_context(|| format!("writing {}", path.display()))?;
     println!(
-        "banned-names (attribution terms): wrote {BASELINE} with {} allowlisted hit(s) across {} measured hit(s) — every row must be reviewed as a `reference`",
-        unique.len(),
+        "banned-names (attribution terms): wrote {BASELINE} with {entries} allowlisted hit(s) across {} measured hit(s) — every row must be reviewed as a `reference`",
         hits.len()
     );
     Ok(())
 }
 
+/// Count the data rows in a rendered baseline (the header is `#`-prefixed).
+fn entries_in(content: &str) -> usize {
+    content
+        .lines()
+        .filter(|line| !line.trim().is_empty() && !line.starts_with('#'))
+        .count()
+}
+
 /// Git's own comment lines are not part of the message the user wrote: `COMMIT_EDITMSG` carries the
 /// template, including the `# >8` scissors line. Dropping them prevents a template from failing a
 /// clean commit.
+///
+/// The scissors line is also a hard cut, because `git commit -v` (or `commit.verbose=true`) writes
+/// the **diff** below it *uncommented*: scanning past it rejects a clean message whenever the diff
+/// happens to mention a term — `log/devlog.md`, which records the D30 terms, did exactly that
+/// (P0-14 review R1). Git itself discards everything from the scissors line on, so the hook does too.
 fn strip_git_comments(message: &str) -> String {
     message
         .lines()
+        .take_while(|line| !is_scissors(line))
         .filter(|line| !line.trim_start().starts_with('#'))
         .collect::<Vec<&str>>()
         .join("\n")
+}
+
+/// Git's scissors line: a comment line carrying the `>8` marker
+/// (`# ------------------------ >8 ------------------------`).
+fn is_scissors(line: &str) -> bool {
+    let trimmed = line.trim();
+    trimmed.starts_with('#') && trimmed.contains(">8")
 }
 
 /// The commit-message check (used by `xtask commit-msg` and therefore by the hook).
@@ -259,141 +318,4 @@ pub fn check_message_file(path: &Path) -> Result<()> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn hit(path: &str, term: &str, line: usize) -> Hit {
-        Hit {
-            path: path.to_string(),
-            term: term.to_string(),
-            line,
-        }
-    }
-
-    fn entry(path: &str, term: &str) -> AllowlistEntry {
-        AllowlistEntry {
-            path: path.to_string(),
-            term: term.to_string(),
-        }
-    }
-
-    fn first(needle_kind: terms::TermKind) -> String {
-        terms::terms()
-            .into_iter()
-            .find(|candidate| candidate.kind == needle_kind)
-            .map(|candidate| candidate.id.to_string())
-            .unwrap_or_default()
-    }
-
-    #[test]
-    fn a_new_hit_fails_even_when_the_path_is_otherwise_allowlisted() {
-        let vendor = first(terms::TermKind::Vendor);
-        let problems = evaluate(&[hit("docs/architecture.md", &vendor, 15)], &[]);
-        assert_eq!(problems.len(), 1);
-        assert!(problems[0].contains("not in docs/banned-names.baseline"));
-    }
-
-    #[test]
-    fn an_allowlisted_reference_passes() {
-        let vendor = first(terms::TermKind::Vendor);
-        let problems = evaluate(
-            &[hit("docs/architecture.md", &vendor, 15)],
-            &[entry("docs/architecture.md", &vendor)],
-        );
-        assert!(problems.is_empty(), "{problems:?}");
-    }
-
-    /// P0-14 (c): the stored count may not exceed the measured one. A baseline row with no matching
-    /// hit is a stale entry, so the allowlist can only shrink — exactly the i18n/file-budget ratchet.
-    #[test]
-    fn the_stored_allowlist_count_may_not_exceed_the_measured_hits() {
-        let vendor = first(terms::TermKind::Vendor);
-        let allowlist = vec![
-            entry("docs/architecture.md", &vendor),
-            entry("docs/elsewhere.md", &vendor),
-        ];
-        let current = vec![hit("docs/architecture.md", &vendor, 15)];
-        let problems = evaluate(&current, &allowlist);
-        assert_eq!(problems.len(), 1);
-        assert!(problems[0].contains("stale allowlist entry"));
-    }
-
-    #[test]
-    fn a_stale_entry_fails_so_the_allowlist_shrinks() {
-        let vendor = first(terms::TermKind::Vendor);
-        let problems = evaluate(&[], &[entry("docs/architecture.md", &vendor)]);
-        assert_eq!(problems.len(), 1);
-        assert!(problems[0].contains("stale allowlist entry"));
-    }
-
-    #[test]
-    fn baseline_parser_reads_reference_rows() {
-        let parsed = parse_baseline("# header\ndocs/architecture.md\tterm\treference\n\n")
-            .expect("valid baseline");
-        assert_eq!(parsed, vec![entry("docs/architecture.md", "term")]);
-    }
-
-    #[test]
-    fn baseline_parser_rejects_malformed_rows() {
-        assert!(parse_baseline("only-one-field").is_err());
-        assert!(parse_baseline("path\tterm").is_err());
-        assert!(parse_baseline("path\tterm\treference\textra").is_err());
-    }
-
-    /// P0-14 (d): an attribution claim is never allowlisted, in either direction.
-    #[test]
-    fn baseline_parser_rejects_an_attribution_reason() {
-        let error = parse_baseline("docs/x.md\ttrailer\tattribution\n")
-            .expect_err("an attribution reason must be rejected");
-        assert!(error.to_string().contains("never allowlisted"));
-    }
-
-    #[test]
-    fn baseline_parser_rejects_an_unknown_reason() {
-        assert!(parse_baseline("docs/x.md\tterm\tbecause\n").is_err());
-    }
-
-    #[test]
-    fn allowlisted_paths_are_never_measured() {
-        assert!(gates::is_allowed_path("ARTCRAFT_INVESTIGATION.md"));
-        assert!(gates::is_allowed_path(BASELINE));
-        assert!(!gates::is_allowed_path("docs/architecture.md"));
-    }
-
-    #[test]
-    fn scan_text_reports_the_path_and_line() {
-        let vendor = first(terms::TermKind::Vendor);
-        let text = format!("line one\nline two names {}\n", vendor);
-        let hits = scan_text("docs/example.md", &text);
-        assert_eq!(hits, vec![hit("docs/example.md", &vendor, 2)]);
-    }
-
-    #[test]
-    fn a_commit_message_with_a_trailer_is_rejected() {
-        let trailer = first(terms::TermKind::Attribution);
-        let message = format!("feat(x): y [P0-14]\n\n{}: a helper\n", trailer);
-        let error = check_message(&message).expect_err("the trailer must be rejected");
-        assert!(error.to_string().contains("D30"));
-    }
-
-    #[test]
-    fn a_commit_message_with_a_vendor_name_is_rejected() {
-        let vendor = first(terms::TermKind::Vendor);
-        let message = format!("docs: note the {vendor} dialect [P0-14]\n");
-        assert!(check_message(&message).is_err());
-    }
-
-    #[test]
-    fn a_clean_commit_message_passes() {
-        assert!(check_message("feat(xtask): add the gate [P0-14]\n\nRefs: gaps P0-14\n").is_ok());
-    }
-
-    #[test]
-    fn git_template_comments_are_not_part_of_the_message() {
-        let vendor = first(terms::TermKind::Vendor);
-        let message = format!(
-            "feat(xtask): add the gate [P0-14]\n\n# a template line may mention {vendor}\n"
-        );
-        assert!(check_message(&message).is_ok());
-    }
-}
+mod tests;

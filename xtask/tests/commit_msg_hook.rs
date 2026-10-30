@@ -116,6 +116,34 @@ fn hook_accepts_a_clean_message() -> TestResult {
     Ok(())
 }
 
+/// P0-14 review R1: `git commit -v` puts the diff below the scissors line, uncommented. The diff of
+/// a devlog change mentions the D30 terms, so scanning it refused a clean commit. The hook must stop
+/// at the scissors line, exactly as Git does.
+#[test]
+fn hook_accepts_a_verbose_message_whose_diff_mentions_a_term() -> TestResult {
+    let vendor = concat!("open", "ai");
+    let message = message_file(
+        "verbose",
+        &format!(
+            "docs(devlog): record the policy line [P0-14]\n\nWhat & why.\n\n\
+             # ------------------------ >8 ------------------------\n\
+             diff --git a/log/devlog.md b/log/devlog.md\n\
+             --- a/log/devlog.md\n\
+             +++ b/log/devlog.md\n\
+             +the policy line quotes the {vendor} ban\n"
+        ),
+    )?;
+    let output = run_hook(Some(&message));
+    let _ = std::fs::remove_file(&message);
+    let output = output?;
+    assert!(
+        output.status.success(),
+        "a verbose diff below the scissors line must not fail the hook; stderr: {}",
+        stderr(&output)
+    );
+    Ok(())
+}
+
 #[test]
 fn hook_fails_closed_without_a_message_file() -> TestResult {
     let output = run_hook(None)?;

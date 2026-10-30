@@ -12,7 +12,10 @@
 //! **reference**, not an attribution (P0-14 (d)).
 
 /// What a term means for triage in `docs/banned-names.baseline`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// `Ord` is required by `Hit`, which carries the kind so the baseline generator cannot flatten an
+/// attribution claim into a `reference` row (P0-14 review R2).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum TermKind {
     /// A trailer claiming authorship/provenance. Never a legitimate surface term: an in-tree hit is
     /// allowlisted only as a documented `reference` to the rule (D30), and a commit message carrying
@@ -63,9 +66,10 @@ pub fn terms() -> Vec<Term> {
         term(concat!("open", "ai"), TermKind::Vendor),
         term(concat!("anthro", "pic"), TermKind::Vendor),
         term(concat!("clau", "de"), TermKind::Vendor),
-        term(concat!("chat", "gpt"), TermKind::Vendor),
-        term(concat!("gpt", "-4"), TermKind::Vendor),
-        term(concat!("gpt", "-5"), TermKind::Vendor),
+        term(concat!("chat", "gp", "t"), TermKind::Vendor),
+        // The vendor stem alone, word-bounded. A model suffix such as `-4o` is alphanumeric, so a
+        // version-specific needle misses it entirely (P0-14 review R4).
+        term(concat!("gp", "t"), TermKind::Vendor),
         term(concat!("co", "pilot"), TermKind::Vendor),
         term(concat!("gem", "ini"), TermKind::Vendor),
         term(concat!("deep", "seek"), TermKind::Vendor),
@@ -207,6 +211,23 @@ mod tests {
         );
         let text = format!("{} and {} are named here.\n", vendors[0], vendors[1]);
         assert_eq!(find(&text).len(), 2);
+    }
+
+    /// P0-14 review R4: a model name followed by an alphanumeric suffix (`-4o`) must still be found.
+    /// A bounded vendor stem catches it; the version-specific needles did not. Both literals are
+    /// assembled here because this file is inside the tree the gate scans.
+    #[test]
+    fn a_model_name_with_a_suffix_is_still_found() {
+        let stem = concat!("gp", "t");
+        let model = concat!("G", "P", "T-4o");
+        let hits = find(&format!("served by {model} today\n"));
+        assert!(
+            hits.iter().any(|hit| hit.term_id == stem),
+            "`{model}` must be a hit: {hits:?}"
+        );
+        // The comparison case from the review: a spaced model name was already caught.
+        let spaced = concat!("Clau", "de 3.5");
+        assert_eq!(find(&format!("reviewed with {spaced}\n")).len(), 1);
     }
 
     /// Found while building the first baseline: a tunnel product's name ends in a model name, so a

@@ -53,27 +53,29 @@ fn legacy_product_name(root: &Path) -> Result<()> {
     let term = banned_term();
     let mut hits: Vec<String> = Vec::new();
     let mut scanned = 0_usize;
+    let mut files: Vec<source::SourceFile> = Vec::new();
 
     for extension in TEXT_EXTENSIONS {
-        for file in source::files_with_extension(root, extension)? {
-            scanned = scanned.saturating_add(1);
-            let content = std::fs::read_to_string(&file.absolute)
-                .with_context(|| format!("reading {}", file.relative))?;
-            for (index, line) in content.lines().enumerate() {
-                if line.to_lowercase().contains(&term) {
-                    hits.push(format!("{}:{}", file.relative, index.saturating_add(1)));
-                }
+        files.extend(source::files_with_extension(root, extension)?);
+    }
+    // Extensionless text files too: the same surfaces as the attribution scan (P0-14 review R3).
+    files.extend(source::extensionless_text_files(root)?);
+
+    for file in files {
+        scanned = scanned.saturating_add(1);
+        if is_allowed_path(&file.relative) {
+            continue;
+        }
+        let content = std::fs::read_to_string(&file.absolute)
+            .with_context(|| format!("reading {}", file.relative))?;
+        for (index, line) in content.lines().enumerate() {
+            if line.to_lowercase().contains(&term) {
+                hits.push(format!("{}:{}", file.relative, index.saturating_add(1)));
             }
         }
     }
 
-    let violations: Vec<&String> = hits
-        .iter()
-        .filter(|hit| {
-            let relative = hit.split(':').next().unwrap_or_default();
-            !is_allowed_path(relative)
-        })
-        .collect();
+    let violations: Vec<&String> = hits.iter().collect();
 
     if violations.is_empty() {
         println!(
