@@ -565,8 +565,9 @@ amended D31 condition (2) becomes (2a) local gate green on the reviewed head wit
 plus (2b) a manual both-OS dispatch for platform-sensitive changes; `docs/contributing.md` §2 carries the
 exact commands; `AGENTS.md` §3 rule 9 and §12 state the truth of when a dispatch is required. Because a
 dispatch is not a PR check, **the required-status-checks requirement is removed from `main`'s protection**
-by the supervisor after this PR merges (force-push and deletion blocks stay); (2b) is verified by citing
-the dispatch, not by GitHub gating the merge button.
+by the supervisor as part of landing this task — before the merge, because the rule itself blocked it
+(force-push and deletion blocks stay); (2b) is verified by citing the dispatch, not by GitHub gating the
+merge button.
 
 **Acceptance criteria — met.** (i) no `push`/`pull_request` trigger remains; `workflow_dispatch` is the
 only trigger (`grep -A3 '^on:' .github/workflows/ci.yml`). (ii) The matrix still names both
@@ -579,13 +580,16 @@ satisfies the amended condition (2b). The mechanism-proof dispatch is **run `411
 (ubuntu ✅ / windows ✅); the round-2 head's dispatch is cited in the PR body. (vi) `cargo xtask ci` green
 locally; `git status` clean.
 
-**Branch protection (supervisor, after merge).** A `workflow_dispatch` run is not a PR check — the checks
-are green on the exact head while `gh pr checks` reports "no checks reported" and the merge state reads
-`BLOCKED`. With `ci (ubuntu-latest)`/`ci (windows-latest)` required on `main`, every merge would need the
-admin bypass, which is security theatre rather than a control. The supervisor therefore **removes the
-required-status-checks requirement from `main`'s protection after this PR merges** (force-push and
-deletion blocks stay) and verifies (2b) by citing the dispatch. The settings change is deliberately made
-after the merge so the doc trail and the setting change meet.
+**Branch protection (supervisor, done before merge).** A `workflow_dispatch` run is not a PR check — the
+checks are green on the exact head while `gh pr checks` reports "no checks reported" and the merge state
+reads `BLOCKED`. With `ci (ubuntu-latest)`/`ci (windows-latest)` required on `main`, every merge would need
+the admin bypass, which is security theatre rather than a control. The supervisor therefore **removed the
+required-status-checks requirement from `main`'s protection** as part of landing this task (force-push and
+deletion blocks stay) and verifies (2b) by citing the dispatch. The settings change was made **before** the
+merge, not after: `gh pr merge` was refused with "the base branch policy prohibits the merge", so the
+documented order ("after this PR merges") was impossible and is corrected here.
+Verified after the change: `required_status_checks: null`, `allow_force_pushes: false`,
+`allow_deletions: false`.
 
 **Honest follow-up debt.** **Server-side verification is gone.** Nothing now proves a branch on GitHub
 unless someone dispatches it, so a Windows-only defect can reach `main` with only a self-reported local

@@ -262,7 +262,7 @@ is how the condition is checked · (6) no `plan/HOLD` file.
 **Superseded (CI clause): D32, 2026-10-30.** The original condition 2 ("both required checks green on the
 PR head") and the "required checks are enforced server-side" guarantee above no longer hold; D32 replaced
 them with (2a)/(2b) and removes the required-status-checks rule from `main`'s protection (supervisor,
-after this PR merges). The rest of D31 —
+before this PR merged — the rule itself blocked the merge). The rest of D31 —
 the six conditions, the budget, the revocation path and the fresh-context rationale — stands unchanged.
 **Limits:** default budget of 3 tasks then an owner digest; a task failing twice escalates instead of
 being retried; a round-3 review escalates; the owner revokes at any time by creating `plan/HOLD` or by

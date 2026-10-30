@@ -936,9 +936,13 @@ the 1 job × 2 OS legs × 5 steps and every command are byte-identical. `AGENTS.
 `docs/review-templates.md` stage 5, `docs/contributing.md` §2, both roadmaps and the gaps row now describe
 the manual-dispatch world, and the accepted risk is stated in four places rather than implied nowhere.
 
-**Supervisor action after this merge (owed, not done):** remove the required-status-checks rule from
-`main`'s branch protection (force-push and deletion blocks stay); verify and report. Until then a merge
-needs the admin bypass, which is exactly why the rule goes.
+**Supervisor action (done, before the merge, not after):** the required-status-checks rule was removed from
+`main`'s branch protection (force-push and deletion blocks stay). The documented order — "after this PR
+merges" — turned out to be impossible: `gh pr merge` refused with "the base branch policy prohibits the
+merge", because the rule being removed was the thing blocking the PR that removes it. Removing it first
+(no `--admin` bypass) is the honest resolution; `required_status_checks: null`, `allow_force_pushes: false`,
+`allow_deletions: false` verified afterwards. Wording corrected in `REBUILD_PLAN.md` D32,
+`docs/decisions.md` D31 and the P0-15 row.
 
 **Next task:** **P0-3 — `midata-store`** (rank 1, 12 h, unblocked now that P0-2 is on `main`).
 **Still open:** R10 from PR #7 (allowlist keyed `(path, term)`), S1 from PR #8 (`EncodedValue` variants
