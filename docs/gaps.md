@@ -18,7 +18,7 @@
 | 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
 | 2 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | docs | Every session boots from a stale "current focus" | 1.5 | — (D31 merged) | **done** (2026-10-30, PR #6) |
 | 3 | P0-14 | D30 mechanical enforcement: `commit-msg` hook + vendor/model term list | tooling | D30 is honour-system until the hook and the second term list exist | 3 | — (D30 adopted 2026-10-27) | open |
-| 4 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open — fixes applied on `t/p0-2-domain-i18n` (`cb4405c`); PR #3 **closed unmerged** 2026-10-27; re-land queued |
+| 4 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open — implementation on `t/p0-2-domain-i18n` (`cb4405c`); PR #3 **closed unmerged** 2026-10-27; re-land queued |
 | 5 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 (blocked until P0-2 is on `main`) | open |
 | 6 | P0-4 | `midata-engine` skeleton | feature | Command registry + audit hook — the agent-first seam | 8 | P0-2, P0-3 | open |
 | 7 | P0-5 | `midata-app` shell + theme | feature | First pixels: window, router, tokens, settings persistence | 12 | P0-2, P0-4 | open |
