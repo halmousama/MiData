@@ -16,6 +16,7 @@
 //! Commands: `check-layers`, `file-budget`, `i18n-coverage`, `stats`, `ci`, plus the registered
 //! skeletons `new-command`, `new-screen`, `seed`, `bench` that fail with an "unsupported" error.
 
+mod attribution;
 mod ci;
 mod file_budget;
 mod gates;
@@ -25,6 +26,7 @@ mod process;
 mod scaffold;
 mod source;
 mod stats;
+mod terms;
 mod workspace;
 
 use std::process::ExitCode;
@@ -58,7 +60,18 @@ fn dispatch(args: &[String]) -> anyhow::Result<ExitCode> {
             Ok(ExitCode::SUCCESS)
         }
         "banned-names" => {
-            gates::banned_names(&root)?;
+            if has_flag(rest, "--write-baseline") {
+                attribution::write_baseline(&root)?;
+            } else {
+                gates::banned_names(&root)?;
+            }
+            Ok(ExitCode::SUCCESS)
+        }
+        "commit-msg" => {
+            let message = rest
+                .first()
+                .ok_or_else(|| anyhow::anyhow!("commit-msg needs the path of the message file"))?;
+            attribution::check_message_file(std::path::Path::new(message))?;
             Ok(ExitCode::SUCCESS)
         }
         "file-budget" => {
@@ -113,7 +126,8 @@ fn print_usage() {
          \n\
          Commands:\n\
            check-layers                 verify the registered crate DAG (xtask/src/layers.rs)\n\
-           banned-names                 fail if the legacy product name appears outside its allowlist\n\
+           banned-names                 fail on a banned name or D30 attribution term outside its allowlist\n\
+           commit-msg <file>            reject a commit message carrying a D30 attribution term (git hook)\n\
            file-budget                  fail on Rust files over the 500-line soft cap\n\
            i18n-coverage                report EN/FR catalogue coverage and enforce the ratchet\n\
            stats                        regenerate docs/scorecard.md (--check: verify only)\n\
@@ -125,7 +139,8 @@ fn print_usage() {
          \n\
          Baseline flags:\n\
            file-budget --write-baseline     rewrite docs/file-budget.baseline\n\
-           i18n-coverage --write-baseline   rewrite docs/i18n-coverage.baseline\n"
+           i18n-coverage --write-baseline   rewrite docs/i18n-coverage.baseline\n\
+           banned-names --write-baseline    rewrite docs/banned-names.baseline\n"
     );
 }
 
