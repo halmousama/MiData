@@ -1,6 +1,6 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-27 (P0-1 closed; round-1 review fixes applied) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-30 (D31 review round 1: P0-10 byte figure, D29–D31 closed rows) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -16,7 +16,7 @@
 | Rank | id | Task | Kind | Impact | Est. (h) | Depends on | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
-| 2 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 33.5 KB against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
+| 2 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 36.4 KB (35.6 KiB) against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
 | 3 | P0-2 | `midata-domain` + `midata-i18n` | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open |
 | 4 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 | open |
 | 5 | P0-4 | `midata-engine` skeleton | feature | Command registry + audit hook — the agent-first seam | 8 | P0-2, P0-3 | open |
@@ -141,9 +141,9 @@ content. Every rule keeps exactly one authoritative home — usually `docs/contr
 `docs/development.md` or `docs/architecture.md`, which already carry most of the mechanical detail, so
 this stays mostly deletion.
 
-**Evidence of the gap.** Measured 2026-10-26: `AGENTS.md` is **33.5 KB**, ~2.8× the amended target. Every
-session pays that cost before doing any work — the exact failure mode §1.3 bullet 7 was written to
-prevent.
+**Evidence of the gap.** Measured 2026-10-30: `AGENTS.md` is **36.4 KB** (35.6 KiB), ~3.0× the amended
+target. Every session pays that cost before doing any work — the exact failure mode §1.3 bullet 7 was
+written to prevent.
 
 **Scope.** Keep: the non-negotiable owner policies, the never-crash rules, the command/EAV/latest-value/
 identity rules, the escalation list, the Git discipline block, the orientation table. Move out (with a
@@ -422,6 +422,9 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
 | P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
 | P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (43 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
+| D29 | Independent reviewer loop per PR | 2026-10-27 | `REBUILD_PLAN.md` §15 D29; `docs/decisions.md` D29; `docs/review-templates.md` (REVIEWER, FIX-ROUND); `docs/contributing.md` §9 |
+| D30 | Attribution repealed + `main` history scrubbed | 2026-10-27 | `REBUILD_PLAN.md` §15 D30; `docs/decisions.md` D30; `docs/contributing.md` §6; `log/devlog.md` |
+| D31 | Delegated merge authority and the autonomous cycle | 2026-10-27 | `REBUILD_PLAN.md` §15 D31; `AGENTS.md` §12; `docs/decisions.md` D31; `docs/review-templates.md` (SUPERVISOR, IMPLEMENTER kickoff); `log/devlog.md` |
 
 ---
 

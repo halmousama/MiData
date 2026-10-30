@@ -113,7 +113,8 @@ proven"*.
 
 **Branches.** One short-lived branch per task: `t/<task-id>-<slug>` (`t/p0-1-workspace-ci`,
 `t/p1-3-animal-create`). Parallel agents use one worktree each and one task branch each. **Never push to
-`main`.** Push the task branch, open a PR; the **owner squash-merges** → `main` holds exactly one green
+`main`.** Push the task branch, open a PR; the **owner squash-merges** — or, inside the D31 envelope
+(`AGENTS.md` §12), the SUPERVISOR does — → `main` holds exactly one green
 commit per closed task. The branch is deleted after merge; the PR page keeps the detail. `--no-ff` is an
 owner call, only when intermediate commits have archaeology worth keeping.
 
@@ -203,5 +204,6 @@ their files. Delete a finished agent's `target/agent-*` directory.
 - Maximum two review rounds per PR; a third round means the dispute is architectural — owner
   arbitrates directly. MINOR/SUGGESTION never block; cheap ones are fixed, the rest become gaps.md
   follow-ups.
-- The reviewer never modifies code, never merges. The owner merges after APPROVE (D25).
+- The reviewer never modifies code, never merges. The owner merges after APPROVE (D25); inside the
+  D31 envelope the SUPERVISOR merges under the six D31 conditions (`AGENTS.md` §12).
 - Reports live as PR comments (canonical) + one devlog line each round.
