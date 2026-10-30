@@ -65,8 +65,9 @@ conclusions.
 
 **A dispatched run is evidence, not a merge gate (D32).** GitHub does not attach a `workflow_dispatch`
 run to the PR: the checks can be green on the exact head while `gh pr checks` reports "no checks reported"
-and the merge state reads `BLOCKED`. That is why the required-status-checks rule is being removed from
-`main`'s protection (force-push and deletion blocks stay) once this task merges. A **red** dispatch is
+and the merge state reads `BLOCKED`. That is why the required-status-checks rule was removed from
+`main`'s protection (force-push and deletion blocks stay) as part of landing D32 — before that merge,
+because the rule itself blocked it. A **red** dispatch is
 therefore the supervisor's stop signal — noticed, reviewed and cited — not a merge-button block; a green
 one is cited as the (2b) proof. Nothing about this weakens the local gate: it stays the always-on proof.
 

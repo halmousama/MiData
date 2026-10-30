@@ -879,10 +879,11 @@ fixed** — it is a code-design change, recorded here as follow-up rather than s
   release tags and platform-sensitive merges; a weekly `schedule:` trigger is the cheap option if the
   owner wants a standing signal.
 - **Branch protection cannot be satisfied by a dispatch** (it is not a PR check: checks green on the head,
-  `gh pr checks` "no checks reported", merge state `BLOCKED`). The supervisor removes the
-  required-status-checks rule from `main` **after** this PR merges (force-push and deletion blocks stay)
-  and verifies (2b) by citing the dispatch — merging via the admin bypass would be security theatre.
-  Documented in `REBUILD_PLAN.md` D32, `docs/decisions.md` D32, `docs/contributing.md` §2 and P0-15.
+  `gh pr checks` "no checks reported", merge state `BLOCKED`). The supervisor removed the
+  required-status-checks rule from `main` **before** this PR merged (the rule itself blocked the merge;
+  force-push and deletion blocks stay) and verifies (2b) by citing the dispatch — merging via the admin
+  bypass would have been security theatre. Documented in `REBUILD_PLAN.md` D32, `docs/decisions.md` D32,
+  `docs/contributing.md` §2 and P0-15.
 
 **Still open**
 - Round-2 head must have a green both-OS dispatch, cited in the PR body; the mechanism-proof dispatch is
@@ -948,3 +949,5 @@ merge", because the rule being removed was the thing blocking the PR that remove
 **Still open:** R10 from PR #7 (allowlist keyed `(path, term)`), S1 from PR #8 (`EncodedValue` variants
 public → `Num(NAN)` constructible), R7a from PR #6 (D30 reference-vs-attribution narrowing awaits an owner
 clarification), and the D12/A4 ADR markers from PR #9 round 2.
+
+**review #10 round 1: REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 1 MINOR / 3 SUGGESTION** (P0-15 protection order: 5 residual "after merge" claims in decisions.md x2, gaps P0-1 TODO, contributing §2, devlog accepted-risk).

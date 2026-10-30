@@ -136,8 +136,8 @@ first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace
 - **Owner TODO:** ~~after this PR merges, enable **Require status checks** in branch protection for
   `ci (ubuntu-latest)` and `ci (windows-latest)`~~ — **done 2026-10-27, then superseded by D32
   (2026-10-30):** a `workflow_dispatch` run is not a PR check, so the requirement can no longer be
-  satisfied automatically; the supervisor removes it after P0-15 merges and verifies (2b) by citing the
-  dispatch instead (see P0-15).
+  satisfied automatically; the supervisor removed it before P0-15 merged (the rule itself blocked that
+  merge) and verifies (2b) by citing the dispatch instead (see P0-15).
 
 **Risks.** Dependency approval: only `anyhow` + `serde_json` were added (both in Appendix A), so no new
 escalation — `cargo deny` runs in CI. Windows parity is verified by the matrix **on every dispatch**

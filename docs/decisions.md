@@ -246,8 +246,9 @@ fresh-context IMPLEMENTER, then a fresh-context REVIEWER that receives parameter
 opinions, no implementer devlog claims), arbitrates at most two review rounds, and squash-merges with
 `gh pr merge --squash --delete-branch` — GitHub-side. Since D32 the *proof* behind that merge is the
 self-reported local gate plus, where §3 rule 9 requires it, a cited manual dispatch; the required-check
-gate cannot be satisfied by a dispatch, so it is being removed from `main`'s protection (supervisor, after
-this PR merges) and the supervisor cites evidence rather than relying on the merge button.
+gate cannot be satisfied by a dispatch, so it was removed from `main`'s protection (supervisor, before
+that PR merged — the rule itself blocked the merge) and the supervisor cites evidence rather than relying
+on the merge button.
 **Merge conditions (all six required; any failure = stop and escalate):** (1) reviewer APPROVE with
 0 BLOCKER/0 MAJOR · (2) **CI proof in two parts — see D32**: (2a) the local gate (`cargo xtask ci`) green
 on the reviewed head, its final line quoted in the PR and the reviewer's re-run on that head; (2b) a
@@ -301,14 +302,15 @@ can reach `main` with nothing server-side having seen it — run `41133273505`'s
 target\debug\xtask.exe … Access is denied (os error 5)` is exactly the class of failure only the Windows
 job could catch, and it did once already. **Mitigations:** dispatch before any phase gate, release tag,
 or merge touching a platform-sensitive surface; a release tag requires a green both-OS dispatch on record.
-**Branch protection (post-merge, supervisor).** A `workflow_dispatch` run is **not** a PR check: the
+**Branch protection (supervisor, done before the merge).** A `workflow_dispatch` run is **not** a PR check: the
 dispatched checks are green on the exact PR head while `gh pr checks` still reports "no checks reported"
 and the merge state reads `BLOCKED`. With `ci (ubuntu-latest)` / `ci (windows-latest)` required on `main`,
 every merge would therefore need the admin bypass (`enforce_admins: false`) — security theatre, not a
 control. **Ruling:** the required-status-checks requirement is removed from `main`'s protection (the
 force-push and deletion blocks stay), and the supervisor verifies condition (2b) by running and citing the
-dispatch instead of letting GitHub gate the merge button. The supervisor performs that settings change
-**after** this PR merges, so the documentation and the setting change meet.
+dispatch instead of letting GitHub gate the merge button. That settings change was made **before** the
+merge, not after: `gh pr merge` was refused with "the base branch policy prohibits the merge", so the
+documented order was impossible and the record states what actually happened.
 **Consequence:** the honest posture changes from "CI verifies every PR" to "CI verifies what we ask it
 to"; the local gate is now load-bearing for every merge, and its output must be quoted rather than
 assumed. `docs/contributing.md` §2 carries the contributor-facing command.
