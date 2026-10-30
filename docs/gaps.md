@@ -562,7 +562,9 @@ definition (`cargo xtask ci`). The owner asked for on-demand runs only — not f
 group keeps its existing expression — `group: ci-${{ github.workflow }}-${{ github.ref }}`,
 `cancel-in-progress: true` — so a manual run on a branch cancels only that branch's earlier run. The
 amended D31 condition (2) becomes (2a) local gate green on the reviewed head with its final line quoted,
-plus (2b) a manual both-OS dispatch for platform-sensitive changes; `docs/contributing.md` §2 carries the
+plus (2b) a manual both-OS dispatch on the **exact head being merged**, required for **every non-docs-only
+merge** (owner amendment 2026-10-30; docs-only merges cite the local gate only) — superseding the
+platform-sensitive scope this row originally recorded; `docs/contributing.md` §2 carries the
 exact commands; `AGENTS.md` §3 rule 9 and §12 state the truth of when a dispatch is required. Because a
 dispatch is not a PR check, **the required-status-checks requirement is removed from `main`'s protection**
 by the supervisor as part of landing this task — before the merge, because the rule itself blocked it
@@ -597,6 +599,11 @@ gate behind it. The only remaining Windows signal is a **manual dispatch** — f
 tag, or a scheduled/pre-release run; if the owner later wants automatic coverage at low cost, a
 `schedule:` trigger (weekly) is the obvious one-line addition. The `concurrency` group and the workflow
 itself are unchanged, so restoring triggers is a one-line diff.
+**Known debt (PR #11 review, m5).** The `.github/workflows/ci.yml` header comment still says a dispatch is
+required "before any phase gate, release tag, or merge touching a platform-sensitive surface" — the
+pre-amendment scope. It was left alone deliberately: editing the workflow would make that PR non-docs-only
+and pull a both-OS dispatch behind a docs edit. Correct it in the next change that touches `.github/`
+(P0-15 remains open on this one line).
 
 ---
 

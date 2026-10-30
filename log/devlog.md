@@ -976,3 +976,20 @@ and (2b) does not (as the amendment itself states).
 
 **Still open.** R7a (PR #6, D30 reference-vs-attribution narrowing), R10 (PR #7, `(path, term)` allowlist
 key), S1 (PR #8, `EncodedValue` public variants), D12/A4 ADR markers (PR #10 round 2).
+
+**review #11 round 1: REQUEST_CHANGES — 0 BLOCKER / 2 MAJOR / 5 MINOR / 2 SUGGESTION** (D32 amendment: both owner instructions landed verbatim and 5/6 homes agree; MAJOR = decisions.md D31 merge-conditions still "platform-sensitive class", contributing.md §2 + DoD likewise; m1 = AGENTS §3 rule 9 omits "exact head").
+
+**review #11 round 1: REQUEST_CHANGES — 0 BLOCKER / 2 MAJOR / 5 MINOR / 2 SUGGESTION** (both owner texts landed verbatim; the amendment was propagated to five homes but two live instructions stayed on the old platform-sensitive scope, and one of them is the D31 merge-conditions paragraph in the same file).
+
+**review #11 round 1 (fix round) — dispositions.** R1: `docs/decisions.md` D31 merge-conditions (2b) now
+reads "exact head being merged, every non-docs-only merge, run id cited, docs-only cites the local gate".
+R2: `docs/contributing.md` DoD and §2's *dispatch is required* list rewritten — (a) is now every
+non-docs-only change cited by run id, with the platform-sensitive surface kept as a subset that also binds
+a direct push; docs-only changes say "docs-only, local gate green on head <sha>". m1: `AGENTS.md` §3 rule 9
+gains "on the exact head being merged". m2: the pre-amendment mitigation sentence in D32 now carries an
+inline "widened by the amendment below". m3: `REBUILD_PLAN.md` §13.1 line annotated. m4: the P0-15 scope
+record drops its platform-sensitive phrasing. m5: the `ci.yml` header comment is **knowingly left stale** —
+editing the workflow would make a docs PR non-docs-only and drag a both-OS dispatch behind a wording fix;
+recorded as known debt in the P0-15 row. S1: accepted, "binding-vs-derivative" is the precise term for
+PR #5 R1. S2: a `platform-sensitive` grep gate is not taken here (it needs `xtask` code, which is not
+docs-only); noted in P0-15.

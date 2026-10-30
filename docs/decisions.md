@@ -252,7 +252,9 @@ on the merge button.
 **Merge conditions (all six required; any failure = stop and escalate):** (1) reviewer APPROVE with
 0 BLOCKER/0 MAJOR · (2) **CI proof in two parts — see D32**: (2a) the local gate (`cargo xtask ci`) green
 on the reviewed head, its final line quoted in the PR and the reviewer's re-run on that head; (2b) a
-manual both-OS dispatch green on that head for any change in the platform-sensitive class of §3 rule 9 ·
+manual both-OS dispatch green on **the exact head being merged**, required for **every non-docs-only
+merge** and cited by run id in the merge report — docs-only/fast-path merges cite the local gate only,
+and a merge without its cited run id is a record defect (D32 owner amendment, 2026-10-30) ·
 (3) **no escalation flag on the
 task** — the `docs/gaps.md` row's Status reads `escalated`, or a local `plan/ESCALATE` marker exists
 alongside `plan/HOLD` · (4) the diff touches no owner-reserved surface (schema migrations, the
@@ -301,7 +303,8 @@ case-insensitive filesystems). **Accepted risk:** because (2a) is self-reported,
 can reach `main` with nothing server-side having seen it — run `41133273505`'s `failed to remove …
 target\debug\xtask.exe … Access is denied (os error 5)` is exactly the class of failure only the Windows
 job could catch, and it did once already. **Mitigations:** dispatch before any phase gate, release tag,
-or merge touching a platform-sensitive surface; a release tag requires a green both-OS dispatch on record.
+or merge touching a platform-sensitive surface — **widened by the amendment below (2026-10-30) to every
+non-docs-only merge on the exact head being merged**; a release tag requires a green both-OS dispatch on record.
 **Branch protection (supervisor, done before the merge).** A `workflow_dispatch` run is **not** a PR check: the
 dispatched checks are green on the exact PR head while `gh pr checks` still reports "no checks reported"
 and the merge state reads `BLOCKED`. With `ci (ubuntu-latest)` / `ci (windows-latest)` required on `main`,
