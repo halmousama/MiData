@@ -847,32 +847,61 @@ fixed** — it is a code-design change, recorded here as follow-up rather than s
 **Landed**
 - `.github/workflows/ci.yml`: `push`/`pull_request` triggers removed, `workflow_dispatch` is the only
   trigger. **Nothing else changed** — ubuntu-latest + windows-latest matrix, both jobs, every step and
-  the `${{ github.ref }}` concurrency group are byte-identical. Header comment names D32, the reason and
-  the run command.
+  the `group: ci-${{ github.workflow }}-${{ github.ref }}` / `cancel-in-progress: true` concurrency block
+  are byte-identical. Header comment names D32, the reason and the run command.
 - `AGENTS.md` §3 rule 9 now says the matrix is binding *when it runs*, runs are manual, the local gate is
   the always-on proof, and a both-OS dispatch is required before phase gates / release tags / merges
   touching a platform-sensitive surface — with the `41133273505` Windows failure cited so it is not read
-  as a free pass. §12 condition (2) splits into **(2a)** local gate green on the reviewed head, quoted in
+  as a free pass, and the negative stated explicitly (nothing auto-runs; a green Linux run proves nothing
+  about Windows). §12 condition (2) splits into **(2a)** local gate green on the reviewed head, quoted in
   the PR and re-run by the reviewer (self-reported), and **(2b)** a manual both-OS dispatch for the
-  platform-sensitive class (the only server-side proof left).
+  platform-sensitive class (the only server-side proof left). §5 DoD now says the local gate is the
+  always-on requirement.
 - `REBUILD_PLAN.md` §15: D31's condition (2) amended to (2a)/(2b); **D32 added** (date · ruling · matrix
-  retained · wall-clock rationale · accepted risk · mitigations · revocation via `plan/HOLD` or amendment).
-- `docs/decisions.md` D32 (ADR-lite, supersedes D31's CI clause); `docs/contributing.md` §2 (commands,
-  when a dispatch is required); `docs/gaps.md` (P0-15 row, closed section, arithmetic); `docs/roadmap.md`
-  + `ROADMAP.md` exit-criterion truth-stamp; this entry.
+  retained · wall-clock rationale · accepted risk · mitigations · branch protection · revocation via
+  `plan/HOLD` or amendment).
+- `docs/decisions.md` D32 (ADR-lite) + a "Superseded (CI clause): D32" note inside D31, whose condition 2
+  now reads as the (2a)/(2b) pair — the dead "enforced server-side" claim is marked dead, not deleted;
+  `docs/review-templates.md` stage 5/6 carry the same wording; `docs/contributing.md` §2 (commands, when
+  a dispatch is required, and that a dispatch is evidence rather than a merge-button gate);
+  `docs/gaps.md` (P0-15 row, closed section, arithmetic); `docs/roadmap.md` + `ROADMAP.md` exit-criterion
+  truth-stamp; this entry.
 
 **Numbers**
-- Triggers: 2 automatic (push, pull_request) → **0**; `workflow_dispatch` remains **1**. Jobs: **2**
-  (unchanged). Steps: **5** (unchanged). Open queue unchanged at **54 h** (P0-15 added 2 h, closed 2 h);
-  cumulative queue **74 h**; open tasks **8**.
+- Triggers: 2 automatic (push, pull_request) → **0**; `workflow_dispatch` remains **1**. **1 job, 2 OS
+  legs (`ubuntu-latest`, `windows-latest`), 5 steps** (unchanged). Open queue unchanged at **54 h**
+  (P0-15 added 2 h, closed 2 h); cumulative queue **78.5 h** (= 72 + 1.5 + 3 + 2, re-derived from the
+  table); open tasks **8**.
 
 **Accepted risk**
 - Server-side verification is **gone** for ordinary pushes. The local gate is self-reported, so a
   Windows-only defect can reach `main` without a dispatch. Mitigation: dispatch before phase gates,
   release tags and platform-sensitive merges; a weekly `schedule:` trigger is the cheap option if the
   owner wants a standing signal.
+- **Branch protection cannot be satisfied by a dispatch** (it is not a PR check: checks green on the head,
+  `gh pr checks` "no checks reported", merge state `BLOCKED`). The supervisor removes the
+  required-status-checks rule from `main` **after** this PR merges (force-push and deletion blocks stay)
+  and verifies (2b) by citing the dispatch — merging via the admin bypass would be security theatre.
+  Documented in `REBUILD_PLAN.md` D32, `docs/decisions.md` D32, `docs/contributing.md` §2 and P0-15.
 
 **Still open**
-- The PR's dispatched both-OS run must be green — run id + both job conclusions recorded in the PR body;
-  that green run is the first exercise of D32 and satisfies amended condition (2b).
+- Round-2 head must have a green both-OS dispatch, cited in the PR body; the mechanism-proof dispatch is
+  **run `41136964128` @ `12d7ed2` (ubuntu ✅ / windows ✅)**.
 - P0-3 is next (`midata-store`); P0-10 (`AGENTS.md` diet) stays queued.
+
+**review #9 round 1: REQUEST_CHANGES — 0 BLOCKER / 4 MAJOR / 4 MINOR / 3 SUGGESTION** (P0-15: stale condition-2 homes in review-templates, AGENTS §5 DoD, decisions D31; branch protection unsatisfiable by a dispatch).
+
+**review #9 round 2 (fix round) — dispositions.** R1: `docs/review-templates.md` stage 5 now carries the
+(2a)/(2b) pair verbatim and stage 6 notes that a dispatched run id is the only kind that exists. R2:
+`AGENTS.md` §5 DoD now says "local gate green on the reviewed head (and a both-OS dispatch where §3 rule 9
+requires one)". R3: `docs/decisions.md` D31 keeps its history, gains a "Superseded (CI clause): D32,
+2026-10-30" note, its condition 2 reads "(2) CI proof in two parts — see D32", and the "enforced
+server-side rather than trusted" claim is replaced with what actually holds. R4: the supervisor removes
+`main`'s required-status-checks rule after merge (a dispatch is not a PR check: green checks, "no checks
+reported", `BLOCKED`); recorded in `REBUILD_PLAN.md` D32, `docs/decisions.md` D32, `docs/contributing.md`
+§2 and the P0-15 row. R5: cumulative queue re-derived from the table → **78.5 h**. R6: mechanism-proof
+dispatch **run `41136964128` @ `12d7ed2` (ubuntu ✅ / windows ✅)** recorded here and in the Closed row; the
+final head's dispatch is cited in the PR body. R7/R8: the P0-1 owner TODO is marked done-then-superseded
+by D32, and "on every PR" → "on every dispatch". S1: the real concurrency expression is quoted. S2: rule 9
+states the negative (nothing auto-runs; a green Linux run proves nothing about Windows). S3: numbers say
+"1 job, 2 OS legs, 5 steps".

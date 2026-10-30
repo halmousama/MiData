@@ -59,16 +59,21 @@ Cycle `<k>` of `<budget>`:
    id. No summaries, no opinions, no implementer devlog claims.
 4. ARBITRATE — on REQUEST_CHANGES spawn a fix round on the same branch (never history rewriting). Two
    rounds maximum; BLOCKER/MAJOR surviving round 2 escalates to the owner and stops the loop.
-5. MERGE — only if ALL **six** hold: (1) APPROVE with 0 BLOCKER/0 MAJOR · (2) both required checks
-   green on the PR head · (3) no escalation flag on the task — the gaps row's Status reads `escalated`
+5. MERGE — only if ALL **six** hold: (1) APPROVE with 0 BLOCKER/0 MAJOR · (2) **CI proof, in two
+   parts** — (2a) the local gate (`cargo xtask ci`) ran green on the **reviewed head**, its final line
+   is quoted in the PR description, and the reviewer re-ran it on that head (self-reported; the
+   reviewer's re-run is the only check on it); (2b) a **manual both-OS dispatch** is green on that head
+   for any change in the platform-sensitive class of `AGENTS.md` §3 rule 9 (the only server-side proof
+   since D32) · (3) no escalation flag on the task — the gaps row's Status reads `escalated`
    or `plan/ESCALATE` exists · (4) the diff touches no owner-reserved surface (schema migrations, the
    dependency set, deletion of committed data, the security-adjacent §3 rows — §3.1 rows 8–10, §3.3,
    §3.4 — branding) · (5) a merge report paragraph is owed by stage 6 below; it must exist before this
    cycle closes and its absence is an escalation · (6) no `plan/HOLD`. Then
    `gh pr merge <n> --squash --delete-branch`. Any unmet condition: do not merge — escalate and stop.
 6. HOUSEKEEP — verify `main` is clean and the squash subject still carries `[task-id]`; write the merge
-   report paragraph (task, verdicts, CI run ids, deviations) plus one supervisor devlog line; correct
-   the gaps/inventory rows the task actually moved.
+   report paragraph (task, verdicts, CI run ids — a **dispatched** run id is now the only kind that
+   exists, D32 — deviations) plus one supervisor devlog line; correct the gaps/inventory rows the task
+   actually moved.
 7. NEXT — continue with cycle `k+1` while budget remains; otherwise stop and hand the owner a digest:
    tasks merged, verdicts, open escalations, the next three gaps entries in rank order.
 

@@ -36,7 +36,8 @@ local `plan/ESCALATE` marker exists alongside `plan/HOLD`).
 
 **Sum:** 54 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h and P0-14 3 h added and
 closed 2026-10-30; **P0-2 re-landed and closed 8 h**, 2026-10-30; **P0-15 added 2 h and closed 2 h in the
-same PR**, 2026-10-30 — so the open sum is unchanged at 54 while the cumulative queue is now **74 h**).
+same PR**, 2026-10-30 — so the open sum is unchanged at 54 while the cumulative queue is now **78.5 h**
+= 72 + 1.5 + 3 + 2, re-derived from the table).
 Of the eight open rows, three are
 ready (`P0-3`, `P0-8`, `P0-10`) and five are blocked behind the store → engine → app chain. Phase 0
 closes when every open row is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle
@@ -132,13 +133,16 @@ first crate birth also fixes the dependency set (`Cargo.lock`) and the workspace
   architecture header aligned with §9.
 - **Design seams planned for P0-2+:** `docs/architecture.md` §9 records clock / store-handle /
   provider / actor injection through `Session`, no globals and no module-level connection.
-- **Owner TODO (also in the devlog):** after this PR merges, enable **Require status checks** in branch
-  protection for `ci (ubuntu-latest)` and `ci (windows-latest)`.
+- **Owner TODO:** ~~after this PR merges, enable **Require status checks** in branch protection for
+  `ci (ubuntu-latest)` and `ci (windows-latest)`~~ — **done 2026-10-27, then superseded by D32
+  (2026-10-30):** a `workflow_dispatch` run is not a PR check, so the requirement can no longer be
+  satisfied automatically; the supervisor removes it after P0-15 merges and verifies (2b) by citing the
+  dispatch instead (see P0-15).
 
 **Risks.** Dependency approval: only `anyhow` + `serde_json` were added (both in Appendix A), so no new
-escalation — `cargo deny` runs in CI. Windows parity is verified by the matrix on every PR; the P0-1 PR
-is the first run of that matrix. The Linux snapshot step is deferred to P0-9 (known-shortfall 7), not
-claimed here.
+escalation — `cargo deny` runs in CI. Windows parity is verified by the matrix **on every dispatch**
+(D32: CI no longer runs automatically); the P0-1 PR was the first run of that matrix. The Linux snapshot
+step is deferred to P0-9 (known-shortfall 7), not claimed here.
 
 ---
 
@@ -554,11 +558,15 @@ want to run it only manually"*), recorded as `REBUILD_PLAN.md` §15 **D32**.
 definition (`cargo xtask ci`). The owner asked for on-demand runs only — not for a weaker gate.
 
 **Scope.** `.github/workflows/ci.yml` loses `push`/`pull_request` and keeps `workflow_dispatch` only; the
-`ubuntu-latest` + `windows-latest` matrix, both jobs and every step are byte-identical. `concurrency`
-keeps `${{ github.ref }}`, so a manual run on a branch cancels only that branch's earlier run. The
+`ubuntu-latest` + `windows-latest` matrix, both jobs and every step are byte-identical. The `concurrency`
+group keeps its existing expression — `group: ci-${{ github.workflow }}-${{ github.ref }}`,
+`cancel-in-progress: true` — so a manual run on a branch cancels only that branch's earlier run. The
 amended D31 condition (2) becomes (2a) local gate green on the reviewed head with its final line quoted,
 plus (2b) a manual both-OS dispatch for platform-sensitive changes; `docs/contributing.md` §2 carries the
-exact commands; `AGENTS.md` §3 rule 9 and §12 state the truth of when a dispatch is required.
+exact commands; `AGENTS.md` §3 rule 9 and §12 state the truth of when a dispatch is required. Because a
+dispatch is not a PR check, **the required-status-checks requirement is removed from `main`'s protection**
+by the supervisor after this PR merges (force-push and deletion blocks stay); (2b) is verified by citing
+the dispatch, not by GitHub gating the merge button.
 
 **Acceptance criteria — met.** (i) no `push`/`pull_request` trigger remains; `workflow_dispatch` is the
 only trigger (`grep -A3 '^on:' .github/workflows/ci.yml`). (ii) The matrix still names both
@@ -567,7 +575,17 @@ and its comment changed). (iii) `AGENTS.md` rule 9 and §12 condition (2) no lon
 proof and cite the precedent run `41133273505`. (iv) `REBUILD_PLAN.md` D31 was amended and D32 added with
 date, rationale, accepted risk and revocation. (v) A real dispatched both-OS run is green on this
 branch's final head and is linked in the PR body — the first exercise of D32, and the only thing that
-satisfies the amended condition (2b). (vi) `cargo xtask ci` green locally; `git status` clean.
+satisfies the amended condition (2b). The mechanism-proof dispatch is **run `41136964128` @ `12d7ed2`**
+(ubuntu ✅ / windows ✅); the round-2 head's dispatch is cited in the PR body. (vi) `cargo xtask ci` green
+locally; `git status` clean.
+
+**Branch protection (supervisor, after merge).** A `workflow_dispatch` run is not a PR check — the checks
+are green on the exact head while `gh pr checks` reports "no checks reported" and the merge state reads
+`BLOCKED`. With `ci (ubuntu-latest)`/`ci (windows-latest)` required on `main`, every merge would need the
+admin bypass, which is security theatre rather than a control. The supervisor therefore **removes the
+required-status-checks requirement from `main`'s protection after this PR merges** (force-push and
+deletion blocks stay) and verifies (2b) by citing the dispatch. The settings change is deliberately made
+after the merge so the doc trail and the setting change meet.
 
 **Honest follow-up debt.** **Server-side verification is gone.** Nothing now proves a branch on GitHub
 unless someone dispatches it, so a Windows-only defect can reach `main` with only a self-reported local
@@ -652,7 +670,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (43 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | 2026-10-30 | `docs/roadmap.md` (focus + `Updated:`), `docs/contributing.md` (closure-stamp DoD), `docs/gaps.md` (P0-14 promoted, vocabulary, shortfall 8), root `ROADMAP.md` re-stamp under the declared round-1 scope amendment; PR #6; `log/devlog.md` |
 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | 2026-10-30 | `crates/midata-domain/` (identity/value rules/age/money/pedigree/errors/clock + tests), `crates/midata-i18n/` (EN+FR catalogues, `t!`/`tf!`, coverage), `xtask/src/i18n/` (fatal gate, 11 tests), `docs/i18n-coverage.baseline` (`en_total: 19`), `docs/i18n.md` §1/§5/§6, `docs/architecture.md` §9 seams, `xtask/src/layers/rules.rs`; PR #8 (re-lands `cb4405c`; predecessor PR #3 closed unmerged); `log/devlog.md` |
-| P0-15 | CI manual-dispatch only (owner ruling D32) | 2026-10-30 | `.github/workflows/ci.yml` (`workflow_dispatch` only; ubuntu + windows matrix and every step unchanged), `AGENTS.md` §3 rule 9 + §12 condition (2a/2b), `REBUILD_PLAN.md` §15 D31 amended + D32 added, `docs/decisions.md` D32, `docs/contributing.md` §2 (dispatch commands + when required), `docs/roadmap.md` + `ROADMAP.md` exit-criterion truth-stamp, dispatched both-OS run (linked in the PR body); this PR; `log/devlog.md` |
+| P0-15 | CI manual-dispatch only (owner ruling D32) | 2026-10-30 | `.github/workflows/ci.yml` (`workflow_dispatch` only; ubuntu + windows matrix and every step unchanged), `AGENTS.md` §3 rule 9 + §12 condition (2a/2b) + §5 DoD, `REBUILD_PLAN.md` §15 D31 amended + D32 added, `docs/decisions.md` D31 supersession note + D32, `docs/review-templates.md` stage 5/6, `docs/contributing.md` §2 (dispatch commands, when required, dispatch-is-evidence) and DoD, `docs/roadmap.md` + `ROADMAP.md` exit-criterion truth-stamp, mechanism-proof dispatch **run 41136964128 @ 12d7ed2** (ubuntu ✅ / windows ✅); this PR; `log/devlog.md` |
 | D29 | Independent reviewer loop per PR | 2026-10-27 | `REBUILD_PLAN.md` §15 D29; `docs/decisions.md` D29; `docs/review-templates.md` (REVIEWER, FIX-ROUND); `docs/contributing.md` §9 |
 | D30 | Attribution repealed + `main` history scrubbed | 2026-10-27 | `REBUILD_PLAN.md` §15 D30; `docs/decisions.md` D30; `docs/contributing.md` §6; `log/devlog.md` |
 | D31 | Delegated merge authority and the autonomous cycle | 2026-10-27 | `REBUILD_PLAN.md` §15 D31; `AGENTS.md` §12; `docs/decisions.md` D31; `docs/review-templates.md` (SUPERVISOR, IMPLEMENTER kickoff); `log/devlog.md` |

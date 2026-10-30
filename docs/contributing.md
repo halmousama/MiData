@@ -61,7 +61,14 @@ file locks, process spawning, case-insensitive filesystems; (b) every **phase ga
 tag**; and (d) any change to `.github/` itself (a change to CI must be observed running). For an ordinary
 platform-neutral change the local gate is the proof, but say so explicitly in the PR: "local gate green on
 head `<sha>`" with the final line quoted. If you quote a dispatch, paste the run URL and both job
-conclusions — a dispatched run that is red blocks the merge exactly as an automatic one would.
+conclusions.
+
+**A dispatched run is evidence, not a merge gate (D32).** GitHub does not attach a `workflow_dispatch`
+run to the PR: the checks can be green on the exact head while `gh pr checks` reports "no checks reported"
+and the merge state reads `BLOCKED`. That is why the required-status-checks rule is being removed from
+`main`'s protection (force-push and deletion blocks stay) once this task merges. A **red** dispatch is
+therefore the supervisor's stop signal — noticed, reviewed and cited — not a merge-button block; a green
+one is cited as the (2b) proof. Nothing about this weakens the local gate: it stays the always-on proof.
 
 ## 3. Test-integrity checklist (`REBUILD_PLAN.md` §3.8)
 
