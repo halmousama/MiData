@@ -951,3 +951,5 @@ public → `Num(NAN)` constructible), R7a from PR #6 (D30 reference-vs-attributi
 clarification), and the D12/A4 ADR markers from PR #9 round 2.
 
 **review #10 round 1: REQUEST_CHANGES — 0 BLOCKER / 1 MAJOR / 1 MINOR / 3 SUGGESTION** (P0-15 protection order: 5 residual "after merge" claims in decisions.md x2, gaps P0-1 TODO, contributing §2, devlog accepted-risk).
+
+**review #10 round 2: APPROVE — 0 BLOCKER / 0 MAJOR / 0 MINOR / 3 SUGGESTION** (P0-15 protection order: all 5 residual "after merge" claims now present-perfect; class sweep clean bar dated records; gate green on 232a4b6).
