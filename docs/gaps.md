@@ -252,9 +252,19 @@ paragraph in the contributor docs.
   allowlisted with their reason; attribution hits are never allowlisted.
 - Negative proofs in the PR body: the hook rejects a synthetic bad message (and accepts a good one),
   and the gate fails on a synthetic introduced violation and passes once it is removed.
+- `cargo xtask ci` green locally (26 new tests: 21 unit + 5 hook) and both PR jobs green on
+  [run 41129162523](https://github.com/halmousama/MiData/actions/runs/41129162523) (ubuntu + windows).
 - **Owner clarification requested 2026-10-30 (PR #6 R7a); implemented per this row pending
   confirmation.** The reference-vs-attribution rule as written narrows binding D30 to attribution
   contexts; this task implements that narrowing exactly and does not amend D30's text.
+
+**Review #7 round 1 (REQUEST_CHANGES, 0B/1M/4m/4s) — fixed on the same branch.** R1 (major): the hook
+now truncates the message at Git's scissors line, so `git commit -v` no longer rejects a clean message
+whose diff mentions a term. R2: the baseline generator keeps `TermKind` and refuses to allowlist an
+attribution hit. R3: both name scans also cover bounded extensionless UTF-8 files. R4: the vendor stem
+is matched word-bounded, so model suffixes (`-4o`) are caught. R5: the test count is corrected to 21
+unit + 5 hook = 26. R6–R9 recorded (run id, docs-truth and Windows-hook shortfalls, baseline-header
+note).
 
 ---
 
@@ -613,4 +623,19 @@ entry when they grow.
    second term list, with the term literals assembled in code so the gate cannot trip on its own
    definition and a committed allowlist (`docs/banned-names.baseline`) of pre-existing hits so it can be
    fatal from day one. *Evidence:*
-   `ls .git/hooks/`, `xtask/src/gates.rs`, `AGENTS.md` §5, P0-14 scope in this file.
+   `ls .git/hooks/`, `xtask/src/gates.rs`, `AGENTS.md` §5, P0-14 scope in this file. **Resolved
+   2026-10-30 (P0-14, PR #7):** both exist and `xtask ci` runs them; item 9 records the one remaining
+   stale sentence in `AGENTS.md`.
+9. **`AGENTS.md` §5 still denies that the D30 enforcement exists** (found 2026-10-30, PR #7 review round
+   1 R7; docs-truth). The sentence is: "Review-enforced today: the `commit-msg` hook and the vendor/model
+   term list in the banned-names gate **do not exist yet**." P0-14 makes it false: `tools/hooks/commit-msg`
+   and `xtask/src/terms.rs` exist and `xtask ci` runs them. `AGENTS.md` is owner-reserved, so the fix is
+   an owner edit (drop the sentence or reword it to "mechanically enforced: …"), not an agent one. The
+   same sentence is quoted as history in the P0-14 row above and must stay quoted there.
+10. **The end-to-end hook tests never run on Windows CI** (found 2026-10-30, PR #7 review round 1 R9).
+    `xtask/tests/commit_msg_hook.rs` is `#![cfg(unix)]` because it launches `sh` to run the hook; the
+    *gate* logic it exercises (`terms::find`, `check_message`, the scissors cut) is cross-platform and
+    covered by unit tests, but no test proves the hook script itself under `windows-latest`. *Fix
+    option:* a Windows job that runs the hook through Git's own `sh` (`git -c core.hooksPath=… commit`),
+    or a Rust-side test that feeds Git's message file shape without a shell. Cheap; needs a CI matrix
+    decision (P0-1 territory), so recorded rather than done.

@@ -599,7 +599,7 @@ P0-14 describes it as future work, not as landed.
   (`docs/contributing.md`, `docs/review-templates.md`) and `log/devlog.md` twice (the history-scrub
   record and the policy line it quotes). `ARTCRAFT_INVESTIGATION.md` joined `ALLOWED_PATHS`
   (additive, stated in the PR).
-- Tests: 11 new unit tests (term assembly + self-source scan, boundary matching, triage rules,
+- Tests: **21** new unit tests (term assembly + self-source scan, boundary matching, triage rules,
   baseline parsing, attribution-reason rejection, stale-entry ratchet, message check, git comments)
   and 5 process-level hook tests (reject trailer, reject vendor term, accept clean, fail closed on a
   missing file, fail closed on an unrunnable checker).
@@ -617,3 +617,40 @@ synthetic good one; the gate fails on a synthetic introduced violation and passe
   queued spec — and recorded in the row as pending confirmation. No D30 text was changed.
 - `git commit --no-verify` still bypasses any hook; the tree gate is the enforcement that survives
   that, which is why both exist.
+
+**review #7 round 1: REQUEST_CHANGES, 0B/1M/4m/4s** (R1 major: `git commit -v` diff below the scissors line is scanned by the hook and refuses a clean message on `log/devlog.md` / `docs/architecture.md`).
+
+**Fix round for review #7 (R1–R9), same branch.**
+- **R1 (major)** — `attribution.rs::strip_git_comments` now cuts the message at Git's scissors line
+  (`# … >8 …`) before dropping comment lines. Git discards everything below that line, so the hook
+  does too: a verbose commit whose **diff** mentions a term passes again, while a trailer in the real
+  message still fails. Covered by `a_verbose_diff_below_the_scissors_line_is_not_scanned`,
+  `a_trailer_above_the_scissors_line_is_still_rejected` and the new process-level
+  `hook_accepts_a_verbose_message_whose_diff_mentions_a_term`; reproduced end-to-end in a scratch repo
+  (clean verbose commit exit 0 with the term below the scissors line; trailer commit exit 1).
+- **R2** — `Hit` carries `terms::TermKind`; `render_baseline` bails on any attribution hit, so
+  `--write-baseline` can no longer launder an in-tree trailer into a `reference` row (the generator
+  used to write `reference` for every hit). Tests: `the_baseline_generator_refuses_an_attribution_claim`,
+  `the_baseline_generator_renders_reference_rows`.
+- **R3** — `source::extensionless_text_files` (≤ 1 MiB, UTF-8 only) now feeds **both** name scans, so
+  `tools/hooks/commit-msg`, the licences and any future extensionless text file are in scope. Test:
+  `source::tests::extensionless_text_files_are_scanned_and_binaries_are_not`.
+- **R4** — the model list uses one word-bounded vendor stem instead of `-4` / `-5` needles, so a
+  suffixed model name (`…-4o`) is caught while a longer word is not. Test:
+  `a_model_name_with_a_suffix_is_still_found`.
+- **R5** — numbers corrected: **21 unit + 5 hook = 26** new tests (the scorecard's 43 → 69 was right).
+  Corrigendum: commit `a7f60c5`'s message says "11 unit tests"; history is not rewritten, so the
+  correction lives here and in the PR body.
+- **R6** — CI run [41129162523](https://github.com/halmousama/MiData/actions/runs/41129162523) added
+  to the P0-14 row's evidence.
+- **R7** — `docs/gaps.md` shortfall 9 names the exact stale sentence in `AGENTS.md` §5 ("…do not exist
+  yet") and that P0-14 makes it false; the file is owner-reserved, so the edit is recorded, not made.
+- **R8** — the baseline-file header now records that `docs/banned-names.baseline` sits in the shared
+  `ALLOWED_PATHS` and is therefore also exempt from the legacy product-name scan (harmless; the file
+  only holds allowlisted terms).
+- **R9** — `docs/gaps.md` shortfall 10 records that the end-to-end hook tests are `#![cfg(unix)]` and
+  never run on Windows CI, with the two cheap fix options.
+
+**Numbers after the fix round.** Tests 69 → **76** in `xtask` (`cargo nextest run -p xtask`: 76
+passed; +7: four attribution, one term-list, one source-walk, one hook). File budget unchanged at 0
+violations; inventory coverage unchanged (tooling). `cargo xtask ci` green.
