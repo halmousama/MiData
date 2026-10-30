@@ -321,6 +321,42 @@ assumed. `docs/contributing.md` §2 carries the contributor-facing command.
 `workflow_dispatch` run executed on the exact head being merged; docs-only/fast-path merges cite the
 local gate only. A merge without its cited run id is a record defect.
 
+### D33 — Rulings on the four items left open by the first delegated run
+**2026-10-31 (owner ruling).** The first D31 run closed with four items awaiting the owner; all four are
+now resolved. None of them changes a §3 iron rule — they settle how an existing rule is read, or move a
+known defect into the queue.
+
+1. **R7a (PR #6) — the D30 reading, accepted with one absolute-ban carve-out.** The owner accepts the
+   **reference-vs-attribution** reading recorded in D30 and P0-14 (d): a vendor or model term naming an
+   integration or compatibility target, or a document that describes the ban itself, is a **reference**,
+   not an attribution — which is what lets `docs/architecture.md` say `OpenAI-compatible`. **Carve-out:**
+   the two terms `DeepSeek` and `opencode` are **absolutely banned** — no reference exemption, no
+   context carve-out, no allowlist path — because they identify this project's own tooling and model
+   sessions rather than any integration target or third party. A hit is a violation everywhere,
+   including a file that documents the ban.
+   **Consequence (supervisor, measured 2026-10-31):** `deepseek` is already a `Vendor` term in
+   `xtask/src/terms.rs` and currently has **zero** in-tree hits, so the carve-out costs nothing there;
+   `opencode` is **not** in the term list and has **one** pre-existing hit — `log/devlog.md:355`, a
+   historical note naming a temporary directory. Under an absolute ban no baseline entry may buy it, so
+   that line is rephrased (the same remedy D30's own adoption used) and both terms gain a list entry the
+   baseline generator can never allowlist. Enforcement is **P0-16**, which absorbs the carve-out.
+2. **R10 (PR #7) → P0-16.** The `docs/banned-names.baseline` allowlist is keyed `(path, term)`, so a
+   *second* attribution line inside an already-allowlisted file passes the gate. The fix is that an
+   allowlist row carries its **exact hit count**, so a new hit in an allowlisted file is still a new
+   violation. Queued as P0-16 and executed together with the D33 carve-out above because both change the
+   same triage surface.
+3. **S1 (PR #8) → P0-17.** `EncodedValue` exposes public variants, so `Num(NAN)` is constructible outside
+   `encode`. Decode rejects it, but the invariant belongs in the type: **private variants plus smart
+   constructors**. Queued as P0-17.
+4. **D12/A4 stale ADR spans (PR #10/#11 round 2) → folded into P0-8, not a new row.** Two spans of ADR
+   prose still describe the pre-D32 world; nothing operative asserts them, and the inventory row-level
+   pass already owns "every ADR/inventory claim checked against the code". P0-8's acceptance criteria now
+   name this explicitly rather than leaving it as an unowned remark.
+
+**Why the queue and not a decision row each.** All four are small, mechanical and already traced to a
+review finding; inventing binding clauses for them would duplicate what P0-16/P0-17/P0-8 acceptance
+already say.
+
 ## 2. Open items with defaults (REBUILD_PLAN §16)
 
 These are not decisions yet — they are defaults that hold until the owner rules. Listed here so the
