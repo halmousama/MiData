@@ -460,3 +460,38 @@ templates now exist in `docs/review-templates.md`; R6 the escalation flag is def
 R8 stamps: `AGENTS.md` 0.4-draft with the §12/D31 change line, P0-10 re-measured at **36.4 KB**
 (35.6 KiB); R9 D29/D30/D31 rows added to the gaps Closed table; R10 the docs-only fast path stated in
 the REVIEWER template. `cargo xtask ci` green (the i18n skip is the tracked no-catalogues state).
+
+**Review #5 round 2 (independent REVIEWER, separate session):** APPROVE — 0 BLOCKER / 0 MAJOR / 1 MINOR / 4 SUGGESTION; all ten round-1 findings FIXED (R1 six conditions enumerated identically in §12/decisions/stage 5/devlog/PR body with §15 untouched per the ruling; R2 six carve-outs landed and no un-carved owner-only-merge statement remains outside the D25 historical record; R3 owner authorisation recorded at `log/devlog.md:444`; R4–R10 each satisfied at the cited line), delta is scope-clean and D30-clean with `517de62` still the parent (fast-forward, no rewrite), `cargo xtask ci` green here, `wc -c AGENTS.md` = 36 436 = 36.4 KB (35.6 KiB) = 3.04x the 12 KB target so the R8 figures are exact, no new MAJOR introduced (N1 is a one-line PR-body/stage-0 mismatch, N2–N5 are polish); no round 3 needed; full report in PR #5 comment <https://github.com/halmousama/MiData/pull/5#issuecomment-6532990391>; no code or docs touched, nothing pushed — this line left uncommitted for the supervisor.
+
+## 2026-10-30 — D31 · Supervisor mode adopted on `main` (PR #5, pre-flight for the delegated loop)
+
+**Merge report (PR #5 · task D31 · pre-flight, not counted against the 3-cycle budget).** Two review
+rounds by a fresh independent reviewer (sections A+D, docs-only fast path; B sampled at the contract
+risk). Round 1: **REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR / 5 MINOR / 2 SUGGESTION** — R1 the binding
+§15 row lists six merge conditions while all four restatements said five; R2 six standing
+owner-only-merge statements (§5, §7.4, §13.4 ×2, contributing §6/§9) were not superseded, so the file
+simultaneously said "escalate every main push" and "the supervisor merges"; R3 the devlog recorded two
+owner-reserved actions (the `t/p0-2-domain-i18n` force-push and the PR #4 squash-merge) with no stated
+authorising instruction. Fix round `9348ab5` (one docs commit, fast-forward, no rewrite). Round 2:
+**APPROVE — 0 BLOCKER / 0 MAJOR / 1 MINOR / 4 SUGGESTION**, all ten round-1 findings FIXED, no new
+MAJOR. CI on the merged head `9348ab5`: run **41124154529** — `ci (ubuntu-latest)` 19 s,
+`ci (windows-latest)` 58 s, both green. Reports: PR #5 comments
+[6532761853](https://github.com/halmousama/MiData/pull/5#issuecomment-6532761853) and
+[6532990391](https://github.com/halmousama/MiData/pull/5#issuecomment-6532990391).
+
+**Deviations, stated rather than buried.** (i) §15's D31 row was left exactly as the owner wrote it and
+the four restatements were aligned to its six conditions — owner ruling, taken because the row is
+binding and owner-amended. (ii) The round-1 review applied the D29 docs-only fast path (A+D) before the
+template stated it; R10 fixed that gap in the same PR. (iii) The working tree carried an uncommitted
+duplicate of the SUPERVISOR template section (a stray second copy appended after the committed one); it
+was stashed before review rather than committed, and nothing in it was lost — the committed section
+(`docs/review-templates.md:39`) already carried stages 0–7.
+
+**Still open.** N1 (PR body asserted a stage-0 wording change that was not made — corrected in the body,
+not in the file), N2 (condition 5 is literally unsatisfiable as written; discharge wording is in §12),
+N3 (`escalated` is a legal gaps Status value that `docs/gaps.md` never documents — add one line),
+N4 (§3.4 is named "security-adjacent" although it is the AI-contract block — fail-safe, costs avoidable
+escalations), N5 (the bootloader grew 34 177 → 36 436 B while P0-10 is open at 3.0× target — §12's
+six-condition list should collapse to a pointer when the diet lands; wire that into P0-10's scope).
+
+**cycle 0 (pre-flight): D31 merged (PR #5, 3M→0M over 2 rounds, run 41124154529) · next: P0-2f**
