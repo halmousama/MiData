@@ -270,6 +270,31 @@ the cycles by hand.
 outside the D31 envelope"; `AGENTS.md` §12 is the operating procedure, `docs/review-templates.md` gains
 the SUPERVISOR template, and every delegated merge leaves a report paragraph in the devlog.
 
+### D32 — CI is manual-dispatch only
+**2026-10-30 (owner ruling).** The owner's instruction: *"disable it without removing, i want to run it
+only manually."* `.github/workflows/ci.yml` therefore loses its `push` and `pull_request` triggers and
+keeps `workflow_dispatch`; the `ubuntu-latest` + `windows-latest` matrix, both jobs and every step stay
+byte-identical. A run is started with `gh workflow run ci.yml --ref <branch>`, inspected with
+`gh run list --workflow ci.yml --branch <branch>`, and awaited with `gh run watch <run-id>`. The
+`concurrency` group stays keyed on `${{ github.ref }}`, so a manual run on a branch cancels only that
+branch's earlier run.
+**Why.** Wall-clock: the gate already exists as a single local definition (`cargo xtask ci`) that runs the
+same block on the same code, so an automatic run on every push and every PR bought latency at the cost of
+runner minutes. The trigger is the only thing removed — revocation is one diff away.
+**Supersession.** This amends D31's condition (2) and `AGENTS.md` §12: "both required CI checks green on
+the PR head" is no longer satisfiable. The replacement is checkable in two parts — **(2a)** the local gate
+ran green on the reviewed head, its final line is quoted in the PR description, and the reviewer re-ran
+it (the self-reported half); **(2b)** a manual both-OS dispatch is green on that head for any change in
+the platform-sensitive class of §3 rule 9 (Windows path handling, file locks, process spawning,
+case-insensitive filesystems). **Accepted risk:** because (2a) is self-reported, a Windows-specific defect
+can reach `main` with nothing server-side having seen it — run `41133273505`'s `failed to remove …
+target\debug\xtask.exe … Access is denied (os error 5)` is exactly the class of failure only the Windows
+job could catch, and it did once already. **Mitigations:** dispatch before any phase gate, release tag,
+or merge touching a platform-sensitive surface; a release tag requires a green both-OS dispatch on record.
+**Consequence:** the honest posture changes from "CI verifies every PR" to "CI verifies what we ask it
+to"; the local gate is now load-bearing for every merge, and its output must be quoted rather than
+assumed. `docs/contributing.md` §2 carries the contributor-facing command.
+
 ## 2. Open items with defaults (REBUILD_PLAN §16)
 
 These are not decisions yet — they are defaults that hold until the owner rules. Listed here so the

@@ -4,7 +4,7 @@
 > scope/exit-criteria here.** It exists because the orientation table points here for "scope, exit
 > criteria, current focus"; it adds no scope of its own. A phase-scope change is an amendment to the
 > plan, then a re-sync here — never the reverse (D27/A2).
-> **Updated:** 2026-10-30 (P0-2 re-land closed) · **Current focus:** **Phase 0 — Foundations —
+> **Updated:** 2026-10-30 (P0-15 — CI is manual-dispatch only, D32) · **Current focus:** **Phase 0 — Foundations —
 > P0-3 (`midata-store`)**
 
 ## Current focus
@@ -22,13 +22,15 @@ only on P0-2 being on `main`, so it is ready now. After it, the chain is P0-4 (`
 (P0-10) stays queued: the unblocking chain outranks it (still open, still owner-reviewed).
 
 Phase 0 closes only when its exit criteria below are met **and** the owner signs off; Phase 1 tasks
-are then populated in `docs/gaps.md`.
+are then populated in `docs/gaps.md`. One exit criterion changed meaning on 2026-10-30 (**D32**): the
+workflow is **manual-dispatch only**, so "`xtask ci` green on ubuntu + windows" is proven by a manual
+both-OS dispatch on record — the phase gate requires one, not an automatic run.
 
 ## Phase table
 
 | Phase | Name | Estimate | Exit criteria (summary) |
 |---|---|---|---|
-| 0 | Foundations | 40–80 h | `xtask ci` green on ubuntu+windows · app boots to a dashboard with demo data · onboarding idempotent · migration idempotency tests · `AGENTS.md` lean bootloader ≤ ~12 KB · 0 file-budget violations · snapshots for shell + onboarding · devlog active |
+| 0 | Foundations | 40–80 h | `cargo xtask ci` green locally **and** a manual both-OS dispatch on record (ubuntu + windows, D32) · app boots to a dashboard with demo data · onboarding idempotent · migration idempotency tests · `AGENTS.md` lean bootloader ≤ ~12 KB · 0 file-budget violations · snapshots for shell + onboarding · devlog active |
 | 1 | Core herd | 80–150 h | HM/DE-core inventory rows done with evidence · flatten perf budget passing · all screens snapshotted · fuzz green · entity/measurement oracle scenarios (transcribed) passing |
 | 2 | Organization & rules | 40–80 h | demo-data alerts fire correctly · mode switching visibly re-scopes every data surface · every rule type tested including malformed expressions |
 | 3 | Analytics, dashboard, data I/O | 100–180 h | analytics oracle scenarios passing · 1,000-row xlsx round-trip with both conflict strategies · backup restore verified on a copy · scorecard committed and CI-diffed · donut decision resolved |

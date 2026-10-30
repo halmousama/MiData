@@ -1,6 +1,7 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-30 (P0-2 re-land closed: `midata-domain` + `midata-i18n` are on `main`, the i18n gate is fatal; P0-14 and the P0-2f docs truth pass closed earlier the same day) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-30 (P0-15 closed: CI is manual-dispatch only by owner ruling D32;
+> matrix and steps unchanged; P0-2 re-land, P0-14 and the P0-2f docs truth pass closed earlier the same day) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -27,13 +28,16 @@
 | 10 | P0-8 | Inventory v0 reconciliation (re-scoped) | docs | Turns the hand-written checklist into a machine-checkable contract | 2 | — | open |
 | 11 | P0-9 | Snapshots + gates polish | quality | Locks the Phase-0 exit criteria and the ratchets in place | 6 | P0-5, P0-6 | open |
 | 12 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 36.4 KB (35.6 KiB) against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
+| 13 | P0-15 | CI manual-dispatch only (owner ruling D32) | infra/docs | Automatic CI on every push/PR costs wall-clock; the owner wants runs on demand only | 2 | — (owner ruling 2026-10-30) | **done** (2026-10-30, this PR) |
 
 **Status vocabulary:** `open` · `done` (always with its closure date and evidence) · `escalated` (a task
 carrying an `AGENTS.md` §12 condition-3 escalation flag (D31): this row's Status reads `escalated`, or a
 local `plan/ESCALATE` marker exists alongside `plan/HOLD`).
 
 **Sum:** 54 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h and P0-14 3 h added and
-closed 2026-10-30; **P0-2 re-landed and closed 8 h**, 2026-10-30). Of the eight open rows, three are
+closed 2026-10-30; **P0-2 re-landed and closed 8 h**, 2026-10-30; **P0-15 added 2 h and closed 2 h in the
+same PR**, 2026-10-30 — so the open sum is unchanged at 54 while the cumulative queue is now **74 h**).
+Of the eight open rows, three are
 ready (`P0-3`, `P0-8`, `P0-10`) and five are blocked behind the store → engine → app chain. Phase 0
 closes when every open row is `done` and the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle
 extraction, 3 h) closed on 2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27,
@@ -541,6 +545,39 @@ counts.
 
 ---
 
+## P0-15 — CI manual-dispatch only (owner ruling D32)  ·  2 h  ·  rank 13  ·  **done 2026-10-30 (this PR)**
+
+**Kind:** infra + docs · **Source:** owner ruling 2026-10-30 (verbatim: *"disable it without removing, i
+want to run it only manually"*), recorded as `REBUILD_PLAN.md` §15 **D32**.
+
+**Why.** Automatic runs on every push and PR cost wall-clock while the gate already exists locally as one
+definition (`cargo xtask ci`). The owner asked for on-demand runs only — not for a weaker gate.
+
+**Scope.** `.github/workflows/ci.yml` loses `push`/`pull_request` and keeps `workflow_dispatch` only; the
+`ubuntu-latest` + `windows-latest` matrix, both jobs and every step are byte-identical. `concurrency`
+keeps `${{ github.ref }}`, so a manual run on a branch cancels only that branch's earlier run. The
+amended D31 condition (2) becomes (2a) local gate green on the reviewed head with its final line quoted,
+plus (2b) a manual both-OS dispatch for platform-sensitive changes; `docs/contributing.md` §2 carries the
+exact commands; `AGENTS.md` §3 rule 9 and §12 state the truth of when a dispatch is required.
+
+**Acceptance criteria — met.** (i) no `push`/`pull_request` trigger remains; `workflow_dispatch` is the
+only trigger (`grep -A3 '^on:' .github/workflows/ci.yml`). (ii) The matrix still names both
+`ubuntu-latest` and `windows-latest` and no job or step was deleted (diff review: only the trigger block
+and its comment changed). (iii) `AGENTS.md` rule 9 and §12 condition (2) no longer claim automatic CI
+proof and cite the precedent run `41133273505`. (iv) `REBUILD_PLAN.md` D31 was amended and D32 added with
+date, rationale, accepted risk and revocation. (v) A real dispatched both-OS run is green on this
+branch's final head and is linked in the PR body — the first exercise of D32, and the only thing that
+satisfies the amended condition (2b). (vi) `cargo xtask ci` green locally; `git status` clean.
+
+**Honest follow-up debt.** **Server-side verification is gone.** Nothing now proves a branch on GitHub
+unless someone dispatches it, so a Windows-only defect can reach `main` with only a self-reported local
+gate behind it. The only remaining Windows signal is a **manual dispatch** — for a phase gate, a release
+tag, or a scheduled/pre-release run; if the owner later wants automatic coverage at low cost, a
+`schedule:` trigger (weekly) is the obvious one-line addition. The `concurrency` group and the workflow
+itself are unchanged, so restoring triggers is a one-line diff.
+
+---
+
 ## P0-11 — Legacy oracle extraction session  ·  3 h  ·  ✅ **CLOSED 2026-10-26**
 
 **Kind:** docs · **Source:** `REBUILD_PLAN.md` Appendix D, `plan/kickoffs.md` §3, AGENTS.md rule 5
@@ -615,6 +652,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (43 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | 2026-10-30 | `docs/roadmap.md` (focus + `Updated:`), `docs/contributing.md` (closure-stamp DoD), `docs/gaps.md` (P0-14 promoted, vocabulary, shortfall 8), root `ROADMAP.md` re-stamp under the declared round-1 scope amendment; PR #6; `log/devlog.md` |
 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | 2026-10-30 | `crates/midata-domain/` (identity/value rules/age/money/pedigree/errors/clock + tests), `crates/midata-i18n/` (EN+FR catalogues, `t!`/`tf!`, coverage), `xtask/src/i18n/` (fatal gate, 11 tests), `docs/i18n-coverage.baseline` (`en_total: 19`), `docs/i18n.md` §1/§5/§6, `docs/architecture.md` §9 seams, `xtask/src/layers/rules.rs`; PR #8 (re-lands `cb4405c`; predecessor PR #3 closed unmerged); `log/devlog.md` |
+| P0-15 | CI manual-dispatch only (owner ruling D32) | 2026-10-30 | `.github/workflows/ci.yml` (`workflow_dispatch` only; ubuntu + windows matrix and every step unchanged), `AGENTS.md` §3 rule 9 + §12 condition (2a/2b), `REBUILD_PLAN.md` §15 D31 amended + D32 added, `docs/decisions.md` D32, `docs/contributing.md` §2 (dispatch commands + when required), `docs/roadmap.md` + `ROADMAP.md` exit-criterion truth-stamp, dispatched both-OS run (linked in the PR body); PR #TBC; `log/devlog.md` |
 | D29 | Independent reviewer loop per PR | 2026-10-27 | `REBUILD_PLAN.md` §15 D29; `docs/decisions.md` D29; `docs/review-templates.md` (REVIEWER, FIX-ROUND); `docs/contributing.md` §9 |
 | D30 | Attribution repealed + `main` history scrubbed | 2026-10-27 | `REBUILD_PLAN.md` §15 D30; `docs/decisions.md` D30; `docs/contributing.md` §6; `log/devlog.md` |
 | D31 | Delegated merge authority and the autonomous cycle | 2026-10-27 | `REBUILD_PLAN.md` §15 D31; `AGENTS.md` §12; `docs/decisions.md` D31; `docs/review-templates.md` (SUPERVISOR, IMPLEMENTER kickoff); `log/devlog.md` |

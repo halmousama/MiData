@@ -839,3 +839,40 @@ fixed** — it is a code-design change, recorded here as follow-up rather than s
 **cycle 3: P0-2 re-land merged (PR #8, 0M at round 1, runs 41134549806 / 41135799752) · next: P0-3**
 
 **BUDGET EXHAUSTED — 3 tasks merged (P0-2f, P0-14, P0-2). Owner digest follows.**
+
+---
+
+## 2026-10-30 — P0-15 · CI manual-dispatch only (owner ruling D32)
+
+**Landed**
+- `.github/workflows/ci.yml`: `push`/`pull_request` triggers removed, `workflow_dispatch` is the only
+  trigger. **Nothing else changed** — ubuntu-latest + windows-latest matrix, both jobs, every step and
+  the `${{ github.ref }}` concurrency group are byte-identical. Header comment names D32, the reason and
+  the run command.
+- `AGENTS.md` §3 rule 9 now says the matrix is binding *when it runs*, runs are manual, the local gate is
+  the always-on proof, and a both-OS dispatch is required before phase gates / release tags / merges
+  touching a platform-sensitive surface — with the `41133273505` Windows failure cited so it is not read
+  as a free pass. §12 condition (2) splits into **(2a)** local gate green on the reviewed head, quoted in
+  the PR and re-run by the reviewer (self-reported), and **(2b)** a manual both-OS dispatch for the
+  platform-sensitive class (the only server-side proof left).
+- `REBUILD_PLAN.md` §15: D31's condition (2) amended to (2a)/(2b); **D32 added** (date · ruling · matrix
+  retained · wall-clock rationale · accepted risk · mitigations · revocation via `plan/HOLD` or amendment).
+- `docs/decisions.md` D32 (ADR-lite, supersedes D31's CI clause); `docs/contributing.md` §2 (commands,
+  when a dispatch is required); `docs/gaps.md` (P0-15 row, closed section, arithmetic); `docs/roadmap.md`
+  + `ROADMAP.md` exit-criterion truth-stamp; this entry.
+
+**Numbers**
+- Triggers: 2 automatic (push, pull_request) → **0**; `workflow_dispatch` remains **1**. Jobs: **2**
+  (unchanged). Steps: **5** (unchanged). Open queue unchanged at **54 h** (P0-15 added 2 h, closed 2 h);
+  cumulative queue **74 h**; open tasks **8**.
+
+**Accepted risk**
+- Server-side verification is **gone** for ordinary pushes. The local gate is self-reported, so a
+  Windows-only defect can reach `main` without a dispatch. Mitigation: dispatch before phase gates,
+  release tags and platform-sensitive merges; a weekly `schedule:` trigger is the cheap option if the
+  owner wants a standing signal.
+
+**Still open**
+- The PR's dispatched both-OS run must be green — run id + both job conclusions recorded in the PR body;
+  that green run is the first exercise of D32 and satisfies amended condition (2b).
+- P0-3 is next (`midata-store`); P0-10 (`AGENTS.md` diet) stays queued.
