@@ -1,0 +1,19 @@
+err.cardinality.unknown	Cette cardinalité de champ n’est pas reconnue.
+err.currency.unknown	Cette devise n’est pas prise en charge.
+err.data_type.unknown	Ce type de donnée de champ n’est pas reconnu.
+err.money.currency_mismatch	Des montants en devises différentes ne peuvent pas être combinés.
+err.money.overflow	Le montant est trop élevé pour être enregistré.
+err.pedigree.generations_out_of_range	La profondeur du pedigree doit être comprise entre {min} et {max} générations.
+err.sex.unknown	Cette valeur de sexe n’est pas reconnue.
+err.species.invalid_key	« {key} » n’est pas une clé d’espèce valide : utilisez des minuscules, des chiffres, « _ » ou « - ».
+err.status.exit_date_not_allowed	Un animal encore vivant ne peut pas avoir de date de sortie.
+err.status.exit_date_required	Un animal qui a quitté le troupeau doit avoir une date de sortie.
+err.status.unknown	Ce statut d’animal n’est pas reconnu.
+err.value.date_malformed	« {value} » n’est pas une date au format AAAA-MM-JJ.
+err.value.duplicate_choice	Le choix « {choice} » est présent plusieurs fois.
+err.value.empty_choice	Un choix ne peut pas être vide.
+err.value.missing_column	Une valeur doit être enregistrée dans exactement une des deux colonnes de valeur.
+err.value.multi_select_malformed	La valeur à choix multiples enregistrée n’est pas valide.
+err.value.number_not_finite	Un nombre doit être fini.
+err.value.too_many_choices	Une valeur à choix multiples ne peut pas contenir plus de {max} choix.
+err.value.type_mismatch	La valeur ne correspond pas au type de donnée de ce champ.

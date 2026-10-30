@@ -5,12 +5,42 @@
 //! that is missing locally is reported as a **skip**, never as a pass, and CI installs all three.
 
 use crate::{file_budget, gates, i18n, layers, process, stats};
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use std::path::Path;
+
+/// The workspace test run, with the `xtask` package excluded.
+///
+/// `cargo xtask ci` is itself `target/debug/xtask.exe` (the `cargo xtask` alias is `cargo run`), and
+/// Windows locks a running executable. A workspace test build of the `xtask` package wants to write
+/// that exact path, so it fails with `failed to remove file ... Access is denied` (observed on
+/// windows-latest, PR #8). `xtask` is therefore tested separately, in its own target dir — see
+/// [`XTASK_TEST_TARGET_DIR`].
+const WORKSPACE_TEST_ARGS: &[&str] = &[
+    "nextest",
+    "run",
+    "--workspace",
+    "--exclude",
+    "xtask",
+    "--no-fail-fast",
+];
+
+/// Where the `xtask` package's own tests are built: a target dir away from the running binary, so
+/// cargo never has to replace `target/debug/xtask.exe` while this process holds it.
+const XTASK_TEST_TARGET_DIR: &str = "target/xtask-gate";
 
 pub fn run(root: &Path) -> Result<()> {
     section("format");
     process::run("cargo", &["fmt", "--all", "--check"], root)?;
+
+    section("nextest");
+    if !process::is_available("cargo", &["nextest", "--version"], root) {
+        bail!(
+            "cargo-nextest is not installed — the gate cannot run and must not pretend to pass.\n\
+             Install it with: cargo install cargo-nextest --locked"
+        );
+    }
+    process::run("cargo", WORKSPACE_TEST_ARGS, root)?;
+    run_xtask_tests(root)?;
 
     section("clippy");
     process::run(
@@ -23,19 +53,6 @@ pub fn run(root: &Path) -> Result<()> {
             "-D",
             "warnings",
         ],
-        root,
-    )?;
-
-    section("nextest");
-    if !process::is_available("cargo", &["nextest", "--version"], root) {
-        bail!(
-            "cargo-nextest is not installed — the gate cannot run and must not pretend to pass.\n\
-             Install it with: cargo install cargo-nextest --locked"
-        );
-    }
-    process::run(
-        "cargo",
-        &["nextest", "run", "--workspace", "--no-fail-fast"],
         root,
     )?;
 
@@ -84,6 +101,30 @@ pub fn run(root: &Path) -> Result<()> {
 
 fn section(name: &str) {
     println!("\n== xtask ci: {name} ==");
+}
+
+/// Run the `xtask` package's own tests in an isolated target dir (see [`XTASK_TEST_TARGET_DIR`]).
+///
+/// This is the Windows fix: the parent process *is* `target/debug/xtask.exe`, so the nested test
+/// build must not touch that path. The unit tests and the `commit-msg` hook integration test still
+/// run — just built under `target/xtask-gate` where nothing is locked.
+fn run_xtask_tests(root: &Path) -> Result<()> {
+    let target_dir = root.join(XTASK_TEST_TARGET_DIR);
+    eprintln!(
+        "xtask: + cargo nextest run -p xtask --no-fail-fast (CARGO_TARGET_DIR={})",
+        target_dir.display()
+    );
+    let status = std::process::Command::new("cargo")
+        .args(["nextest", "run", "-p", "xtask", "--no-fail-fast"])
+        .current_dir(root)
+        .env("CARGO_TARGET_DIR", &target_dir)
+        .status()
+        .context("spawning `cargo nextest` (is cargo-nextest installed and on PATH?)")?;
+    if status.success() {
+        Ok(())
+    } else {
+        bail!("`cargo nextest run -p xtask` failed with {status}")
+    }
 }
 
 /// Run a tool that CI installs, or skip loudly when it is absent locally.
@@ -166,6 +207,31 @@ mod tests {
         assert!(
             is_missing_binary(&error),
             "a genuinely missing binary must still be skippable, with its io::Error cause intact"
+        );
+    }
+
+    /// Windows regression guard. `cargo xtask ci` is itself `target/debug/xtask.exe`, and Windows
+    /// locks a running executable. A workspace test build of the `xtask` package would try to replace
+    /// that file and fail with "failed to remove file ... Access is denied" (windows-latest, PR #8).
+    /// The gate must therefore exclude `xtask` from the workspace run and test it in its own target
+    /// dir; this test keeps both halves of that fix in place.
+    #[test]
+    fn xtask_tests_never_build_over_the_running_binary() {
+        assert!(
+            WORKSPACE_TEST_ARGS
+                .windows(2)
+                .any(|pair| pair == ["--exclude", "xtask"]),
+            "the workspace test run must exclude `xtask`, or cargo will try to replace the running \
+             `target/debug/xtask.exe` on Windows"
+        );
+        assert!(
+            XTASK_TEST_TARGET_DIR.starts_with("target/") && XTASK_TEST_TARGET_DIR != "target",
+            "the xtask test build must go to a subdirectory of `target`, never the default bin path"
+        );
+        let source = include_str!("ci.rs");
+        assert!(
+            source.contains("run_xtask_tests(root)"),
+            "the ci gate must actually run the isolated xtask tests"
         );
     }
 }

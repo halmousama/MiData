@@ -198,7 +198,8 @@ injected through the `Session`/`Context`, never reached through a global.**
 
 | Seam | Shape (lands in) | Why |
 |---|---|---|
-| Clock | `trait Clock { fn now_utc(&self) -> DateTime<Utc>; fn today(&self) -> NaiveDate; }` in `midata-domain` (P0-2); `SystemClock` in the composition root, `FixedClock` in `midata-testkit` | Dates drive age, latest-value, alerts and analytics; tests must not depend on wall time (`docs/testing.md` determinism rule) |
+| Clock | `trait Clock { fn now_utc(&self) -> DateTime<Utc>; fn today(&self) -> NaiveDate; }` + `SystemClock` in **`midata-domain`** (P0-2, shipped); a `FixedClock` helper lands with `midata-testkit` (P0-4) | Dates drive age, latest-value, alerts and analytics; tests must not depend on wall time (`docs/testing.md` determinism rule). `SystemClock` lives beside the trait until the composition roots exist (P0-5) — it is the *only* wall-time read in the workspace, asserted by a source-scan test in `crates/midata-domain/tests/seams_and_errors.rs` |
+| Translator | `midata-i18n` (P0-2, shipped): `Catalogue::embedded()` parsed once by the composition root, `Translator::new(&catalogue, language)` passed down — no ambient “current language” | A process-wide language would be a global; an injected translator renders EN and FR in one snapshot run and lets the CLI translate the same `err.*` keys the UI shows |
 | Store handle | `Store` owns `Mutex<Connection>` (P0-3); `Session` carries `&Store`/`Arc<Store>`; no module-level connection, no `static` | One handle, WAL, shared by UI/CLI/AI workers; tests open a tempfile DB and inject it |
 | LLM provider | `trait LlmProvider` in `midata-ai` (P5), streaming events over a channel; a stub provider in tests | `ai.deterministic-provider` anti-pattern: no network, no timing assumptions |
 | Actor + batch token | `Session { actor, batch_token }`, set by each surface (`user`/`cli`/`ai`/`seed`) | Audit rows are a consequence of the injected session, not a global “current user” |
@@ -209,6 +210,8 @@ Rules that make this natural from the first crate:
 - **No `static mut`, no interior-mutable globals, no `OnceLock`/`lazy_static` for state.** A constant
   is fine; a process-wide handle is not.
 - `DateTime::now`/`Utc::now` may be called **only** inside `SystemClock`; otherwise the `Clock` is passed.
+- The string layer follows the same shape: no `static` catalogue, no global language — the `Translator`
+  is an argument, exactly like the `Clock` and the store handle.
 - `midata-app` never receives a store handle (layer rule); it dispatches commands and renders output.
 - The composition roots (`apps/midata`, `apps/midata-cli`, `midata-testkit`) are the only places that
   construct real implementations; every other crate accepts its dependencies as arguments.

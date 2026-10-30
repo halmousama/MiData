@@ -1,0 +1,19 @@
+err.cardinality.unknown	This field cardinality is not recognised.
+err.currency.unknown	This currency is not supported.
+err.data_type.unknown	This field data type is not recognised.
+err.money.currency_mismatch	Amounts in different currencies cannot be combined.
+err.money.overflow	The amount is too large to store.
+err.pedigree.generations_out_of_range	Pedigree depth must be between {min} and {max} generations.
+err.sex.unknown	This sex value is not recognised.
+err.species.invalid_key	“{key}” is not a valid species key: use lowercase letters, digits, “_” or “-”.
+err.status.exit_date_not_allowed	An animal that is still alive cannot have an exit date.
+err.status.exit_date_required	An animal that left the herd needs an exit date.
+err.status.unknown	This animal status is not recognised.
+err.value.date_malformed	“{value}” is not a date in the YYYY-MM-DD format.
+err.value.duplicate_choice	The choice “{choice}” is listed more than once.
+err.value.empty_choice	A choice cannot be empty.
+err.value.missing_column	A value must be stored in exactly one of the two value columns.
+err.value.multi_select_malformed	The stored multiple-choice value is not valid.
+err.value.number_not_finite	A number must be finite.
+err.value.too_many_choices	A multiple-choice value cannot hold more than {max} choices.
+err.value.type_mismatch	The value does not match the data type of this field.

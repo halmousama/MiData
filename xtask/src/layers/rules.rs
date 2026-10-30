@@ -35,7 +35,9 @@ pub(crate) const REGISTRY: &[CrateRule] = &[
         internal: &[],
         any_internal: false,
         external: &["serde", "chrono", "thiserror"],
-        dev_external: &[],
+        // Dev-only edge to an already-approved Phase-0 crate: the value contract is a serde contract,
+        // so its representation is asserted in tests rather than assumed (P0-2).
+        dev_external: &["serde_json"],
         dev_only: false,
     },
     CrateRule {

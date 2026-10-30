@@ -9,11 +9,11 @@
 | Metric | Value | Source | Ratchet |
 |---|---|---|---|
 | Inventory coverage (done rows with evidence) | 0 / 222 rows (0%) | `docs/inventory.md` | ↑ only |
-| Tests (source scan) | 77 | `#[test]`-family attributes under `xtask/`, `crates/`, `apps/` | ↑ only |
-| Crates in the workspace | 1 | `cargo metadata --no-deps` | — |
+| Tests (source scan) | 163 | `#[test]`-family attributes under `xtask/`, `crates/`, `apps/` | ↑ only |
+| Crates in the workspace | 3 | `cargo metadata --no-deps` | — |
 | Screens with ≥1 snapshot golden | 0 / 11 | `crates/midata-app/**/snapshots/**/*.png`; target = `REBUILD_PLAN.md` §7.1 screens | ↑ only |
-| i18n coverage (EN) | n/a (no catalogue yet) | `cargo xtask i18n-coverage` | = 100% |
-| i18n coverage (FR) | n/a (no catalogue yet) | `cargo xtask i18n-coverage` | ↑ to 100% by P6 |
+| i18n coverage (EN) | 100% (19 keys) | `cargo xtask i18n-coverage` | = 100% |
+| i18n coverage (FR) | 19/19 (100%) | `cargo xtask i18n-coverage` | ↑ to 100% by P6 |
 | File-budget violations (soft 500 / alarm 800) | 0 | `cargo xtask file-budget` | ↓ to 0 |
 | Clippy warnings | 0 (enforced by the gate) | `cargo clippy -D warnings` | = 0 |
 | `unsafe` occurrences | 0 | source scan + workspace lint `forbid` | = 0 |

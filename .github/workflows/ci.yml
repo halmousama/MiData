@@ -1,10 +1,12 @@
 name: CI
 
 # The gate is the same code locally and in CI: every job runs `cargo xtask ci`, which executes
-# fmt · clippy -D warnings · nextest · check-layers · file-budget · i18n-coverage · banned-name grep ·
-# scorecard diff · cargo-deny · cargo-machete. Both OSes are binding (D12): Linux is the development
-# OS, Windows is the release priority. Snapshot goldens are not in this workflow yet; that deferral is
-# tracked as a known shortfall in docs/gaps.md (target P0-9), not as prose here.
+# fmt · nextest (the workspace minus `xtask`, then `xtask` itself in an isolated target dir) ·
+# clippy -D warnings · check-layers · file-budget · i18n-coverage · banned-names · scorecard diff ·
+# cargo-deny · cargo-machete — in that order, matching `xtask/src/ci.rs`. Both OSes are binding (D12):
+# Linux is the development OS, Windows is the release priority. Snapshot goldens are not in this
+# workflow yet; that deferral is tracked as a known shortfall in docs/gaps.md (target P0-9), not as
+# prose here.
 #
 # Every action is pinned to a commit SHA (with the release tag in a trailing comment): the only
 # supply-chain surface of an offline-first app is CI, so a mutable tag is a needless risk.

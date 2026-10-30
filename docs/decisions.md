@@ -323,3 +323,14 @@ deduplicated draft at `docs/proposals/anti-pattern-register-extension.md` instea
 remains binding and the proposal has no authority. **Closed 2026-10-27 (D28):** the owner approved all
 37 rows, §3 became their home, and the proposal file was deleted. The `docs/proposals/` convention for
 owner-review-only documents survives.
+
+### A6 — `t!(translator, "key")`: the language is injected, never ambient
+**2026-10-27.** `REBUILD_PLAN.md` §7.4 and early drafts of `docs/i18n.md` wrote the lookup as
+`t!("key")`, which implies a process-wide "current language". `docs/architecture.md` §9 forbids state
+globals, and a global language would also make a two-language snapshot render impossible. The macro
+therefore takes the `Translator` explicitly (`t!(translator, "key")`, `tf!(translator, "key",
+"name" => value)`), the catalogue is parsed once by the composition root, and `midata-i18n` holds no
+`static`.
+**Consequence:** every surface (egui shell, CLI, future control channel) passes its translator down,
+exactly like the `Clock` and the store handle; a miss still renders the key itself. Written into
+`docs/i18n.md` §1 and `docs/architecture.md` §9.

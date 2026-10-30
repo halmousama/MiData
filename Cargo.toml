@@ -1,11 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["xtask"]
+members = ["xtask", "crates/midata-domain", "crates/midata-i18n"]
 
 # Dependency policy (AGENTS.md rule 15, REBUILD_PLAN.md Appendix A):
 # versions centralize here, and a dependency is added when the crate that first uses it is born —
 # no pre-populated manifest entries, because an unused dependency is dead code by another name.
-# `xtask` is the only crate in P0-1 (product crates are birth-gated from P0-2, D26).
+# P0-1 ships `xtask` (anyhow + serde_json); P0-2 adds the L0 pair (serde, chrono, thiserror).
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
@@ -14,7 +14,10 @@ rust-version = "1.80"
 
 [workspace.dependencies]
 anyhow = "1.0.98"
+chrono = { version = "0.4.41", features = ["serde"] }
+serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
+thiserror = "2.0.12"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
