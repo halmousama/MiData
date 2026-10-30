@@ -905,3 +905,42 @@ final head's dispatch is cited in the PR body. R7/R8: the P0-1 owner TODO is mar
 by D32, and "on every PR" → "on every dispatch". S1: the real concurrency expression is quoted. S2: rule 9
 states the negative (nothing auto-runs; a green Linux run proves nothing about Windows). S3: numbers say
 "1 job, 2 OS legs, 5 steps".
+
+**review #9 round 2: APPROVE — 0 BLOCKER / 0 MAJOR / 1 MINOR / 3 SUGGESTION** (P0-15: four condition-2 homes agree; gate + dispatch green on 6533c4b; residual = D12/A4 ADR markers).
+
+### 2026-10-30 · P0-15 merged — CI is manual-dispatch only (owner ruling D32)
+
+**Merge report (D31 condition 5).** PR #9 `t/p0-15-manual-dispatch-ci` squash-merged as one commit.
+Task: **P0-15**, owner-directed process task outside the D31 cycle budget (the budget of 3 was consumed
+by P0-2f, P0-14 and P0-2; this change was the owner's own instruction and was recorded before the digest).
+
+**Verdicts.** Round 1 REQUEST_CHANGES — 0 BLOCKER / 4 MAJOR / 4 MINOR / 3 SUGGESTION (stale condition-2
+homes in `docs/review-templates.md`, `AGENTS.md` §5 DoD and `docs/decisions.md` D31; branch protection
+unsatisfiable by a dispatch). Round 2 **APPROVE — 0 BLOCKER / 0 MAJOR / 1 MINOR / 3 SUGGESTION** (residual:
+D12/A4 ADR supersession markers, non-operative). Two rounds, no round 3, no contested finding.
+
+**CI proof (condition 2, in its new two-part form).** (2a) `cargo xtask ci` green on the reviewed head
+`6533c4b` — `xtask ci: OK — every gate that can run has run and passed` (163 tests, file-budget 40/0,
+i18n EN 19 / FR 19, banned-names 0 new, deny + machete OK), re-run independently by the reviewer.
+(2b) dispatched runs `41136964128` @ `12d7ed2` and `41138289419` @ `6533c4b`, both `workflow_dispatch`,
+both green on `ubuntu-latest` and `windows-latest`. A pre-dispatch `gh run list --branch` returned nothing,
+which is the proof the automatic triggers are gone.
+
+**Deviations.** None. The merge-report commit is itself docs-only and moved the head past the reviewed
+`6533c4b`; a third dispatch was run on that head instead of declaring a deviation, so every condition
+holds literally on the merged content.
+
+**What changed.** `.github/workflows/ci.yml` loses `push`/`pull_request` and keeps `workflow_dispatch`;
+the 1 job × 2 OS legs × 5 steps and every command are byte-identical. `AGENTS.md` §3 rule 9 and §5 DoD,
+`REBUILD_PLAN.md` §15 D31 + new D32, `docs/decisions.md` D31 (supersession note) + D32,
+`docs/review-templates.md` stage 5, `docs/contributing.md` §2, both roadmaps and the gaps row now describe
+the manual-dispatch world, and the accepted risk is stated in four places rather than implied nowhere.
+
+**Supervisor action after this merge (owed, not done):** remove the required-status-checks rule from
+`main`'s branch protection (force-push and deletion blocks stay); verify and report. Until then a merge
+needs the admin bypass, which is exactly why the rule goes.
+
+**Next task:** **P0-3 — `midata-store`** (rank 1, 12 h, unblocked now that P0-2 is on `main`).
+**Still open:** R10 from PR #7 (allowlist keyed `(path, term)`), S1 from PR #8 (`EncodedValue` variants
+public → `Num(NAN)` constructible), R7a from PR #6 (D30 reference-vs-attribution narrowing awaits an owner
+clarification), and the D12/A4 ADR markers from PR #9 round 2.
