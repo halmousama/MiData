@@ -599,6 +599,9 @@ gate behind it. The only remaining Windows signal is a **manual dispatch** — f
 tag, or a scheduled/pre-release run; if the owner later wants automatic coverage at low cost, a
 `schedule:` trigger (weekly) is the obvious one-line addition. The `concurrency` group and the workflow
 itself are unchanged, so restoring triggers is a one-line diff.
+**Deferred suggestion (PR #11 S2).** A CI gate grepping `platform-sensitive` outside dated records
+would stop the binding-vs-derivative contradiction class from returning a fourth time; it needs
+`xtask` code, so it was not taken in a docs-only PR and is recorded here instead.
 **Known debt (PR #11 review, m5).** The `.github/workflows/ci.yml` header comment still says a dispatch is
 required "before any phase gate, release tag, or merge touching a platform-sensitive surface" — the
 pre-amendment scope. It was left alone deliberately: editing the workflow would make that PR non-docs-only

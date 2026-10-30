@@ -977,8 +977,6 @@ and (2b) does not (as the amendment itself states).
 **Still open.** R7a (PR #6, D30 reference-vs-attribution narrowing), R10 (PR #7, `(path, term)` allowlist
 key), S1 (PR #8, `EncodedValue` public variants), D12/A4 ADR markers (PR #10 round 2).
 
-**review #11 round 1: REQUEST_CHANGES — 0 BLOCKER / 2 MAJOR / 5 MINOR / 2 SUGGESTION** (D32 amendment: both owner instructions landed verbatim and 5/6 homes agree; MAJOR = decisions.md D31 merge-conditions still "platform-sensitive class", contributing.md §2 + DoD likewise; m1 = AGENTS §3 rule 9 omits "exact head").
-
 **review #11 round 1: REQUEST_CHANGES — 0 BLOCKER / 2 MAJOR / 5 MINOR / 2 SUGGESTION** (both owner texts landed verbatim; the amendment was propagated to five homes but two live instructions stayed on the old platform-sensitive scope, and one of them is the D31 merge-conditions paragraph in the same file).
 
 **review #11 round 1 (fix round) — dispositions.** R1: `docs/decisions.md` D31 merge-conditions (2b) now
@@ -993,3 +991,34 @@ editing the workflow would make a docs PR non-docs-only and drag a both-OS dispa
 recorded as known debt in the P0-15 row. S1: accepted, "binding-vs-derivative" is the precise term for
 PR #5 R1. S2: a `platform-sensitive` grep gate is not taken here (it needs `xtask` code, which is not
 docs-only); noted in P0-15.
+
+**review #11 round 2: APPROVE — 0 BLOCKER / 0 MAJOR / 3 MINOR / 3 SUGGESTION** (all seven homes now widen (2b) to every non-docs-only merge on the exact head; class sweep clean bar annotated/deliberately-deferred ci.yml header; MINORs = contributing §2 invents a "direct push" obligation, devlog S2 pointer "noted in P0-15" has no such note, round-1 devlog line duplicated; gate green on f54118d, 163 tests).
+
+### 2026-10-31 · D32 amendment merged — merge reports must cite a both-OS dispatch (PR #11)
+
+**Merge report (D31 condition 5).** PR #11 squash-merged. Task: owner-authored amendment to D32 plus a
+reviewer-template rule; docs-only, so condition (2a) applies and (2b) does not — exactly as the amendment
+itself prescribes.
+
+**Verdicts.** Round 1 REQUEST_CHANGES — 0 BLOCKER / 2 MAJOR / 5 MINOR / 2 SUGGESTION (both owner texts
+landed verbatim, but two live instructions — the D31 merge-conditions paragraph and the contributor
+dispatch list — still described the pre-amendment platform-sensitive scope). Round 2 **APPROVE — 0
+BLOCKER / 0 MAJOR / 3 MINOR / 3 SUGGESTION**. Two rounds; the reviewers applied the new citation-integrity
+rule to their own reports from the first round it existed.
+
+**CI proof.** (2a) `cargo xtask ci` green on `f54118d` and again on the merge head — `xtask ci: OK — every
+gate that can run has run and passed`; 163 tests unchanged. (2b) not applicable (docs-only), and no both-OS
+dispatch is cited for that reason.
+
+**What the owner added.** (1) Every **non-docs-only** merge must cite, in its merge report, a both-OS
+`workflow_dispatch` run executed on **the exact head being merged**; docs-only/fast-path merges cite the
+local gate only; a merge without its cited run id is a **record defect**. (2) A reviewer must verify every
+binding citation verbatim against the cited file; a fabricated or misquoted citation is a **MAJOR (trust
+defect)** regardless of the code's correctness.
+
+**Deviations.** None in scope. Round-2 minors m1–m3 were fixed before merge: an over-wide "direct push"
+obligation the supervisor had invented was removed, the devlog's claim about a S2 note in P0-15 was made
+true by adding the note, and a duplicated round-1 line was deduped.
+
+**Consequence for the next cycle.** P0-3 (`midata-store`) is non-docs-only, so its merge report **owes a
+both-OS dispatch run id on its head**. Plan for one dispatch after the final fix round, before merging.

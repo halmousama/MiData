@@ -60,7 +60,7 @@ gh run watch <run-id>          # wait for the ubuntu and windows jobs
 **Dispatch is required** for (a) **every non-docs-only change** — it is cited by run id in the merge report
 on the exact head being merged (D32 owner amendment, 2026-10-30); (b) any change to a **platform-sensitive
 surface** — Windows path handling, file locks, process spawning, case-insensitive filesystems — which is a
-subset of (a) but also binds a direct push, not only a merge; (c) every **phase gate**; (d) every
+subset of (a); (c) every **phase gate**; (d) every
 **release tag**; and (e) any change to `.github/` itself (a change to CI must be observed running). For an
 ordinary **docs-only** change the local gate is the proof, but say so explicitly in the PR: "docs-only,
 local gate green on head `<sha>`" with the final line quoted. If you quote a dispatch, paste the run URL
