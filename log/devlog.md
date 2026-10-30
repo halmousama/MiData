@@ -803,3 +803,39 @@ reconciliation. 3. P0-10 `AGENTS.md` diet. `midata-testkit`'s `FixedClock` still
 **cycle 3: P0-2 re-land (PR #8) · next: P0-3**
 
 **review #8 round 1 (independent REVIEWER):** APPROVE — 0 BLOCKER / 0 MAJOR / 7 MINOR / 4 SUGGESTION; full A+B+C+D audit (no sampling): gate re-run green here (fmt, clippy, nextest 163, check-layers, file-budget 40/0, i18n-coverage EN 19 FR 19/19, banned-names, `xtask ci` incl. deny+machete), three i18n negative proofs reproduced (exit 1 each) and reverted byte-identically (`sha256sum -c`, clean `git status`), `cb4405c` confirmed an ancestor with an append-only reflog and A6 confirmed pre-existing in it; MINORs are stale numbers/README wording (roadmap 162 vs 163, per-file test counts 17/11 vs 15/10, PR-body 162 + previous-head run id, i18n README `CatalogueError` row, domain README `Status` "/ …", `docs/i18n.md` §5 mid-phase bullet vs the 0-gap gate, stale `ci.yml` gate-order comment); report: <https://github.com/halmousama/MiData/pull/8#issuecomment-6534474866>; no code touched, nothing pushed — this line left uncommitted.
+
+**Merge report (PR #8 · task P0-2 re-land · cycle 3 of 3).** Full review, no sampling — and the **first
+independent review this code has ever had**: its original commit `cb4405c` had PR #3 closed unmerged with
+0 reviews, 0 comments and an empty timeline, so nothing here is a re-review. The branch was integrated by
+`git merge origin/main` (never rebased, never force-pushed; `cb4405c` remains an ancestor), keeping both
+P0-14's `banned-names` step and P0-2's fatal `i18n-coverage` step. Round 1: **APPROVE — 0 BLOCKER /
+0 MAJOR / 7 MINOR / 4 SUGGESTION**; the reviewer read every source file of both crates, both READMEs,
+`xtask/src/i18n*`, `layers*` and `ci.rs`, ran the whole gate and independently reproduced all three i18n
+negative proofs (missing FR row, orphan FR key, `en_total` shrink — each exit 1, each probe reverted
+byte-identically). CI: head `96b5dad` run **41134549806** (ubuntu 36 s, windows 1 m 11 s), post-fix head
+`4436b8a` run **41135799752** (both green). Reports: PR #8 comment
+[6534474866](https://github.com/halmousama/MiData/pull/8#issuecomment-6534474866).
+
+**Deviations, stated rather than buried.** (i) **The merged head is one docs commit past the reviewed
+head.** After APPROVE I ran a docs-only fix round for the seven MINORs (wrong test counts, a wrong run id,
+two README contract drifts, and a `docs/i18n.md` line that contradicted the gate it describes) instead of
+landing known-false documentation — authorised in the review itself: "R1–R7 are documentation-accuracy
+fixes suitable for a follow-up docs commit on the same branch". No crate behaviour changed in `4436b8a`;
+no second review round was spent on it, per the reviewer's explicit authorisation and the owner's speed
+directive. (ii) **The Windows fix is not proven on Windows by me** — it was a real failure (run
+41133273505 `--log-failed`: `failed to remove … target\debug\xtask.exe … Access is denied (os error 5)`)
+and the logic is auditable (workspace run excludes `xtask`; `xtask` re-runs under
+`CARGO_TARGET_DIR=target/xtask-gate` with an explicit child env var; same run reports 87/87), and the
+merged head is green on both jobs — but the regression test asserts the *shape* of the fix, so a future
+relocation of the nested spawn would only be caught by a Windows CI run. That is why the platform jobs
+stay, and why the owner's manual-dispatch change must keep them runnable. (iii) S1 (`EncodedValue`
+variants are public, so `Num(NAN)` is constructible outside `encode`, though decode rejects it) is **not
+fixed** — it is a code-design change, recorded here as follow-up rather than smuggled into a docs commit.
+
+**Numbers.** Tests 77 → **163** (domain 60, i18n 16, xtask 87); crates 1 → **3**; i18n EN 19 / FR 19/19,
+`en_total: 19` recorded so the R4 ratchet is live; file budget 40 files / 0 violations. `main` finally has
+`crates/`.
+
+**cycle 3: P0-2 re-land merged (PR #8, 0M at round 1, runs 41134549806 / 41135799752) · next: P0-3**
+
+**BUDGET EXHAUSTED — 3 tasks merged (P0-2f, P0-14, P0-2). Owner digest follows.**
