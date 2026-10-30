@@ -1,6 +1,6 @@
 # Gaps — the ranked work queue
 
-> **Version:** v1 · **Updated:** 2026-10-30 (P0-2f docs truth pass: queue re-ranked, P0-14 promoted, roadmap focus corrected) · **Phase:** 0 — Foundations
+> **Version:** v1 · **Updated:** 2026-10-30 (P0-2f docs truth pass closed: queue re-ranked, P0-14 promoted, roadmap focus corrected; review #6 round-1 fixes R1–R6/S1–S3 and the `ROADMAP.md` scope amendment applied) · **Phase:** 0 — Foundations
 > **How to use it** (AGENTS.md §4): take the **highest-ranked unclaimed** entry, follow the five-step
 > task loop (AGENTS.md §5), and close it with evidence. Estimates are **agent-hours** — one agent,
 > sequential, including tests and docs — recalibrated after Phase 1 (`REBUILD_PLAN.md` §11.7).
@@ -16,7 +16,7 @@
 | Rank | id | Task | Kind | Impact | Est. (h) | Depends on | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | P0-1 | Workspace + `xtask` + CI | infra | Unblocks every later task; the gate must exist before code does | 10 | — | **done** (2026-10-27) |
-| 2 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | docs | Every session boots from a stale "current focus" — the R1 defect of the PR #3 review | 1.5 | — (D31 merged) | open — implementation on `t/p0-2f-docs-truth-pass` |
+| 2 | P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | docs | Every session boots from a stale "current focus" | 1.5 | — (D31 merged) | **done** (2026-10-30, PR #6) |
 | 3 | P0-14 | D30 mechanical enforcement: `commit-msg` hook + vendor/model term list | tooling | D30 is honour-system until the hook and the second term list exist | 3 | — (D30 adopted 2026-10-27) | open |
 | 4 | P0-2 | `midata-domain` + `midata-i18n` (re-land) | feature | Types, value rules and the string layer that everything else consumes | 8 | P0-1 | open — fixes applied on `t/p0-2-domain-i18n` (`cb4405c`); PR #3 **closed unmerged** 2026-10-27; re-land queued |
 | 5 | P0-3 | `midata-store` + migrations | feature | Schema v1, latest-value query, rebuild's data foundation | 12 | P0-2 (blocked until P0-2 is on `main`) | open |
@@ -29,14 +29,15 @@
 | 12 | P0-10 | `AGENTS.md` diet to a lean bootloader ≤ ~12 KB | docs | The bootloader is read every session; it is currently 36.4 KB (35.6 KiB) against a ~12 KB target | 3 | — (policy approved 2026-10-27, D27) | open |
 
 **Status vocabulary:** `open` · `done` (always with its closure date and evidence) · `escalated` (a task
-carrying a D31 §12 condition-3 escalation flag: this row's Status reads `escalated`, or a local
-`plan/ESCALATE` marker exists alongside `plan/HOLD`).
+carrying an `AGENTS.md` §12 condition-3 escalation flag (D31): this row's Status reads `escalated`, or a
+local `plan/ESCALATE` marker exists alongside `plan/HOLD`).
 
-**Sum:** 66.5 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h + P0-14 3 h added
-2026-10-30; **P0-2's 8 h stays open — PR #3 closed unmerged**, so it is queued for re-land, not
-closed). Phase 0 closes when every open row is `done` and the exit criteria in `docs/roadmap.md` are
-met. P0-11 (oracle extraction, 3 h) closed on 2026-10-26, P0-12 (owner rulings, 1.5 h) on 2026-10-27
-and P0-1 on 2026-10-27 — see §Closed.
+**Sum:** 65 agent-hours open (72 at queue start; P0-1 closed 10 h; P0-2f 1.5 h added and closed
+2026-10-30; P0-14 3 h added 2026-10-30; **P0-2's 8 h stays open — PR #3 closed unmerged**, so it is
+queued for re-land, not closed). Of the ten open rows, four are ready (`P0-14`, `P0-2` re-land, `P0-8`,
+`P0-10`) and six are blocked behind the re-land chain. Phase 0 closes when every open row is `done` and
+the exit criteria in `docs/roadmap.md` are met. P0-11 (oracle extraction, 3 h) closed on 2026-10-26,
+P0-12 (owner rulings, 1.5 h) on 2026-10-27, P0-1 on 2026-10-27 and P0-2f on 2026-10-30 — see §Closed.
 
 ---
 
@@ -137,10 +138,12 @@ claimed here.
 
 ---
 
-## P0-2f — Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion  ·  1.5 h  ·  rank 2
+## P0-2f — Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion  ·  1.5 h  ·  rank 2  ·  **done 2026-10-30 (PR #6)**
 
 **Kind:** docs · **Source:** measured defect found while bootstrapping the D31 cycle — the roadmap header
-has been stale since PR #3, which is exactly review finding R1 of PR #3.
+had been stale since PR #3 was closed unmerged. (PR #3 carries **no review record at all**: 0 reviews,
+0 review comments, 0 issue comments, and its timeline holds only commits plus `closed` — so no review
+finding is cited here, and the re-land needs a fresh review.)
 
 **Why now.** Every session reads `docs/roadmap.md` first to learn the current focus. Since PR #3 was
 closed unmerged, that line named P0-10 then P0-2 as "next" while `main` contained no product crates at
@@ -158,11 +161,12 @@ future task; it is cheap to correct and it is the precondition for the re-land c
   Status vocabulary documented; the P0-10/§12 pointer follow-up wired in; shortfall 8 traced to its
   discovery on the P0-2 branch.
 
-**Non-goals.** No product code, no schema, no dependency change, no edit outside the four docs listed
-in the task record (`docs/roadmap.md`, `docs/contributing.md`, `docs/gaps.md`, `log/devlog.md`).
-`ROADMAP.md` (the root one-screen status page) is **not** in this task's file scope and stays stale
-until the new DoD rule forces its update at the next closure — recorded here so it is a known debt, not
-an oversight.
+**Non-goals.** No product code, no schema, no dependency change. The task record declared four docs
+(`docs/roadmap.md`, `docs/contributing.md`, `docs/gaps.md`, `log/devlog.md`); the **scope amendment
+declared by the supervisor in review round 1** adds root `ROADMAP.md`, because it is the first doc every
+session reads (AGENTS.md §4 point 0) and it still carried a wrong boot state ("next task **P0-10**",
+"9 tasks queued, none blocked"). `ROADMAP.md` is therefore re-stamped in the same task, not left as
+debt; the amendment is stated in the PR body and is not silent creep.
 
 **Evidence.** The three state facts re-verified at write time with `gh pr view 3 --json
 state,mergedAt,closedAt`, `git ls-tree --name-only origin/main crates/` (empty) and `git ls-remote
@@ -175,8 +179,9 @@ origin refs/heads/t/p0-2-domain-i18n` (`cb4405c`); `cargo xtask ci` green; devlo
 **Kind:** tooling · **Source:** measured shortfall 8 (found 2026-10-27 during P0-2 on branch
 `t/p0-2-domain-i18n`, promoted here 2026-10-30); `REBUILD_PLAN.md` §15 **D30**; `AGENTS.md` §5.
 
-**Evidence of the gap.** `AGENTS.md` §5 says no `Co-Authored-By` trailers and no AI-vendor/model names
-anywhere, "enforced locally by the `commit-msg` hook and in CI by the banned-names gate". Neither exists:
+**Evidence of the gap.** `AGENTS.md` §5 forbids attribution trailers and AI-vendor/model names anywhere,
+and then states plainly: "Review-enforced today: the `commit-msg` hook and the vendor/model term list in
+the banned-names gate **do not exist yet**" (D30: "Review-enforced **until** … land"). Neither exists:
 `.git/hooks/` holds no `commit-msg` hook, and `xtask/src/gates.rs::banned_names` greps only the legacy
 product name, not trailers or vendor/model names. The rule is honour-system today (it holds only because
 reviewers apply it by hand).
@@ -191,12 +196,29 @@ reviewers apply it by hand).
   **D30 self-reference trap:** the gate scans the tree, so the literal terms must not appear in a file
   the gate scans. The literals are assembled/split in code (e.g. `xtask/src/terms.rs`, built from
   fragments) so the source that defines them cannot trip the gate itself; the docs describe the
-  mechanism only and never print the names. This is an acceptance test, not a comment.
+  mechanism only and never print the names. This is an acceptance test, not a comment. **Precedent in
+  the tree:** the legacy-name gate already does exactly this — `xtask/src/gates.rs:31`
+  `concat!("ru", "metrics")` assembles the term, and `xtask/src/gates.rs:92`
+  `gate_source_does_not_contain_its_own_pattern` is the test that keeps it true. The new list follows
+  that pattern rather than inventing one.
 - (c) **Baseline sweep + committed allowlist.** Run the new list over the whole tree once, commit the
-  pre-existing violations in an allowlist file, and make the gate fatal from day one. The gate prints a
-  count of allowlisted entries; that count may only shrink, and every new violation fails.
-- (d) **Exemptions.** `ARTCRAFT_INVESTIGATION.md` and `docs/legacy-spec/` legitimately quote external
-  projects and are exempt by path; everything else in the tree is in scope.
+  pre-existing violations in a named baseline file — `docs/banned-names.baseline`, mirroring
+  `docs/i18n-coverage.baseline` and `docs/file-budget.baseline` — and make the gate fatal from day one.
+  The gate prints a count of allowlisted entries; that count may only shrink (a `cargo xtask
+  banned-names` step inside `xtask ci`, with a unit test that fails if the stored count exceeds the
+  measured one, exactly as the i18n and file-budget ratchets do), and every new violation fails.
+- (d) **Exemptions.** The path allowlist **mirrors the existing gate's own allowlist** —
+  `xtask/src/gates.rs::is_allowed_path` / `ALLOWED_PATHS`: `AGENTS.md`, `REBUILD_PLAN.md`,
+  `docs/decisions.md`, `docs/gaps.md`, all of `docs/legacy-spec/` — **plus `ARTCRAFT_INVESTIGATION.md`**
+  (which legitimately quotes external projects but is not in today's list, so adding it is an additive
+  change to `ALLOWED_PATHS`, stated in the P0-14 PR). Everything else in the tree is in scope.
+  **Reference-vs-attribution rule:** the term list targets *attribution* — trailers and claims of
+  authorship/provenance — not *reference*. A vendor name naming an integration target is a reference:
+  `docs/architecture.md:15` names an LLM vendor only to define the API dialect the app speaks, which is
+  a compatibility target, not an authorship claim, and it must not fail the gate. New hits are triaged
+  into the baseline with the reason recorded: `reference` entries are allowed with that stated reason,
+  attribution entries fail outright. Without this rule the "clean full-tree run" criterion is unpassable
+  as scoped — it would fail on day one at that line.
 
 **Acceptance criteria.**
 - The hook rejects a synthetic bad message (attribution trailer, or a banned vendor/model term) and
@@ -215,8 +237,9 @@ paragraph in the contributor docs.
 
 **Kind:** feature (L0) · **Source:** `REBUILD_PLAN.md` §4.1, §5.3, §5.5, §7.4; Appendix C bullets 5–7.
 
-**Status (measured 2026-10-30).** The implementation and its round-1 review fixes exist on branch
-`t/p0-2-domain-i18n` (remote tip `cb4405c`), but PR #3 was **closed without being merged**
+**Status (measured 2026-10-30).** The implementation exists on branch
+`t/p0-2-domain-i18n` (remote tip `cb4405c`, a single commit — the remote branch carries no separable
+"review fix" commits), but PR #3 was **closed without being merged**
 (`closedAt` 2026-10-27T09:35:38Z, `mergedAt` null), so **`main` has no `crates/` directory** and none of
 this work is on `main`. The 8 h stays on the open sum; the task is queued for **re-land as a fresh PR**
 (this entry is the queue record, not a new scope). Everything in the scope below was implemented and
@@ -517,6 +540,7 @@ owns it (same rule as `docs/testing.md` §8: a scenario is evidence, not decorat
 | P0-11 | Legacy oracle extraction session (firewall exception, one session only) | 2026-10-26 | `docs/oracles/` (8 files, 470 scenarios); `docs/testing.md` v1; `docs/inventory.md` v1 (222 rows); `log/devlog.md` |
 | P0-12 | Owner rulings on the nine bootstrap ambiguities + oracle follow-ups (M1–M8) | 2026-10-27 | `REBUILD_PLAN.md` 0.5-draft §3.1–§3.8 + §15 D26–D28; `docs/decisions.md`; `docs/contributing.md` §3; `log/devlog.md` |
 | P0-1 | Workspace + `xtask` gates + ubuntu/windows CI | 2026-10-27 | `Cargo.toml`, `Cargo.lock`, `xtask/` (43 tests), `xtask/src/layers.rs` (registered DAG), `docs/file-budget.baseline`, `docs/i18n-coverage.baseline`, `docs/scorecard.md`, `.github/workflows/ci.yml`; PR body carries the per-gate negative proofs; `log/devlog.md` |
+| P0-2f | Docs truth pass: roadmap focus line, closure-stamp DoD rule, P0-14 promotion | 2026-10-30 | `docs/roadmap.md` (focus + `Updated:`), `docs/contributing.md` (closure-stamp DoD), `docs/gaps.md` (P0-14 promoted, vocabulary, shortfall 8), root `ROADMAP.md` re-stamp under the declared round-1 scope amendment; PR #6; `log/devlog.md` |
 | D29 | Independent reviewer loop per PR | 2026-10-27 | `REBUILD_PLAN.md` §15 D29; `docs/decisions.md` D29; `docs/review-templates.md` (REVIEWER, FIX-ROUND); `docs/contributing.md` §9 |
 | D30 | Attribution repealed + `main` history scrubbed | 2026-10-27 | `REBUILD_PLAN.md` §15 D30; `docs/decisions.md` D30; `docs/contributing.md` §6; `log/devlog.md` |
 | D31 | Delegated merge authority and the autonomous cycle | 2026-10-27 | `REBUILD_PLAN.md` §15 D31; `AGENTS.md` §12; `docs/decisions.md` D31; `docs/review-templates.md` (SUPERVISOR, IMPLEMENTER kickoff); `log/devlog.md` |
@@ -557,9 +581,11 @@ entry when they grow.
 8. **D30 is not enforced mechanically yet** (found 2026-10-27 during P0-2 on branch
    `t/p0-2-domain-i18n`; **promoted to P0-14 on 2026-10-30** — it was never on `main` before this
    promotion). `AGENTS.md` §5 forbids attribution trailers and AI vendor/model names in operational
-   docs, "enforced locally by the `commit-msg` hook and in CI by the banned-names gate" — but
-   `.git/hooks/` holds no `commit-msg` hook and `xtask/src/gates.rs::banned_names` still greps only the
-   legacy product name. The rule is honour-system until P0-14 lands: a checked-in hook template plus a
+   docs, and says of the enforcement: "Review-enforced today: the `commit-msg` hook and the vendor/model
+   term list in the banned-names gate **do not exist yet**". Neither does: `.git/hooks/` holds no
+   `commit-msg` hook and `xtask/src/gates.rs::banned_names` still greps only the legacy product name.
+   The rule is honour-system until P0-14 lands: a checked-in hook template plus a
    second term list, with the term literals assembled in code so the gate cannot trip on its own
-   definition and a committed allowlist of pre-existing hits so it can be fatal from day one. *Evidence:*
+   definition and a committed allowlist (`docs/banned-names.baseline`) of pre-existing hits so it can be
+   fatal from day one. *Evidence:*
    `ls .git/hooks/`, `xtask/src/gates.rs`, `AGENTS.md` §5, P0-14 scope in this file.

@@ -1,10 +1,10 @@
 # MiData Native — roadmap
 
-> **Stage:** Phase 0 in progress — workspace + `xtask` gate + ubuntu/windows CI landed (P0-1); no
-> product crates yet
-> **Last reviewed:** 2026-10-27 · **Last updated:** 2026-10-27 · **Change:** P0-1 — workspace, gate
-> suite, CI matrix, generated scorecard and the round-1 review fixes (R1–R6, S1–S5)
-> **Current focus:** **Phase 0 — Foundations** (`docs/roadmap.md`, next task **P0-10**)
+> **Stage:** Phase 0 in progress — workspace + `xtask` gate + ubuntu/windows CI landed (P0-1); the docs
+> truth pass is closed (P0-2f, PR #6); no product crates yet
+> **Last reviewed:** 2026-10-30 · **Last updated:** 2026-10-30 · **Change:** P0-2f closure — boot state
+> re-stamped (next task, open-row counts, `AGENTS.md` size), headline numbers re-read from the scorecard
+> **Current focus:** **Phase 0 — Foundations** (`docs/roadmap.md`, next task **P0-14**)
 
 MiData is a local-first livestock management and analysis desktop application — native Rust + egui, one
 SQLite file, offline, account-free, English + French, TND default. This page is the one-screen status
@@ -31,7 +31,7 @@ Numbers are measured, never estimated: they come from `docs/scorecard.md`, gener
 
 | Phase | State |
 |---|---|
-| 0 — Foundations | **in progress** — bootstrap (B0), extraction (P0-11), owner rulings (P0-12) and workspace/CI (P0-1) done; 9 tasks queued, none blocked |
+| 0 — Foundations | **in progress** — bootstrap (B0), extraction (P0-11), owner rulings (P0-12), workspace/CI (P0-1) and the docs truth pass (P0-2f) done; 10 tasks open — 4 ready (P0-2 re-land, P0-8, P0-10, P0-14), 6 blocked behind the P0-2 re-land |
 | 1 — Core herd | not started |
 | 2 — Organization & rules | not started |
 | 3 — Analytics, dashboard, data I/O | not started |
@@ -55,9 +55,9 @@ Honest list, in the order it hurts:
 3. **Legacy parity is transcribed, not proven.** P0-11 extracted 485 oracle cases into
    `docs/oracles/`, but no test cites a scenario id yet, so inventory coverage still reads 0% — the
    parity number arrives with the Phase 0/1 code that passes those scenarios.
-4. **The constitution is still over budget.** `AGENTS.md` is 33.5 KB against the amended lean-bootloader
-   target of ≤ ~12 KB (P0-10, policy amended by D27) — a context-economy problem that taxes every
-   session.
+4. **The constitution is still over budget.** `AGENTS.md` is **36 436 B** (35.6 KiB) against the amended
+   lean-bootloader target of ≤ ~12 KB (P0-10, policy amended by D27) — a context-economy problem that
+   taxes every session.
 5. **No packaging, no release process in code.** Installers, tags and the release checklist are Phase 7;
    nothing is shippable before then.
 

@@ -521,3 +521,30 @@ the scorecard diff was clean, so no scorecard commit.
 file scope; the new DoD rule forces its update at the next closure. (2) **P0-14** — D30 is still
 honour-system until the hook and term list land. (3) **P0-2 re-land** — the reviewed branch still has to
 reach `main` before P0-3 can start. (4) **P0-10** diet, now rank 12.
+
+**Review #6 round 1 (independent REVIEWER, separate session):** REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR / 3 MINOR / 3 SUGGESTION (R1 the P0-14 row and shortfall 8 quote a clause AGENTS.md never contains — §5 actually says the hook and term list "do not exist yet"; R2 "review finding R1 of PR #3" and "round-1 review fixes" cite a review record that does not exist: PR #3 has 0 reviews, 0 comments, an empty timeline, and the branch is a single commit; R3 the declared ROOT `ROADMAP.md` deviation is a legitimate scope boundary, but the known shortfall is not entered in the ranked queue, so the wrong-boot-state defect survives in the first doc every session reads); docs-only fast path (A+D), C skipped, B sampled on the P0-3 blocker, the D31 six conditions and the deviation; every numeric and state claim re-verified (PR #3 CLOSED/`mergedAt` null/`closedAt` 2026-10-27T09:35:38Z, empty `crates/` on `origin/main`, `cb4405c`, `wc -c AGENTS.md` = 36 436 = 3.04×, Sum 66.5 recomputed from the Est. column, ranks 1–12 contiguous, both stamps 2026-10-30, no scorecard in the diff, no vendor/model literal and no trailer) and `cargo xtask ci` re-run green here; full report in PR #6 comment <https://github.com/halmousama/MiData/pull/6#issuecomment-6533250313>; no code or docs touched beyond this line, nothing pushed.
+
+**Fix round 1 (R1–R6, S1–S3).** All nine addressed on the branch. **R1** — the P0-14 row and shortfall 8
+now quote the constitution's real sentence (`AGENTS.md` §5: "Review-enforced today: the `commit-msg` hook
+and the vendor/model term list in the banned-names gate do not exist yet", D30: "Review-enforced
+**until** … land") instead of the invented clause. **R2** — the "PR #3 review finding R1" /
+"round-1 review fixes" attribution is gone from `docs/gaps.md` (queue row, P0-2f source, P0-2 status) and
+`docs/roadmap.md`: PR #3 has 0 reviews / 0 comments / an empty timeline and its branch is a single
+commit, so the docs now say exactly that and record that the re-land needs a fresh review. **R3** —
+supervisor ruling accepted: the four-file boundary stands as a legitimate boundary, and the ROOT
+`ROADMAP.md` is now owned under a declared scope amendment and re-stamped (P0-10 → P0-14 focus,
+"9 tasks queued, none blocked" → 10 open / 4 ready / 6 blocked, `AGENTS.md` 33.5 KB → 36 436 B); no
+shortfall 9 was needed because nothing in the file stayed unfixable. **R4** — P0-14(d) mirrors
+`is_allowed_path` (AGENTS/REBUILD_PLAN/decisions/gaps/legacy-spec) plus `ARTCRAFT_INVESTIGATION.md`, and
+adds the reference-vs-attribution rule that makes the clean full-tree run passable (the architecture
+doc's vendor-named LLM API dialect is a reference, not attribution). **R5** — P0-2f is stamped **done
+(2026-10-30, PR #6)**, the Closed table gains its row, and the focus line moves to **P0-14**; the stamp
+precedes the merge by one action, stated in the PR body. **R6** — "D31 §12 condition-3" became "an
+`AGENTS.md` §12 condition-3 escalation flag (D31)". **S1** — the ROADMAP size/queue numbers fixed (it is
+the R3 fix). **S2** — P0-14(b) cites the existing precedent `xtask/src/gates.rs:31`
+`concat!("ru", "metrics")` plus the `:92` self-scan test. **S3** — P0-14(c) names
+`docs/banned-names.baseline` and a `cargo xtask banned-names` gate whose count may only shrink, like
+`docs/i18n-coverage.baseline`.
+
+**Numbers after the fix round.** Queue open sum 66.5 → **65 agent-hours** (P0-2f closed, 1.5 h off the
+open sum; 10 open rows, 4 ready / 6 blocked). `cargo xtask ci` green; scorecard unchanged (docs only).
