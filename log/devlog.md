@@ -548,3 +548,32 @@ the R3 fix). **S2** — P0-14(b) cites the existing precedent `xtask/src/gates.r
 
 **Numbers after the fix round.** Queue open sum 66.5 → **65 agent-hours** (P0-2f closed, 1.5 h off the
 open sum; 10 open rows, 4 ready / 6 blocked). `cargo xtask ci` green; scorecard unchanged (docs only).
+
+**Review #6 round 2 (independent REVIEWER, separate session):** APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 3 SUGGESTION at `6e40c3e` (R1 FIXED, R2 PARTIAL — committed docs carry the corrected provenance but the PR body still says "the exact defect R1 of the PR #3 review raised" and still reports the removed "fixes applied" wording, R3 FIXED under the declared scope amendment, R4 FIXED, R5 FIXED with the pre-merge stamp declared, R6 FIXED, S1–S3 FIXED with `gates.rs:31`/`:92` and the absent `docs/banned-names.baseline` both verified); docs-only fast path (A+D), C skipped, B sampled on D30/§5/§8/§12/D27-A2; all delta numbers re-measured (Est. column sums 76.5 total − 10 − 1.5 = 65 open across 10 rows, 4 ready / 6 blocked by transitive dependency resolution, `wc -c AGENTS.md` = 36 436 = 35.6 KiB, ranks 1–12 contiguous, three 2026-10-30 stamps, 5 files, `cb185d4` an ancestor, 4 commits D30-clean) and `cargo xtask ci` re-run green with the scorecard unchanged; no round 3 needed; full report in PR #6 comment <https://github.com/halmousama/MiData/pull/6#issuecomment-6533343696>; no code or docs touched beyond this line, nothing pushed.
+
+**Merge report (PR #6 · task P0-2f · cycle 1 of 3).** Two review rounds by a fresh independent
+reviewer (docs-only fast path A+D, B sampled). Round 1: **REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR /
+3 MINOR / 3 SUGGESTION** — R1 the P0-14 row quoted an `AGENTS.md` §5 sentence that exists nowhere
+(the real text says the hook and term list "do not exist yet"); R2 "PR #3 round-1 review fixes" was
+unverifiable provenance (PR #3 carries 0 reviews, 0 comments, an empty timeline and a single commit);
+R3 the correct truth-stamp left the *first-read* boot doc `ROADMAP.md` still naming P0-10 as next.
+Fix round `c949a27`+`6e40c3e`. Round 2: **APPROVE — 0 BLOCKER / 0 MAJOR / 2 MINOR / 3 SUGGESTION**,
+R1/R3/R4/R5/R6 and S1–S3 FIXED, R2 PARTIAL in the PR body only (fixed in the body, field R7b), no new
+MAJOR. CI on the pre-report head `6e40c3e`: run **41127148842** — ubuntu 23 s, windows 45 s, both
+green. Reports: PR #6 comments
+[6533250313](https://github.com/halmousama/MiData/pull/6#issuecomment-6533250313) and
+[6533343696](https://github.com/halmousama/MiData/pull/6#issuecomment-6533343696).
+
+**Deviations, stated rather than buried.** (i) **Scope amendment, declared before it was used:** root
+`ROADMAP.md` was outside P0-2f's four declared files; R3 ruled the boundary legitimate but the stale
+boot doc fatal to the task's purpose, so the supervisor widened the file set to five and the amendment
+is recorded in the PR body and in the P0-2f row — not silently. (ii) The P0-2f row is stamped
+`done (2026-10-30, PR #6)` one action before the squash exists; the PR body declares that gap and the
+devlog line below closes it. (iii) **R7a is an owner question, not a fix:** the P0-14
+reference-vs-attribution rule narrows binding D30 ("no vendor/model name in docs") to attribution
+contexts, decided inside a docs task. It changes no D30 text and the conflict pre-exists in
+`AGENTS.md`'s own "OpenAI-compatible" policy line, so it did not block merge — but the owner should
+confirm the reading when P0-14 is picked up. (iv) `docs/banned-names.baseline` does not exist yet;
+P0-14 describes it as future work, not as landed.
+
+**cycle 1: P0-2f merged (PR #6, 3M→0M over 2 rounds, run 41127148842) · next: P0-14**
