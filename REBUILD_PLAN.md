@@ -712,7 +712,8 @@ Phase 7 writes `docs/mobile-access-strategy.md` as a **contract for the future**
 
 **Remote:** private GitHub repository (owner creates it; going public is an owner decision at
 release time — publishing is an escalation item). Default branch `main`, protected: **no direct
-pushes** — agents push task branches and open PRs; the owner reviews and merges.
+pushes** — agents push task branches and open PRs; the owner reviews and merges, except inside the
+D31 envelope (`AGENTS.md` §12).
 
 **Branch model (task-centric):**
 - One short-lived branch per `docs/gaps.md` task: `t/<task-id>-<slug>` (e.g. `t/p0-1-workspace-ci`,
@@ -723,6 +724,9 @@ pushes** — agents push task branches and open PRs; the owner reviews and merge
 - Merge policy: **squash-merge by the owner** → `main` holds exactly one green commit per closed
   task; the branch is deleted after merge and the PR page preserves the detail. Use `--no-ff`
   merge instead only when a task's intermediate commits have archaeology worth keeping (owner's call).
+  **D31 supersedes the owner-only actor here:** inside the D31 envelope (`AGENTS.md` §12) the
+  SUPERVISOR performs the same `gh pr merge --squash --delete-branch` under its six conditions; the
+  owner remains the merger everywhere else.
 
 **Commit convention** (branch commits and main squash commits alike):
 

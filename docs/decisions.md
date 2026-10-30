@@ -246,10 +246,14 @@ fresh-context IMPLEMENTER, then a fresh-context REVIEWER that receives parameter
 opinions, no implementer devlog claims), arbitrates at most two review rounds, and squash-merges with
 `gh pr merge --squash --delete-branch` — GitHub-side, so branch protection and the required checks are
 enforced server-side rather than trusted.
-**Merge conditions (all required; any failure = stop and escalate):** reviewer APPROVE with 0 BLOCKER/0
-MAJOR · both required checks green on the PR head · no escalation flag on the task · the diff touches no
-owner-reserved surface (schema migrations, the dependency set, deletion of committed data, §3 security
-rows, branding) · no `plan/HOLD` file.
+**Merge conditions (all six required; any failure = stop and escalate):** (1) reviewer APPROVE with
+0 BLOCKER/0 MAJOR · (2) both required checks green on the PR head · (3) **no escalation flag on the
+task** — the `docs/gaps.md` row's Status reads `escalated`, or a local `plan/ESCALATE` marker exists
+alongside `plan/HOLD` · (4) the diff touches no owner-reserved surface (schema migrations, the
+dependency set, deletion of committed data, the security-adjacent §3 rows — §3.1 rows 8–10, §3.3,
+§3.4 — branding) · (5) a **merge report paragraph in the devlog** — owed by stage 6 of the same
+cycle; the cycle is not complete until that paragraph exists and its absence is an escalation, which
+is how the condition is checked · (6) no `plan/HOLD` file.
 **Limits:** default budget of 3 tasks then an owner digest; a task failing twice escalates instead of
 being retried; a round-3 review escalates; the owner revokes at any time by creating `plan/HOLD` or by
 amending this row. The owner keeps merge authority on escalations, phase gates and releases.

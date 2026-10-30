@@ -418,10 +418,11 @@ the rewritten local refs; tree `b886fe2f` unchanged; backup bundle `../midata-pr
 `docs/decisions.md`; `AGENTS.md` gains §12 as the operating procedure and `docs/review-templates.md`
 gains the SUPERVISOR template (stages 0–7). A SUPERVISOR agent may now run consecutive task cycles —
 fresh implementer, fresh reviewer, at most two review rounds — and squash-merge through `gh pr merge`
-without owner action, but only while all five conditions hold: APPROVE with 0 BLOCKER/0 MAJOR, both
-required checks green on the PR head, no escalation flag, no owner-reserved surface in the diff, and no
-`plan/HOLD`. Budget 3 tasks then an owner digest; a task that fails twice escalates instead of being
-retried; the owner revokes by creating `plan/HOLD` or by amending the row.
+without owner action, but only while all six conditions hold: APPROVE with 0 BLOCKER/0 MAJOR, both
+required checks green on the PR head, no escalation flag, no owner-reserved surface in the diff, a
+merge report paragraph in the devlog, and no `plan/HOLD`. Budget 3 tasks then an owner digest; a task
+that fails twice escalates instead of being retried; the owner revokes by creating `plan/HOLD` or by
+amending the row.
 
 **Why it is not a self-merging implementer.** Delegation goes to an agent that never implements and
 never reviews, and the merge itself happens on GitHub, so branch protection and the required checks are
@@ -439,3 +440,23 @@ clean.
 
 **Numbers.** `main` 8 commits; trailer occurrences on `main` 0; PR #4 checks green (ubuntu 19 s, windows
 45 s); the D30 session's four follow-up items are down to three.
+
+**Owner authorisation for the two owner-reserved actions above.** The owner confirms they instructed
+both owner-reserved actions recorded here (the force-push of the `t/p0-2-domain-i18n` remote tip and
+the squash-merge of PR #4), and acknowledges that PR #4 carried no reviewer report, a deviation from
+D29 accepted by the owner. Recorded 2026-10-30.
+
+**Review #5 round 1 (independent REVIEWER, separate session):** REQUEST_CHANGES — 0 BLOCKER / 3 MAJOR / 5 MINOR / 2 SUGGESTION (R1: the binding D31 row lists six merge conditions, all four restatements say five and drop the devlog-report item, and `AGENTS.md` §12 names them only by count; R2: six superseded "owner squash-merges" statements left standing in `AGENTS.md` §5/§7.4, §13.4 and `docs/contributing.md` §6/§9, so the constitution contradicts itself; R3: the devlog records a remote force-push and the PR #4 squash-merge — both owner-reserved — without stating their authority, and PR #4 carries no reviewer report under D29); docs-only fast path (A+D), C skipped, B sampled on merge conditions/budget/escalation triggers/cross-references; every number in the entry verified against the tree and the remote (8 commits, 0 trailers, PR #4 timings 19 s/45 s, `cb4405c`, `git 2.53.0`, `gh` scopes) and the three xtask gates re-run green on this machine; full report in PR #5 comment <https://github.com/halmousama/MiData/pull/5#issuecomment-6532761853>; no code or docs touched, nothing pushed — this line left uncommitted for the supervisor.
+
+**Review #5 round 1 fixes (fix round, same branch, 2026-10-30):** R1 the six D31 merge conditions are now
+enumerated identically in `AGENTS.md` §12, `docs/decisions.md` D31, the SUPERVISOR template stage 5 and
+the PR body — the devlog restatement was corrected too; R2 the owner-only-merge carve-out
+"except inside the D31 envelope" landed at all six superseded statements (`AGENTS.md` §5, §7.4, §13.4
+twice, `docs/contributing.md` §6 and §9); R3 the owner-authorisation paragraph is recorded in the D31
+entry above; R4 budget/digest/round-3 stop added to §12; R5 the IMPLEMENTER (kickoff) and FIX-ROUND
+templates now exist in `docs/review-templates.md`; R6 the escalation flag is defined (gaps Status
+`escalated`, or `plan/ESCALATE`) in §12, D31 and the template; R7 "§3 security rows" is resolved to
+§3.1 rows 8–10, §3.3, §3.4 wherever the conditions are restated (§15 untouched, per the owner);
+R8 stamps: `AGENTS.md` 0.4-draft with the §12/D31 change line, P0-10 re-measured at **36.4 KB**
+(35.6 KiB); R9 D29/D30/D31 rows added to the gaps Closed table; R10 the docs-only fast path stated in
+the REVIEWER template. `cargo xtask ci` green (the i18n skip is the tracked no-catalogues state).
