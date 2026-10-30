@@ -495,3 +495,29 @@ escalations), N5 (the bootloader grew 34 177 → 36 436 B while P0-10 is open at
 six-condition list should collapse to a pointer when the diet lands; wire that into P0-10's scope).
 
 **cycle 0 (pre-flight): D31 merged (PR #5, 3M→0M over 2 rounds, run 41124154529) · next: P0-2f**
+
+## 2026-10-30 — P0-2f · Docs truth pass (roadmap focus, closure-stamp DoD, P0-14 promotion)
+
+**Landed (PR [#6](https://github.com/halmousama/MiData/pull/6), docs-only).**
+- `docs/roadmap.md`: truthful `Updated:` stamp and "Current focus". Verified, not assumed: PR #3 is
+  **CLOSED** (`mergedAt` null, `closedAt` 2026-10-27T09:35:38Z), P0-2 lives only on
+  `t/p0-2-domain-i18n` (`cb4405c`), and **`main` has no `crates/` directory at all**. Focus order is
+  **P0-2f → P0-14 → P0-2 re-land → P0-3**, with P0-3 stated as blocked until P0-2 is on `main`.
+- `docs/contributing.md`: DoD gains the closure-stamp rule — `ROADMAP.md` header stamp and
+  current-focus line updated at task closure (matching `Updated:` stamp in `docs/roadmap.md`).
+- `docs/gaps.md`: P0-2f (rank 2) and P0-14 (rank 3) rows added; ranks renumbered 1–12; P0-2 Status
+  corrected to "branch fixes, PR closed unmerged, re-land queued"; Status vocabulary
+  (`open`/`done`/`escalated`) documented; P0-10 re-ranked 2 → 12 with the `AGENTS.md` §12 pointer
+  follow-up wired in; known shortfall 8 added with its traceability (found during P0-2 on the branch,
+  promoted to P0-14 on 2026-10-30). No vendor/model literals printed — P0-14 records the
+  assembled-in-code mechanism and the gate negative proof instead.
+
+**Numbers.** Queue open sum 62 → **66.5 agent-hours** (72 start − 10 P0-1 + 1.5 P0-2f + 3 P0-14;
+P0-2's 8 h stays open because PR #3 closed unmerged). `AGENTS.md` re-measured at **36 436 B** = 3.04×
+the 12 KB P0-10 target. `cargo xtask ci`: `xtask ci: OK — every gate that can run has run and passed`;
+the scorecard diff was clean, so no scorecard commit.
+
+**Still open.** (1) Root `ROADMAP.md` remains stale (says next task P0-10) — outside P0-2f's declared
+file scope; the new DoD rule forces its update at the next closure. (2) **P0-14** — D30 is still
+honour-system until the hook and term list land. (3) **P0-2 re-land** — the reviewed branch still has to
+reach `main` before P0-3 can start. (4) **P0-10** diet, now rank 12.
